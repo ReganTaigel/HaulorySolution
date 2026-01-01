@@ -20,4 +20,10 @@
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
+	  <ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
+	  <ProjectReference Include="..\Haulory.Domain\Haulory.Domain.csproj" />
+	</ItemGroup>
+
 </Project>
