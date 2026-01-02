@@ -1,17 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Haulory.Moblie.Views;
+using Microsoft.Maui.Controls;
 
-namespace Haulory.Moblie
+namespace Haulory.Moblie;
+
+public partial class App : Microsoft.Maui.Controls.Application
 {
-    public partial class App : Application
+    public App(AppShell shell)
     {
-        public App()
-        {
-            InitializeComponent();
-        }
-
-        protected override Window CreateWindow(IActivationState? activationState)
-        {
-            return new Window(new AppShell());
-        }
+        InitializeComponent();
+        MainPage = shell;
     }
 }

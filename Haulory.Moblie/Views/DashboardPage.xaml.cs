@@ -1,9 +1,9 @@
-namespace Haulory.Moblie.Views.DashboardPage;
+namespace Haulory.Moblie.Views;
 
 public partial class DashboardPage : ContentPage
 {
-	public DashboardPage()
-	{
-		InitializeComponent();
-	}
+    public DashboardPage()
+    {
+        InitializeComponent();
+    }
 }

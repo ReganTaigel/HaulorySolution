@@ -71,6 +71,12 @@
 	  <MauiXaml Update="Views\Jobs.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\RegisterPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\VehiclesPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -83,6 +89,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
 	  <ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
+	  <ProjectReference Include="..\Haulory.Infrastructure\Haulory.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

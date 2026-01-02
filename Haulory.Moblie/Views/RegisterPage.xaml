@@ -1,0 +1,118 @@
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.RegisterPage"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{AppThemeBinding Light=#F5F6FA, Dark=#121212}">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24"
+            Spacing="24"
+            VerticalOptions="Center">
+
+            <!-- App Title -->
+            <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                <Label
+                    Text="Create account"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="{AppThemeBinding Light=#1F2937, Dark=White}" />
+
+                <Label
+                    Text="Set up your Haulory profile"
+                    FontSize="14"
+                    TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+            </VerticalStackLayout>
+
+            <!-- Register Card -->
+            <Border
+                StrokeShape="RoundRectangle 16"
+                BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
+                Padding="20">
+
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- First Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="First name"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                        <Entry
+                            Placeholder="John"
+                            Text="{Binding FirstName}"
+                            HeightRequest="48"
+                            BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+
+                    <!-- Last Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Last name"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                        <Entry
+                            Placeholder="Doe"
+                            Text="{Binding LastName}"
+                            HeightRequest="48"
+                            BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+
+                    <!-- Email -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Email"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                        <Entry
+                            Placeholder="you@example.com"
+                            Text="{Binding Email}"
+                            Keyboard="Email"
+                            ClearButtonVisibility="WhileEditing"
+                            HeightRequest="48"
+                            BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+
+                    <!-- Password -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Password"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                        <Entry
+                            Placeholder="*******"
+                            Text="{Binding Password}"
+                            IsPassword="True"
+                            HeightRequest="48"
+                            BackgroundColor="Transparent" />
+                    </VerticalStackLayout>
+
+                    <!-- Register Button -->
+                    <Button
+                        Text="Create account"
+                        Command="{Binding RegisterCommand}"
+                        HeightRequest="48"
+                        CornerRadius="12"
+                        FontAttributes="Bold"
+                        BackgroundColor="#2563EB"
+                        TextColor="White" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Footer -->
+            <Label
+                Text="By creating an account you agree to our terms"
+                FontSize="12"
+                HorizontalOptions="Center"
+                TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
