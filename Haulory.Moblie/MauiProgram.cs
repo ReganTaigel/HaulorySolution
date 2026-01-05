@@ -1,6 +1,8 @@
 ﻿using Haulory.Application.Features.Users;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Infrastructure.Persistence.InMemory;
+using Haulory.Infrastructure.Services;
 using Haulory.Moblie.ViewModels;
 using Haulory.Moblie.Views;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,7 @@ namespace Haulory.Moblie
             builder.Services.AddSingleton<AppShell>();
 
             builder.Services.AddSingleton<IUserRepository, UserRepository>();
+            builder.Services.AddSingleton<ISessionService, SessionService>();
 
             builder.Services.AddTransient<RegisterUserHandler>();
             builder.Services.AddTransient<LoginUserHandler>();

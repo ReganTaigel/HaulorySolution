@@ -1,28 +1,33 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Core.Security;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Haulory.Domain.Entities;
 
-namespace Haulory.Application.Features.Users
+namespace Haulory.Application.Features.Users;
+
+public class LoginUserHandler
 {
-    public class LoginUserHandler
+    private readonly IUserRepository _repository;
+
+    public LoginUserHandler(IUserRepository repository)
     {
-        private readonly IUserRepository _userRepository;
-        
-        public LoginUserHandler(IUserRepository userRepository)
-        {
-            _userRepository = userRepository; 
-        }
+        _repository = repository;
+    }
 
-        public async Task<bool> HandleAsync(LoginUserCommand command)
-        {
+    public async Task<User?> HandleAsync(LoginUserCommand command)
+    {
+        var email = command.Email?.Trim().ToLowerInvariant();
 
-            var user = await _userRepository.GetByEmailAsync(command.Email);
-            if (user == null) 
-                return false;
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
 
-            return PasswordHasher.Verify(command.Password, user.PasswordHash );
-        }
+        var user = await _repository.GetByEmailAsync(email);
+
+        if (user == null)
+            return null;
+
+        if (!PasswordHasher.Verify(command.Password, user.PasswordHash))
+            return null;
+
+        return user; // ✅ SUCCESS
     }
 }
