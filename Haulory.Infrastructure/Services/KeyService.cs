@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace Haulory.Infrastructure.Security;
+namespace Haulory.Infrastructure.Services;
 
 public static class KeyService
 {
@@ -8,13 +8,27 @@ public static class KeyService
 
     public static async Task<byte[]> GetOrCreateKeyAsync()
     {
-        var stored = await SecureStorage.GetAsync(KeyName);
+        try
+        {
+            var stored = await SecureStorage.GetAsync(KeyName);
 
-        if (stored != null)
-            return Convert.FromBase64String(stored);
+            if (!string.IsNullOrWhiteSpace(stored))
+                return Convert.FromBase64String(stored);
+        }
+        catch (Exception ex)
+        {
+            // Never generate a new key silently
+            throw new InvalidOperationException(
+                "SecureStorage unavailable. Cannot access encryption key.",
+                ex);
+        }
 
+        // FIRST INSTALL ONLY
         var key = RandomNumberGenerator.GetBytes(32); // 256-bit key
-        await SecureStorage.SetAsync(KeyName, Convert.ToBase64String(key));
+
+        await SecureStorage.SetAsync(
+            KeyName,
+            Convert.ToBase64String(key));
 
         return key;
     }

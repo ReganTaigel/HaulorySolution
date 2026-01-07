@@ -35,6 +35,8 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<LoginPage>();
 
+            builder.Services.AddTransient<DashboardViewModel>();
+            builder.Services.AddTransient<DashboardPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

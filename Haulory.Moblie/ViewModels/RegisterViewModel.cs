@@ -1,47 +1,60 @@
 ﻿using Haulory.Application.Features.Users;
-using Haulory.Moblie.Views;
+using Haulory.Moblie.ViewModels;
 using System.Windows.Input;
-namespace Haulory.Moblie.ViewModels
+
+public class RegisterViewModel : BaseViewModel
 {
-    public class RegisterViewModel : BaseViewModel
+    private readonly RegisterUserHandler _Handler;
+    private bool _isRegistering;
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+
+    public ICommand RegisterCommand { get; }
+
+    public RegisterViewModel(RegisterUserHandler handler)
     {
-        private readonly RegisterUserHandler _Handler;
+        _Handler = handler;
 
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-
-        public ICommand RegisterCommand { get; }
-
-        public RegisterViewModel(RegisterUserHandler handler)
+        RegisterCommand = new Command(async () =>
         {
-            _Handler = handler;
+            if (_isRegistering) return;
+            _isRegistering = true;
 
-            RegisterCommand = new Command(async () =>
+            try
             {
                 var success = await _Handler.HandleAsync(
-                    new RegisterUserCommand(FirstName,
-                    LastName,
-                    Email,
-                    Password));
+                    new RegisterUserCommand(
+                        FirstName,
+                        LastName,
+                        Email,
+                        Password));
 
                 if (success)
-                    await Shell.Current.GoToAsync("///LoginPage");
-
-                ;
-                await Microsoft.Maui.Controls.Application
-                    .Current!
-                    .Dispatcher.DispatchAsync(async () =>
-                    {
-                        await Shell.Current.DisplayAlertAsync(
-                        "Error",
-                        "User already exists",
+                {
+                    // Show success feedback
+                    await Shell.Current.DisplayAlertAsync(
+                        "Registration Successful",
+                        "Your account has been created. Please log in.",
                         "OK");
 
-                    });
-
-            });
-        }
+                    // Navigate AFTER alert
+                    await Shell.Current.GoToAsync("///LoginPage");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                    "Registration Failed",
+                    "Password must be at least 8 characters and include 2 numbers and 2 special characters.",
+                    "OK");
+                }
+            }
+            finally
+            {
+                _isRegistering = false;
+            }
+        });
     }
 }

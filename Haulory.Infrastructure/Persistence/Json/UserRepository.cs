@@ -2,6 +2,7 @@
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Haulory.Infrastructure.Security;
+using Haulory.Infrastructure.Services;
 
 namespace Haulory.Infrastructure.Persistence.Json;
 
@@ -25,8 +26,12 @@ public class UserRepository : IUserRepository
         {
             var users = await LoadAsync();
 
-            if (users.Any(u => u.Email == user.Email))
+            if (users.Any(u =>
+                u.Email.Equals(user.Email, StringComparison.Ordinal)))
+            {
                 return;
+            }
+
 
             users.Add(user);
             await SaveAsync(users);
@@ -57,17 +62,27 @@ public class UserRepository : IUserRepository
         if (!File.Exists(_filePath))
             return new List<User>();
 
-        var key = await KeyService.GetOrCreateKeyAsync();
-        var bytes = await File.ReadAllBytesAsync(_filePath);
+        try
+        {
+            var key = await KeyService.GetOrCreateKeyAsync();
+            var bytes = await File.ReadAllBytesAsync(_filePath);
 
-        var iv = bytes[..16];
-        var cipher = bytes[16..];
+            var iv = bytes[..16];
+            var cipher = bytes[16..];
 
-        var json = EncryptionService.Decrypt(cipher, key, iv);
+            var json = EncryptionService.Decrypt(cipher, key, iv);
 
-        return JsonSerializer.Deserialize<List<User>>(json)
-               ?? new List<User>();
+            return JsonSerializer.Deserialize<List<User>>(json)
+                   ?? new List<User>();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "Encrypted user store is corrupted or key mismatch.",
+                ex);
+        }
     }
+
 
     private async Task SaveAsync(List<User> users)
     {
