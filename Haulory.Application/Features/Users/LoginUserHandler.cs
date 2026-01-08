@@ -28,6 +28,6 @@ public class LoginUserHandler
         if (!PasswordHasher.Verify(command.Password, user.PasswordHash))
             return null;
 
-        return user; // ✅ SUCCESS
+        return user; // SUCCESS
     }
 }

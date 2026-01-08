@@ -20,8 +20,16 @@ public class DashboardViewModel : BaseViewModel
     {
         _sessionService = sessionService;
 
-        GoToJobsCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(JobsPage)));
+        try
+        {
+            GoToJobsCommand = new Command(async () =>
+            await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
+        }
+        catch(Exception ex)
+        {
+            throw new InvalidOperationException(
+                "Failed to navi", ex);
+        }
 
         GoToVehiclesCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(VehiclesPage)));

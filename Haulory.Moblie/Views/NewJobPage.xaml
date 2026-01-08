@@ -1,0 +1,114 @@
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.NewJobPage"
+    Title="New Job">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <!-- PICKUP -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="16"
+                    Stroke="#E5E7EB">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Pickup"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <Entry Placeholder="Company name"
+                           Text="{Binding PickupCompany}" />
+
+                    <Entry Placeholder="Pickup address"
+                           Text="{Binding PickupAddress}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- DELIVERY -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="16"
+                    Stroke="#E5E7EB">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Delivery"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <Entry Placeholder="Company name"
+                           Text="{Binding DeliveryCompany}" />
+
+                    <Entry Placeholder="Delivery address"
+                           Text="{Binding DeliveryAddress}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- LOAD DETAILS -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="16"
+                    Stroke="#E5E7EB">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Load"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <Entry Placeholder="Reference number"
+                           Text="{Binding ReferenceNumber}" />
+
+                    <Editor Placeholder="Load description"
+                            AutoSize="TextChanges"
+                            Text="{Binding LoadDescription}" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- BILLING -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="16"
+                    Stroke="#E5E7EB">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Billing"
+                           FontSize="18"
+                           FontAttributes="Bold" />
+
+                    <Picker Title="Rate type"
+                            ItemsSource="{Binding RateTypes}"
+                            SelectedItem="{Binding RateType}" />
+
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="12">
+
+                        <Entry Grid.Column="0"
+                               Placeholder="Rate"
+                               Keyboard="Numeric"
+                               Text="{Binding RateValue}" />
+
+                        <Entry Grid.Column="1"
+                               Placeholder="Quantity"
+                               Keyboard="Numeric"
+                               Text="{Binding Quantity}" />
+                    </Grid>
+
+                    <Label Text="{Binding Total, StringFormat='Total: {0:C}'}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           HorizontalOptions="Start" />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- SAVE -->
+            <Button Text="Save Job"
+                    Command="{Binding SaveJobCommand}"
+                    HeightRequest="50"
+                    CornerRadius="14"
+                    BackgroundColor="#2563EB"
+                    TextColor="White" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

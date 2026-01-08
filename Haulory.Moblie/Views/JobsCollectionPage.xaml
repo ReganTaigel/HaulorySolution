@@ -1,0 +1,92 @@
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.JobsCollectionPage"
+    Title="Jobs">
+
+    <Grid RowDefinitions="Auto,*"
+          Padding="16">
+
+        <!-- HEADER -->
+        <Grid
+            Grid.Row="0"
+            ColumnDefinitions="*,Auto"
+            VerticalOptions="Center">
+
+            <Label
+                Grid.Column="0"
+                Text="Jobs"
+                FontSize="24"
+                FontAttributes="Bold" />
+
+            <Button
+                Grid.Column="1"
+                Text="Add Job"
+                Command="{Binding AddJobCommand}"
+                HeightRequest="40"
+                Padding="12,0"
+                CornerRadius="12" />
+        </Grid>
+
+        <!-- JOB LIST -->
+        <CollectionView
+            Grid.Row="1"
+            ItemsSource="{Binding Jobs}"
+            Margin="0,16,0,0"
+            SelectionMode="None">
+
+            <CollectionView.EmptyView>
+                <Label
+                    Text="No jobs yet"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    TextColor="Gray" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="16"
+                        Margin="0,0,0,12">
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <!-- JOB TITLE -->
+                            <Label
+                                Text="{Binding ReferenceNumber}"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+
+                            <!-- PICKUP / DELIVERY -->
+                            <Label
+                                Text="{Binding PickupCompany}"
+                                FontSize="14"
+                                TextColor="Gray" />
+
+                            <Label
+                                Text="{Binding DeliveryCompany}"
+                                FontSize="14"
+                                TextColor="Gray" />
+
+                            <!-- ACTION -->
+                            <Button
+                                Text="Sign Delivery"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
+                                CommandParameter="{Binding .}"
+                                HeightRequest="40"
+                                CornerRadius="12" />
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

@@ -12,7 +12,8 @@ public partial class AppShell : Shell
         InitializeComponent();
         _sessionService = sessionService;
 
-        Routing.RegisterRoute(nameof(JobsPage), typeof(JobsPage));
+        Routing.RegisterRoute(nameof(NewJobPage), typeof(NewJobPage));
+        Routing.RegisterRoute(nameof(JobsCollectionPage), typeof(JobsCollectionPage));
         Routing.RegisterRoute(nameof(VehiclesPage), typeof(VehiclesPage));
         Routing.RegisterRoute(nameof(DriversPage), typeof(DriversPage));
         Routing.RegisterRoute(nameof(ReportsPage), typeof(ReportsPage));

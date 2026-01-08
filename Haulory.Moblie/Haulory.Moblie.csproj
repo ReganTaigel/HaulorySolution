@@ -68,10 +68,13 @@
 	  <MauiXaml Update="Views\DriversPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\JobsPage.xaml">
+	  <MauiXaml Update="Views\JobsCollectionPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\LoginPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\NewJobPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\RegisterPage.xaml">
@@ -100,8 +103,8 @@
 	  <Compile Update="Views\DriversPage.xaml.cs">
 	    <DependentUpon>DriversPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Views\JobsPage.xaml.cs">
-	    <DependentUpon>JobsPage.xaml</DependentUpon>
+	  <Compile Update="Views\JobsCollectionPage.xaml.cs">
+	    <DependentUpon>JobsCollectionPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
