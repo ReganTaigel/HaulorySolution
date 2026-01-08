@@ -2,25 +2,129 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Moblie.Views.DashboardPage"
-    Title="Dashboard">
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout
-        Padding="24"
-        Spacing="16">
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="20">
 
-        <Label
-            Text="Welcome to Haulory"
-            FontSize="24"
-            FontAttributes="Bold" />
+            <!-- HEADER -->
+            <VerticalStackLayout Spacing="4">
+                <Label
+                    Text="Haulory"
+                    FontSize="28"
+                    FontAttributes="Bold" />
 
-        <Button
-            Text="Logout"
-            Command="{Binding LogoutCommand}"
-            BackgroundColor="#DC2626"
-            TextColor="White"
-            CornerRadius="10"
-            HeightRequest="44" />
+                <Label
+                    Text="Business overview"
+                    FontSize="14"
+                    TextColor="Gray" />
+            </VerticalStackLayout>
 
-    </VerticalStackLayout>
+            <!-- TODAY SUMMARY -->
+            <Border
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#1F2937'}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="Today"
+                        FontSize="18"
+                        FontAttributes="Bold" />
+
+                    <Label
+                        Text="{Binding TodaySummary}"
+                        FontSize="14"
+                        TextColor="Gray" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ACTION CARDS -->
+
+            <Border
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Jobs"
+                        FontSize="18"
+                        FontAttributes="Bold" />
+
+                    <Button
+                        Text="Manage Jobs"
+                        Command="{Binding GoToJobsCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Vehicles"
+                        FontSize="18"
+                        FontAttributes="Bold" />
+
+                    <Button
+                        Text="Manage Vehicles"
+                        Command="{Binding GoToVehiclesCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Drivers"
+                        FontSize="18"
+                        FontAttributes="Bold" />
+
+                    <Button
+                        Text="Manage Drivers"
+                        Command="{Binding GoToDriversCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Reports"
+                        FontSize="18"
+                        FontAttributes="Bold" />
+
+                    <Button
+                        Text="View Reports"
+                        Command="{Binding GoToReportsCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- LOGOUT -->
+            <Button
+                Text="Logout"
+                Command="{Binding LogoutCommand}"
+                BackgroundColor="#DC2626"
+                TextColor="White"
+                CornerRadius="14"
+                HeightRequest="48"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>

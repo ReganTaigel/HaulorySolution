@@ -1,8 +1,8 @@
 namespace Haulory.Moblie.Views;
 
-public partial class Jobs : ContentPage
+public partial class JobsPage : ContentPage
 {
-	public Jobs()
+	public JobsPage()
 	{
 		InitializeComponent();
 	}

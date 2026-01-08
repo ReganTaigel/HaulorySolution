@@ -1,4 +1,5 @@
 ﻿using Haulory.Application.Interfaces.Services;
+using Haulory.Moblie.Views;
 
 namespace Haulory.Moblie;
 
@@ -11,7 +12,12 @@ public partial class AppShell : Shell
         InitializeComponent();
         _sessionService = sessionService;
 
-        Navigating += OnNavigating;
+        Routing.RegisterRoute(nameof(JobsPage), typeof(JobsPage));
+        Routing.RegisterRoute(nameof(VehiclesPage), typeof(VehiclesPage));
+        Routing.RegisterRoute(nameof(DriversPage), typeof(DriversPage));
+        Routing.RegisterRoute(nameof(ReportsPage), typeof(ReportsPage));
+
+    Navigating += OnNavigating;
     }
 
     private async void OnNavigating(object? sender, ShellNavigatingEventArgs e)

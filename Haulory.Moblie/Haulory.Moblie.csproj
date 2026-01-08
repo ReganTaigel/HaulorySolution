@@ -65,16 +65,19 @@
 	  <MauiXaml Update="Views\DashboardPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Drivers.xaml">
+	  <MauiXaml Update="Views\DriversPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\Jobs.xaml">
+	  <MauiXaml Update="Views\JobsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\LoginPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\RegisterPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\ReportsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\VehiclesPage.xaml">
@@ -91,6 +94,15 @@
 	  <ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
 	  <ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
 	  <ProjectReference Include="..\Haulory.Infrastructure\Haulory.Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\DriversPage.xaml.cs">
+	    <DependentUpon>DriversPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\JobsPage.xaml.cs">
+	    <DependentUpon>JobsPage.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 </Project>
