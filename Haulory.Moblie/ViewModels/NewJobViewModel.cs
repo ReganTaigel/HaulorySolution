@@ -1,6 +1,7 @@
 ﻿using Haulory.Application.Features.Jobs;
 using Haulory.Domain.Enums;
 using Haulory.Moblie.ViewModels;
+using Haulory.Moblie.Views;
 using System.Windows.Input;
 
 public class NewJobViewModel : BaseViewModel
@@ -54,14 +55,10 @@ public class NewJobViewModel : BaseViewModel
     {
         _handler = handler;
 
-        SaveJobCommand = new Command(async () => await SaveAsync(), CanSave);
-        CancelCommand = new Command(async () => await Shell.Current.GoToAsync(".."));
+        SaveJobCommand = new Command(async () => await SaveAsync());
+        CancelCommand = new Command(async () => await Shell.Current.GoToAsync(nameof(DashboardPage)));
     }
 
-    private bool CanSave() =>
-        !string.IsNullOrWhiteSpace(PickupCompany) &&
-        RateValue > 0 &&
-        Quantity > 0;
 
     private async Task SaveAsync()
     {
@@ -76,7 +73,7 @@ public class NewJobViewModel : BaseViewModel
             RateValue,
             Quantity));
 
-        await Shell.Current.GoToAsync("..");
+        await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
     }
 }
 
