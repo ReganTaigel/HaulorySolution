@@ -6,4 +6,6 @@ public interface IJobRepository
 {
     Task AddAsync(Job job);
     Task<IReadOnlyList<Job>> GetAllAsync();
+    Task UpdateAllAsync(IReadOnlyList<Job> jobs);
+    Task<int> GetNextSortOrderAsync();
 }

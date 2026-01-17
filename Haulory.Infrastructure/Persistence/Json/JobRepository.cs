@@ -36,19 +36,45 @@ public class JobRepository : IJobRepository
         return await LoadAsync();
     }
 
+    // Determine next manual sort position
+    public async Task<int> GetNextSortOrderAsync()
+    {
+        var jobs = await LoadAsync();
+
+        return jobs.Count == 0
+            ? 1
+            : jobs.Max(j => j.SortOrder) + 1;
+    }
+
+    // Persist reordered jobs
+    public async Task UpdateAllAsync(IReadOnlyList<Job> jobs)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            await SaveAsync(jobs.ToList());
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     private async Task<List<Job>> LoadAsync()
     {
         if (!File.Exists(_filePath))
             return new List<Job>();
 
         var json = await File.ReadAllTextAsync(_filePath);
+
         return JsonSerializer.Deserialize<List<Job>>(json)
                ?? new List<Job>();
     }
 
     private async Task SaveAsync(List<Job> jobs)
     {
-        var json = JsonSerializer.Serialize(jobs,
+        var json = JsonSerializer.Serialize(
+            jobs,
             new JsonSerializerOptions { WriteIndented = true });
 
         await File.WriteAllTextAsync(_filePath, json);

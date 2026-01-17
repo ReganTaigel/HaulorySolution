@@ -54,15 +54,40 @@
                         Padding="16"
                         Margin="0,0,0,12">
 
-                        <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout Spacing="10">
 
-                            <!-- JOB TITLE -->
-                            <Label
-                                Text="{Binding ReferenceNumber}"
-                                FontSize="16"
-                                FontAttributes="Bold" />
+                            <!-- Top row: Ref Up/Down -->
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                                <Label
+                                    Grid.Column="0"
+                                    Text="{Binding ReferenceNumber}"
+                                    FontSize="16"
+                                    FontAttributes="Bold" />
 
-                            <!-- PICKUP / DELIVERY -->
+                                <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                    <Button
+                                        Text="Up"
+                                        FontSize="16"
+                                        WidthRequest="44"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        Padding="0"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveUpCommand}"
+                                        CommandParameter="{Binding .}" />
+
+                                    <Button
+                                        Text="Down"
+                                        FontSize="16"
+                                        WidthRequest="44"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        Padding="0"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveDownCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                            <!-- Pickup / Delivery -->
                             <Label
                                 Text="{Binding PickupCompany}"
                                 FontSize="14"
@@ -73,7 +98,7 @@
                                 FontSize="14"
                                 TextColor="Gray" />
 
-                            <!-- ACTION -->
+                            <!-- Action -->
                             <Button
                                 Text="Sign Delivery"
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
@@ -82,6 +107,7 @@
                                 CornerRadius="12" />
 
                         </VerticalStackLayout>
+
                     </Border>
 
                 </DataTemplate>

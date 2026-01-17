@@ -47,18 +47,6 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<DashboardPage>();
 
-
-
-
-
-
-
-
-
-
-
-
-
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

@@ -23,10 +23,11 @@ public class Job
     public RateType RateType { get; }
     public decimal RateValue { get; }
     public int Quantity { get; }
-
     public decimal Total => RateValue * Quantity;
-
     public DateTime CreatedAt { get; } = DateTime.UtcNow;
+
+    // Manual ordering
+    public int SortOrder { get; private set; }
 
     public Job(
         string pickupCompany,
@@ -38,7 +39,8 @@ public class Job
         string invoiceNumber,
         RateType rateType,
         decimal rateValue,
-        int quantity)
+        int quantity,
+        int sortOrder)
     {
         PickupCompany = pickupCompany;
         PickupAddress = pickupAddress;
@@ -50,5 +52,11 @@ public class Job
         RateType = rateType;
         RateValue = rateValue;
         Quantity = quantity;
+        SortOrder = sortOrder;
+    }
+    // Used when manually reordering jobs
+    public void SetSortOrder(int sortOrder)
+    {
+        SortOrder = sortOrder;
     }
 }

@@ -5,15 +5,18 @@ namespace Haulory.Application.Features.Jobs;
 
 public class CreateJobHandler
 {
-    private readonly IJobRepository _repository;
+    private readonly IJobRepository _jobRepository;
 
-    public CreateJobHandler(IJobRepository repository)
+    public CreateJobHandler(IJobRepository jobrepository)
     {
-        _repository = repository;
+        _jobRepository = jobrepository;
     }
 
     public async Task HandleAsync(CreateJobCommand command)
     {
+        // Determine manual sort order
+        var nextOrder = await _jobRepository.GetNextSortOrderAsync();
+
         var job = new Job(
             command.PickupCompany,
             command.PickupAddress,
@@ -24,8 +27,9 @@ public class CreateJobHandler
             invoiceNumber: Guid.NewGuid().ToString("N")[..8],
             command.RateType,
             command.RateValue,
-            command.Quantity);
+            command.Quantity,
+            nextOrder);
 
-        await _repository.AddAsync(job);
+        await _jobRepository.AddAsync(job);
     }
 }
