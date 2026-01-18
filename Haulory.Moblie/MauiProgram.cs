@@ -32,6 +32,7 @@ namespace Haulory.Moblie
             builder.Services.AddSingleton<IJobRepository, JobRepository>();
             builder.Services.AddSingleton<IUserRepository, UserRepository>();
             builder.Services.AddSingleton<ISessionService, SessionService>();
+            builder.Services.AddSingleton<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
 
             // JOBS – ViewModels
             builder.Services.AddTransient<NewJobViewModel>();
@@ -39,6 +40,8 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<RegisterViewModel>();
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<DashboardViewModel>();
+            builder.Services.AddTransient<DeliverySignatureViewModel>();
+            builder.Services.AddTransient<ReportsViewModel>();
 
             // JOBS – Pages
             builder.Services.AddTransient<JobsCollectionPage>();
@@ -46,7 +49,8 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<RegisterPage>();
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<DashboardPage>();
-
+            builder.Services.AddTransient<DeliverySignaturePage>();
+            builder.Services.AddTransient<ReportsPage>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

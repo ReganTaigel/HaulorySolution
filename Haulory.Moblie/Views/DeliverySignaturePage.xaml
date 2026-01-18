@@ -1,0 +1,120 @@
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.DeliverySignaturePage"
+    Title="Delivery Signature">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <!-- ========================= -->
+        <!-- SCROLLABLE JOB DETAILS -->
+        <!-- ========================= -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="10" Spacing="16">
+
+                <!-- Job details -->
+                <Border
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Delivery Details"
+                               FontSize="18"
+                               FontAttributes="Bold"/>
+
+                        <Label Text="{Binding ReferenceNumber}"
+                               FontAttributes="Bold"
+                               FontSize="14"/>
+
+                        <Label Text="{Binding PickupCompany}"
+                               FontSize="13"
+                               TextColor="Gray"/>
+
+                        <Label Text="{Binding DeliveryCompany}"
+                               FontSize="13"
+                               TextColor="Gray"/>
+
+                        <Label Text="{Binding LoadDescription}"
+                               FontSize="13"
+                               TextColor="Gray"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Receiver -->
+                <Border
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Receiver"
+                               FontSize="16"
+                               FontAttributes="Bold"/>
+
+                        <Entry Placeholder="Receiver full name"
+                               Text="{Binding ReceiverName}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ========================= -->
+        <!-- FIXED SIGNATURE PANEL -->
+        <!-- ========================= -->
+        <Border
+            Grid.Row="1"
+            Padding="10"
+            Margin="10"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 16"
+            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+            BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}">
+
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                RowSpacing="10">
+
+                <!-- Title -->
+                <Label Grid.Row="0"
+                   Text="Signature"
+                   FontSize="16"
+                   FontAttributes="Bold"/>
+
+                <!-- Signature Canvas -->
+                <GraphicsView x:Name="SignatureView"
+                    Grid.Row="1"
+                    HeightRequest="180"
+                    Drawable="{Binding SignatureDrawable}"
+                    StartInteraction="OnStartInteraction"
+                    DragInteraction="OnDragInteraction"
+                    EndInteraction="OnEndInteraction"/>
+
+                <!-- Buttons -->
+                <Grid Grid.Row="2"
+                  ColumnDefinitions="*,*"
+                  ColumnSpacing="10">
+
+                    <Button
+                        Grid.Column="0"
+                        Text="Clear"
+                        Command="{Binding ClearSignatureCommand}" />
+
+                    <Button
+                        Grid.Column="1"
+                        Text="Save Delivery"
+                        Command="{Binding SaveCommand}" />
+                </Grid>
+
+                <!-- Status -->
+                <Label Grid.Row="3"
+                   Text="{Binding StatusMessage}"
+                   FontSize="12"
+                   TextColor="Gray"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</ContentPage>

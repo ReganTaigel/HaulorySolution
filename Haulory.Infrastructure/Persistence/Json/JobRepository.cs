@@ -16,6 +16,8 @@ public class JobRepository : IJobRepository
             "jobs.json");
     }
 
+    #region CRUD
+
     public async Task AddAsync(Job job)
     {
         await _lock.WaitAsync();
@@ -35,6 +37,54 @@ public class JobRepository : IJobRepository
     {
         return await LoadAsync();
     }
+
+    public async Task<Job?> GetByIdAsync(Guid id)
+    {
+        var jobs = await LoadAsync();
+        return jobs.FirstOrDefault(j => j.Id == id);
+    }
+
+    public async Task UpdateAsync(Job job)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var jobs = await LoadAsync();
+
+            var index = jobs.FindIndex(j => j.Id == job.Id);
+            if (index < 0)
+                return;
+
+            jobs[index] = job;
+            await SaveAsync(jobs);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    // REMOVE job from active list after delivery
+    public async Task DeleteAsync(Guid id)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var jobs = await LoadAsync();
+
+            var removed = jobs.RemoveAll(j => j.Id == id);
+            if (removed > 0)
+                await SaveAsync(jobs);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    #endregion
+
+    #region Sorting
 
     // Determine next manual sort position
     public async Task<int> GetNextSortOrderAsync()
@@ -60,6 +110,10 @@ public class JobRepository : IJobRepository
         }
     }
 
+    #endregion
+
+    #region JSON Helpers
+
     private async Task<List<Job>> LoadAsync()
     {
         if (!File.Exists(_filePath))
@@ -79,4 +133,6 @@ public class JobRepository : IJobRepository
 
         await File.WriteAllTextAsync(_filePath, json);
     }
+
+    #endregion
 }

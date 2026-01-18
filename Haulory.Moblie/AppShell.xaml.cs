@@ -17,8 +17,10 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(VehiclesPage), typeof(VehiclesPage));
         Routing.RegisterRoute(nameof(DriversPage), typeof(DriversPage));
         Routing.RegisterRoute(nameof(ReportsPage), typeof(ReportsPage));
+        Routing.RegisterRoute(nameof(DeliverySignaturePage), typeof(DeliverySignaturePage));
 
-    Navigating += OnNavigating;
+
+        Navigating += OnNavigating;
     }
 
     private async void OnNavigating(object? sender, ShellNavigatingEventArgs e)

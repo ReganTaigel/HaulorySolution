@@ -14,6 +14,7 @@ public class JobsCollectionViewModel : BaseViewModel
     public ICommand AddJobCommand { get; }
     public ICommand MoveUpCommand { get; }
     public ICommand MoveDownCommand { get; }
+    public ICommand SignDeliveryCommand { get; }
 
     public JobsCollectionViewModel(IJobRepository jobRepository)
     {
@@ -22,6 +23,14 @@ public class JobsCollectionViewModel : BaseViewModel
         AddJobCommand = new Command(async () =>
         {
             await Shell.Current.GoToAsync(nameof(NewJobPage));
+        });
+
+        SignDeliveryCommand = new Command<Job>(async (job) =>
+        {
+            if (job == null) return;
+
+            await Shell.Current.GoToAsync(
+                $"{nameof(DeliverySignaturePage)}?jobId={job.Id}");
         });
 
         MoveUpCommand = new Command<Job>(async job => await MoveAsync(job, -1));

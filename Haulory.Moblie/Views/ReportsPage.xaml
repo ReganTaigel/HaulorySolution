@@ -1,12 +1,104 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Haulory.Moblie.Views.ReportsPage"
-             Title="ReportsPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.ReportsPage"
+    Title="Reports">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- HEADER -->
+            <Label Text="Reports" FontSize="24" FontAttributes="Bold" />
+
+            <!-- STATS ROW (2 columns, no overlap) -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+
+                <Border Grid.Column="0"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="12">
+                    <VerticalStackLayout>
+                        <Label Text="Delivered" FontSize="12" TextColor="Gray"/>
+                        <Label Text="{Binding DeliveredCount}"
+                               FontSize="22"
+                               FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Column="1"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        StrokeShape="RoundRectangle 14"
+                        Padding="12">
+                    <VerticalStackLayout>
+                        <Label Text="Revenue" FontSize="12" TextColor="Gray"/>
+                        <Label Text="{Binding TotalRevenue, StringFormat='{}{0:C}'}"
+                               FontSize="22"
+                               FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </Grid>
+
+            <!-- Refresh -->
+            <Button Text="Refresh"
+                    Command="{Binding RefreshCommand}"
+                    HeightRequest="44"
+                    CornerRadius="12"/>
+
+            <!-- RECEIPTS LIST -->
+            <CollectionView ItemsSource="{Binding Receipts}"
+                            SelectionMode="None">
+
+                <CollectionView.EmptyView>
+                    <Label Text="No delivery receipts yet"
+                           HorizontalOptions="Center"
+                           TextColor="Gray"
+                           Margin="0,24,0,0"/>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="14"
+                                Margin="0,0,0,12">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding ReferenceNumber}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Total, StringFormat='{}{0:C}'}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"/>
+                                </Grid>
+
+                                <Label Text="{Binding DeliveryCompany}"
+                                       FontSize="13"
+                                       TextColor="Gray"/>
+
+                                <Label Text="{Binding ReceiverName, StringFormat='Signed by: {0}'}"
+                                       FontSize="12"
+                                       TextColor="Gray"/>
+
+                                <Label Text="{Binding DeliveredAtUtc, StringFormat='Delivered: {0:dd MMM yyyy HH:mm}'}"
+                                       FontSize="12"
+                                       TextColor="Gray"/>
+                            </VerticalStackLayout>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

@@ -12,9 +12,10 @@ public partial class DashboardPage : ContentPage
         BindingContext = vm;
         _vm = vm;
     }
+
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.LoadCurrentJobAsync();
+        await _vm.LoadAsync();
     }
 }

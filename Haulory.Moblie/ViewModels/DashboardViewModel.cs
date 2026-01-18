@@ -11,12 +11,56 @@ public class DashboardViewModel : BaseViewModel
 
     private readonly ISessionService _sessionService;
     private readonly IJobRepository _jobRepository;
+    private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+
+    private string _currentJobSummary = "No active jobs yet";
+    private int _completedTodayCount;
+    private decimal _revenueToday;
+    private string _latestCompletedSummary = "No completed jobs yet";
 
     #endregion
 
     #region Properties
 
-    public string CurrentJobSummary { get; private set; } = "No active jobs yet";
+    public string CurrentJobSummary
+    {
+        get => _currentJobSummary;
+        private set
+        {
+            _currentJobSummary = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public int CompletedTodayCount
+    {
+        get => _completedTodayCount;
+        private set
+        {
+            _completedTodayCount = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public decimal RevenueToday
+    {
+        get => _revenueToday;
+        private set
+        {
+            _revenueToday = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string LatestCompletedSummary
+    {
+        get => _latestCompletedSummary;
+        private set
+        {
+            _latestCompletedSummary = value;
+            OnPropertyChanged();
+        }
+    }
 
     #endregion
 
@@ -34,10 +78,12 @@ public class DashboardViewModel : BaseViewModel
 
     public DashboardViewModel(
         ISessionService sessionService,
-        IJobRepository jobRepository)
+        IJobRepository jobRepository,
+        IDeliveryReceiptRepository deliveryReceiptRepository)
     {
         _sessionService = sessionService;
         _jobRepository = jobRepository;
+        _deliveryReceiptRepository = deliveryReceiptRepository;
 
         GoToJobsCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
@@ -52,17 +98,22 @@ public class DashboardViewModel : BaseViewModel
             await Shell.Current.GoToAsync(nameof(ReportsPage)));
 
         LogoutCommand = new Command(async () => await LogoutAsync());
-
-        _ = LoadCurrentJobAsync();
     }
 
     #endregion
 
     #region Public Methods
 
+    public async Task LoadAsync()
+    {
+        await LoadCurrentJobAsync();
+        await LoadCompletedReportSummaryAsync();
+    }
+
     public async Task LoadCurrentJobAsync()
     {
         var jobs = await _jobRepository.GetAllAsync();
+
         var nextJob = jobs
             .OrderBy(j => j.SortOrder)
             .FirstOrDefault();
@@ -70,13 +121,32 @@ public class DashboardViewModel : BaseViewModel
         CurrentJobSummary = nextJob == null
             ? "No active jobs yet"
             : $"{nextJob.PickupCompany} → {nextJob.DeliveryCompany}";
+    }
 
-        OnPropertyChanged(nameof(CurrentJobSummary));
+    public async Task LoadCompletedReportSummaryAsync()
+    {
+        var receipts = await _deliveryReceiptRepository.GetAllAsync();
+
+        var todayUtc = DateTime.UtcNow.Date;
+
+        var todayReceipts = receipts
+            .Where(r => r.DeliveredAtUtc.Date == todayUtc)
+            .OrderByDescending(r => r.DeliveredAtUtc)
+            .ToList();
+
+        CompletedTodayCount = todayReceipts.Count;
+        RevenueToday = todayReceipts.Sum(r => r.Total);
+
+        var latest = todayReceipts.FirstOrDefault();
+        LatestCompletedSummary = latest == null
+            ? "No completed jobs yet"
+            : $"{latest.ReferenceNumber} • {latest.ReceiverName} • {latest.Total:C}";
     }
 
     #endregion
 
     #region Private Methods
+
     private async Task LogoutAsync()
     {
         await _sessionService.ClearAsync();

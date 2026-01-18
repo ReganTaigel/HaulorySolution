@@ -20,15 +20,12 @@
                     TextColor="Gray" />
             </VerticalStackLayout>
 
-            <!-- ACTION CARDS -->
-
+            <!-- JOBS -->
             <Border
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                 StrokeShape="RoundRectangle 16"
                 Padding="16">
-
-                <!-- Job SUMMARY -->
 
                 <VerticalStackLayout Spacing="12">
                     <Label
@@ -47,6 +44,7 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- VEHICLES -->
             <Border
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
@@ -65,6 +63,7 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- DRIVERS -->
             <Border
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
@@ -83,6 +82,7 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- REPORTS -->
             <Border
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
@@ -94,6 +94,43 @@
                         Text="Reports"
                         FontSize="18"
                         FontAttributes="Bold" />
+
+                    <!-- Quick stats row -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Border
+                            Grid.Column="0"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="12">
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Delivered (Today)" FontSize="12" TextColor="Gray"/>
+                                <Label Text="{Binding CompletedTodayCount}" FontSize="22" FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border
+                            Grid.Column="1"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="12">
+
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Revenue (Today)" FontSize="12" TextColor="Gray"/>
+                                <Label Text="{Binding RevenueToday, StringFormat='{}{0:C}'}"
+                                       FontSize="22"
+                                       FontAttributes="Bold"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <!-- Latest completed job summary -->
+                    <Label
+                        Text="{Binding LatestCompletedSummary}"
+                        FontSize="13"
+                        TextColor="Gray" />
 
                     <Button
                         Text="View Reports"

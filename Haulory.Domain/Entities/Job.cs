@@ -1,34 +1,44 @@
-﻿using Haulory.Domain.Enums;
+﻿using System.Text.Json.Serialization;
+using Haulory.Domain.Enums;
 
 namespace Haulory.Domain.Entities;
 
 public class Job
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; init; }  
 
     // Pickup
-    public string PickupCompany { get; }
-    public string PickupAddress { get; }
+    public string PickupCompany { get; init; }
+    public string PickupAddress { get; init; }
 
     // Delivery
-    public string DeliveryCompany { get; }
-    public string DeliveryAddress { get; }
+    public string DeliveryCompany { get; init; }
+    public string DeliveryAddress { get; init; }
+
+    // Signature
+    public string? ReceiverName { get; private set; }
+    public DateTime? DeliveredAtUtc { get; private set; }
+    public string? DeliverySignatureJson { get; private set; }
+
+    public bool IsDelivered => DeliveredAtUtc != null && !string.IsNullOrWhiteSpace(DeliverySignatureJson);
 
     // Load
-    public string ReferenceNumber { get; }
-    public string LoadDescription { get; }
+    public string ReferenceNumber { get; init; }
+    public string LoadDescription { get; init; }
 
     // Billing
-    public string InvoiceNumber { get; }
-    public RateType RateType { get; }
-    public decimal RateValue { get; }
-    public int Quantity { get; }
+    public string InvoiceNumber { get; init; }
+    public RateType RateType { get; init; }
+    public decimal RateValue { get; init; }
+    public int Quantity { get; init; }
+
     public decimal Total => RateValue * Quantity;
-    public DateTime CreatedAt { get; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     // Manual ordering
     public int SortOrder { get; private set; }
 
+    // Used by your app when creating new jobs
     public Job(
         string pickupCompany,
         string pickupAddress,
@@ -42,6 +52,8 @@ public class Job
         int quantity,
         int sortOrder)
     {
+        Id = Guid.NewGuid(); // app sets it here
+
         PickupCompany = pickupCompany;
         PickupAddress = pickupAddress;
         DeliveryCompany = deliveryCompany;
@@ -54,9 +66,15 @@ public class Job
         Quantity = quantity;
         SortOrder = sortOrder;
     }
+
     // Used when manually reordering jobs
-    public void SetSortOrder(int sortOrder)
+    public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
+
+    // Used for delivery completion
+    public void MarkDelivered(string receiverName, string signatureJson)
     {
-        SortOrder = sortOrder;
+        ReceiverName = receiverName?.Trim();
+        DeliverySignatureJson = signatureJson;
+        DeliveredAtUtc = DateTime.UtcNow;
     }
 }
