@@ -38,6 +38,12 @@ public class Job
     // Manual ordering
     public int SortOrder { get; private set; }
 
+    // Interface summary card
+    public string CardSummary =>
+    $"{PickupCompany} → {DeliveryCompany}\n" +
+    $"{DeliveryAddress}\n" +
+    $"{LoadDescription}";
+
     // Used by your app when creating new jobs
     public Job(
         string pickupCompany,

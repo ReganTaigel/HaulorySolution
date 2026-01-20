@@ -1,110 +1,131 @@
-<ContentPage
+﻿<ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Moblie.Views.JobsCollectionPage"
     Title="Jobs">
 
-    <Grid RowDefinitions="Auto,*"
-          Padding="16">
+    <Grid RowDefinitions="Auto,*" 
+          Padding="16"
+          RowSpacing="12">
 
         <!-- HEADER -->
-        <Grid
-            Grid.Row="0"
-            ColumnDefinitions="*,Auto"
-            VerticalOptions="Center">
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,Auto"
+              VerticalOptions="Center">
 
-            <Label
-                Grid.Column="0"
-                Text="Jobs"
-                FontSize="24"
-                FontAttributes="Bold" />
+            <VerticalStackLayout Grid.Column="0" Spacing="2">
+                <Label Text="Jobs"
+                       FontSize="26"
+                       FontAttributes="Bold" />
 
-            <Button
-                Grid.Column="1"
-                Text="Add Job"
-                Command="{Binding AddJobCommand}"
-                HeightRequest="40"
-                Padding="12,0"
-                CornerRadius="12" />
+                <Label Text="Active deliveries"
+                       FontSize="13"
+                       TextColor="Gray" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text=" Add Job "
+                    Command="{Binding AddJobCommand}"
+                    HeightRequest="40"
+                    Padding="14,0"
+                    CornerRadius="12"
+                    BackgroundColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"
+                    TextColor="{AppThemeBinding Light='White', Dark='Black'}" />
         </Grid>
 
         <!-- JOB LIST -->
-        <CollectionView
-            Grid.Row="1"
-            ItemsSource="{Binding Jobs}"
-            Margin="0,16,0,0"
-            SelectionMode="None">
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Jobs}"
+                        SelectionMode="None">
 
             <CollectionView.EmptyView>
-                <Label
-                    Text="No jobs yet"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    TextColor="Gray" />
+                <VerticalStackLayout HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Spacing="6">
+                    <Label Text="No jobs yet"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+                    <Label Text="Tap “Add Job” to create your first job."
+                           FontSize="13"
+                           TextColor="Gray"
+                           HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
 
-                    <Border
-                        StrokeThickness="1"
-                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="16"
-                        Margin="0,0,0,12">
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                            StrokeShape="RoundRectangle 16"
+                            Padding="14"
+                            Margin="0,0,0,12">
 
-                        <VerticalStackLayout Spacing="10">
+                        <VerticalStackLayout Spacing="12">
 
-                            <!-- Top row: Ref Up/Down -->
-                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
-                                <Label
-                                    Grid.Column="0"
-                                    Text="{Binding ReferenceNumber}"
-                                    FontSize="16"
-                                    FontAttributes="Bold" />
+                            <!-- TOP ROW: Ref + reorder -->
+                            <Grid ColumnDefinitions="*,Auto"
+                                  VerticalOptions="Center">
 
-                                <HorizontalStackLayout Grid.Column="1" Spacing="8">
-                                    <Button
-                                        Text="Up"
-                                        FontSize="16"
-                                        WidthRequest="44"
-                                        HeightRequest="36"
-                                        CornerRadius="10"
-                                        Padding="0"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveUpCommand}"
-                                        CommandParameter="{Binding .}" />
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding ReferenceNumber}"
+                                           FontSize="16"
+                                           FontAttributes="Bold" />
 
-                                    <Button
-                                        Text="Down"
-                                        FontSize="16"
-                                        WidthRequest="44"
-                                        HeightRequest="36"
-                                        CornerRadius="10"
-                                        Padding="0"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveDownCommand}"
-                                        CommandParameter="{Binding .}" />
+                                    <Label Text="Tap Sign Delivery when complete"
+                                           FontSize="12"
+                                           TextColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <!-- Reorder controls -->
+                                <HorizontalStackLayout Grid.Column="1"
+                                                       Spacing="8"
+                                                       VerticalOptions="Center">
+
+                                    <Button Text="▲"
+                                            FontSize="14"
+                                            WidthRequest="38"
+                                            HeightRequest="34"
+                                            CornerRadius="10"
+                                            Padding="0"
+                                            BackgroundColor="{AppThemeBinding Light='#F3F4F6', Dark='#1F2937'}"
+                                            TextColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveUpCommand}"
+                                            CommandParameter="{Binding .}" />
+
+                                    <Button Text="▼"
+                                            FontSize="14"
+                                            WidthRequest="38"
+                                            HeightRequest="34"
+                                            CornerRadius="10"
+                                            Padding="0"
+                                            BackgroundColor="{AppThemeBinding Light='#F3F4F6', Dark='#1F2937'}"
+                                            TextColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveDownCommand}"
+                                            CommandParameter="{Binding .}" />
+
                                 </HorizontalStackLayout>
                             </Grid>
 
-                            <!-- Pickup / Delivery -->
-                            <Label
-                                Text="{Binding PickupCompany}"
-                                FontSize="14"
-                                TextColor="Gray" />
+                            <!-- SUMMARY -->
+                            <Label Text="{Binding CardSummary}"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}"
+                                   LineBreakMode="WordWrap" />
 
-                            <Label
-                                Text="{Binding DeliveryCompany}"
-                                FontSize="14"
-                                TextColor="Gray" />
+                            <!-- ACTIONS -->
+                            <Grid ColumnDefinitions="*"
+                                  RowDefinitions="Auto">
 
-                            <!-- Action -->
-                            <Button
-                                Text="Sign Delivery"
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
-                                CommandParameter="{Binding .}"
-                                HeightRequest="40"
-                                CornerRadius="12" />
+                                <Button Text="Sign Delivery"
+                                        HeightRequest="42"
+                                        CornerRadius="12"
+                                        BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
+                                        TextColor="White"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
 
                         </VerticalStackLayout>
 

@@ -1,12 +1,112 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Haulory.Moblie.Views.VehiclesPage"
-             Title="VehiclesPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Moblie.Views.VehiclesPage"
+    Title="Vehicles">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="14" Padding="20">
+
+            <!-- Vehicle Type -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Vehicle Type" FontAttributes="Bold" FontSize="16"/>
+
+                    <Picker Title="Select vehicle type"
+                            ItemsSource="{Binding VehicleTypes}"
+                            ItemDisplayBinding="{Binding Display}"
+                            SelectedItem="{Binding SelectedVehicleType}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Light Trailer Config -->
+            <Border IsVisible="{Binding ShowLightTrailerConfig}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Trailer Configuration" FontAttributes="Bold" FontSize="16"/>
+
+                    <Picker Title="Select trailer configuration"
+                            ItemsSource="{Binding LightTrailerConfigurations}"
+                            ItemDisplayBinding="{Binding Display}"
+                            SelectedItem="{Binding SelectedLightConfig}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Heavy Config -->
+            <Border IsVisible="{Binding ShowHeavyConfig}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Truck Configuration" FontAttributes="Bold" FontSize="16"/>
+
+                    <Picker Title="Select truck configuration"
+                            ItemsSource="{Binding HeavyConfigurations}"
+                            ItemDisplayBinding="{Binding Display}"
+                            SelectedItem="{Binding SelectedHeavyConfig}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Rego(s) -->
+            <Border IsVisible="{Binding ReadyForRego}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Registration (Rego)" FontAttributes="Bold" FontSize="16"/>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
+                        <Label Text="{Binding Unit1Label}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. ABC123"
+                               Text="{Binding Unit1Rego}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
+                        <Label Text="{Binding Unit2Label}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. TRL456"
+                               Text="{Binding Unit2Rego}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
+                        <Label Text="{Binding Unit3Label}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. TRL789"
+                               Text="{Binding Unit3Rego}" />
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Fuel Type (only after rego stage is visible) -->
+            <Border IsVisible="{Binding ShowFuelType}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Fuel Type" FontAttributes="Bold" FontSize="16"/>
+
+                    <Picker Title="Select fuel type"
+                            ItemsSource="{Binding FuelTypes}"
+                            ItemDisplayBinding="{Binding Display}"
+                            SelectedItem="{Binding SelectedFuelType}" />
+
+                    <Label Text="{Binding FuelInfoText}"
+                           FontSize="12"
+                           TextColor="Gray"
+                           IsVisible="{Binding SelectedFuelType}" />
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
 </ContentPage>

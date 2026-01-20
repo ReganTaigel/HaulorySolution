@@ -12,12 +12,17 @@ public class DashboardViewModel : BaseViewModel
     private readonly ISessionService _sessionService;
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
-
-    private string _currentJobSummary = "No active jobs yet";
+    
     private int _completedTodayCount;
     private decimal _revenueToday;
-    private string _latestCompletedSummary = "No completed jobs yet";
 
+    private string _currentJobSummary = "No active jobs yet";
+    private string _latestCompletedSummary = "No completed jobs yet";
+    private string _referenceNumber = "";
+    private string _pickupCompany = "";
+    private string _deliveryCompany = "";
+    private string _deliveryAddress = "";
+    private string _loadDescription = "";
     #endregion
 
     #region Properties
@@ -31,6 +36,36 @@ public class DashboardViewModel : BaseViewModel
             OnPropertyChanged();
         }
     }
+    public string ReferenceNumber
+    {
+        get => _referenceNumber;
+        private set { _referenceNumber = value; OnPropertyChanged(); }
+    }
+
+    public string PickupCompany
+    {
+        get => _pickupCompany;
+        private set { _pickupCompany = value; OnPropertyChanged(); }
+    }
+
+    public string DeliveryCompany
+    {
+        get => _deliveryCompany;
+        private set { _deliveryCompany = value; OnPropertyChanged(); }
+    }
+
+    public string DeliveryAddress
+    {
+        get => _deliveryAddress;
+        private set { _deliveryAddress = value; OnPropertyChanged(); }
+    }
+
+    public string LoadDescription
+    {
+        get => _loadDescription;
+        private set { _loadDescription = value; OnPropertyChanged(); }
+    }
+    public bool HasActiveJob => !string.IsNullOrWhiteSpace(ReferenceNumber);
 
     public int CompletedTodayCount
     {
@@ -118,10 +153,22 @@ public class DashboardViewModel : BaseViewModel
             .OrderBy(j => j.SortOrder)
             .FirstOrDefault();
 
-        CurrentJobSummary = nextJob == null
-            ? "No active jobs yet"
-            : $"{nextJob.PickupCompany} → {nextJob.DeliveryCompany}";
+        if (nextJob == null)
+        {
+            CurrentJobSummary = "No active jobs yet";
+            OnPropertyChanged(nameof(CurrentJobSummary));
+            return;
+        }
+
+        CurrentJobSummary =
+            $"{nextJob.ReferenceNumber}\n" +
+            $"{nextJob.PickupCompany} → {nextJob.DeliveryCompany}\n" +
+            $"{nextJob.DeliveryAddress}\n" +
+            $"{nextJob.LoadDescription}";
+
+        OnPropertyChanged(nameof(CurrentJobSummary));
     }
+
 
     public async Task LoadCompletedReportSummaryAsync()
     {

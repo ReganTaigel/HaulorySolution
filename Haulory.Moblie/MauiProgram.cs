@@ -42,6 +42,7 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<DashboardViewModel>();
             builder.Services.AddTransient<DeliverySignatureViewModel>();
             builder.Services.AddTransient<ReportsViewModel>();
+            builder.Services.AddTransient<VehicleViewModel>();
 
             // JOBS – Pages
             builder.Services.AddTransient<JobsCollectionPage>();
@@ -51,6 +52,7 @@ namespace Haulory.Moblie
             builder.Services.AddTransient<DashboardPage>();
             builder.Services.AddTransient<DeliverySignaturePage>();
             builder.Services.AddTransient<ReportsPage>();
+            builder.Services.AddTransient<VehiclesPage>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif

@@ -82,7 +82,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- REPORTS -->
+            <!-- REPORTS (UPDATED) -->
             <Border
                 StrokeThickness="1"
                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
