@@ -7,12 +7,17 @@ namespace Haulory.Domain.Enums
 
     public enum VehicleConfiguration
     {
-        none,
         SingleAxle,
         TandemAxle,
         Rigid,
         TractorSemi,
         TruckAndTrailer,
         BTrain
+    }
+
+    public enum Class4PowerUnitType
+    {
+        Truck = 0,
+        Tractor = 1
     }
 }

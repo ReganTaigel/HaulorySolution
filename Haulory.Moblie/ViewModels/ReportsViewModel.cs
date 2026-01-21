@@ -10,6 +10,7 @@ public class ReportsViewModel : BaseViewModel
     #region Fields
     private readonly IDeliveryReceiptRepository _receiptRepository;
     private bool _isLoading;
+    private DateTime _selectedDate = DateTime.Today;
     #endregion
 
     #region Collections
@@ -34,6 +35,23 @@ public class ReportsViewModel : BaseViewModel
     }
     #endregion
 
+    #region Date Filter
+
+    public DateTime SelectedDate
+    {
+        get => _selectedDate;
+        set
+        {
+            if (_selectedDate.Date == value.Date) return;
+
+            _selectedDate = value.Date;
+            OnPropertyChanged();
+
+            _ = LoadAsync();
+        }
+    }
+    #endregion
+
     #region Load
     public async Task LoadAsync()
     {
@@ -46,8 +64,12 @@ public class ReportsViewModel : BaseViewModel
 
             var all = await _receiptRepository.GetAllAsync();
 
-            // newest first (or change to whatever you want)
-            foreach (var r in all.OrderByDescending(x => x.DeliveredAtUtc))
+            // Filter by selected LOCAL date (DeliveredAtUtc stored in UTC)
+            var filtered = all
+                .Where(r => ToLocalDate(r.DeliveredAtUtc) == SelectedDate.Date)
+                .OrderByDescending(r => r.DeliveredAtUtc);
+
+            foreach (var r in filtered)
                 Receipts.Add(r);
 
             OnPropertyChanged(nameof(DeliveredCount));
@@ -58,5 +80,18 @@ public class ReportsViewModel : BaseViewModel
             _isLoading = false;
         }
     }
+    #endregion
+
+    #region Helpers
+
+    private static DateTime ToLocalDate(DateTime utc)
+    {
+        var safeUtc = utc.Kind == DateTimeKind.Utc
+            ? utc
+            : DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+
+        return safeUtc.ToLocalTime().Date;
+    }
+
     #endregion
 }

@@ -8,13 +8,16 @@
     <ScrollView>
         <VerticalStackLayout Spacing="14" Padding="20">
 
-            <!-- Vehicle Type -->
+            <!-- VEHICLE TYPE -->
             <Border StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                     StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
                     Padding="14">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Vehicle Type" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Vehicle Type"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
 
                     <Picker Title="Select vehicle type"
                             ItemsSource="{Binding VehicleTypes}"
@@ -23,14 +26,20 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Light Trailer Config -->
+            <!-- LIGHT TRAILER CONFIG -->
             <Border IsVisible="{Binding ShowLightTrailerConfig}"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                     StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
                     Padding="14">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Trailer Configuration" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Trailer Configuration"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="This helps determine what details are required next."
+                           FontSize="12"
+                           TextColor="Gray"/>
 
                     <Picker Title="Select trailer configuration"
                             ItemsSource="{Binding LightTrailerConfigurations}"
@@ -39,30 +48,64 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Heavy Config -->
+            <!-- CLASS 4 UNIT TYPE -->
+            <Border IsVisible="{Binding ShowClass4UnitType}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Class 4 Unit Type"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="Choose the power unit type."
+                           FontSize="12"
+                           TextColor="Gray"/>
+
+                    <Picker Title="Select unit type"
+                            ItemsSource="{Binding Class4UnitTypes}"
+                            ItemDisplayBinding="{Binding Display}"
+                            SelectedItem="{Binding SelectedClass4UnitType}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- HEAVY CONFIG -->
             <Border IsVisible="{Binding ShowHeavyConfig}"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                     StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
                     Padding="14">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Truck Configuration" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Configuration"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="This determines how many regos + odometers you need."
+                           FontSize="12"
+                           TextColor="Gray"/>
 
-                    <Picker Title="Select truck configuration"
+                    <Picker Title="Select configuration"
                             ItemsSource="{Binding HeavyConfigurations}"
                             ItemDisplayBinding="{Binding Display}"
                             SelectedItem="{Binding SelectedHeavyConfig}" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Rego(s) -->
+            <!-- REGO -->
             <Border IsVisible="{Binding ReadyForRego}"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                     StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
                     Padding="14">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Registration (Rego)" FontAttributes="Bold" FontSize="16"/>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Registration (Rego)"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="Enter the rego(s) for your selected combination."
+                           FontSize="12"
+                           TextColor="Gray"/>
 
                     <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
                         <Label Text="{Binding Unit1Label}" FontSize="12" TextColor="Gray"/>
@@ -81,18 +124,55 @@
                         <Entry Placeholder="e.g. TRL789"
                                Text="{Binding Unit3Rego}" />
                     </VerticalStackLayout>
-
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Fuel Type (only after rego stage is visible) -->
+            <!-- REGO EXPIRY -->
+            <Border IsVisible="{Binding ShowRegoExpiry}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Rego Expiry"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="Select the expiry date for each rego."
+                           FontSize="12"
+                           TextColor="Gray"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding Unit1Label}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit1RegoExpiry}"
+                                    Format="dd/MM/yyyy" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
+                        <Label Text="{Binding Unit2Label}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit2RegoExpiry}"
+                                    Format="dd/MM/yyyy" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
+                        <Label Text="{Binding Unit3Label}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit3RegoExpiry}"
+                                    Format="dd/MM/yyyy" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- FUEL TYPE -->
             <Border IsVisible="{Binding ShowFuelType}"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
                     StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
                     Padding="14">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Fuel Type" FontAttributes="Bold" FontSize="16"/>
+                    <Label Text="Fuel Type"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
 
                     <Picker Title="Select fuel type"
                             ItemsSource="{Binding FuelTypes}"
@@ -106,7 +186,44 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- ODOMETER -->
+            <Border IsVisible="{Binding ShowOdometers}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Odometer"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+                    <Label Text="Enter the current odometer reading(s)."
+                           FontSize="12"
+                           TextColor="Gray"/>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowPowerUnitOdo}" Spacing="6">
+                        <Label Text="{Binding PowerUnitOdoLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. 182340"
+                               Keyboard="Numeric"
+                               Text="{Binding PowerUnitOdometerText}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowTrailer1Odo}" Spacing="6">
+                        <Label Text="{Binding Trailer1OdoLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. 90210"
+                               Keyboard="Numeric"
+                               Text="{Binding Trailer1OdometerText}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowTrailer2Odo}" Spacing="6">
+                        <Label Text="{Binding Trailer2OdoLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="e.g. 88120"
+                               Keyboard="Numeric"
+                               Text="{Binding Trailer2OdometerText}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>
