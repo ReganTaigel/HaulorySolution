@@ -86,7 +86,10 @@
 	  <MauiXaml Update="Views\ReportsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Views\VehiclesPage.xaml">
+	  <MauiXaml Update="Views\VehicleCollectionPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\NewVehiclePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
@@ -108,6 +111,9 @@
 	  </Compile>
 	  <Compile Update="Views\JobsCollectionPage.xaml.cs">
 	    <DependentUpon>JobsCollectionPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\NewVehiclePage.xaml.cs">
+	    <DependentUpon>NewVehiclePage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 

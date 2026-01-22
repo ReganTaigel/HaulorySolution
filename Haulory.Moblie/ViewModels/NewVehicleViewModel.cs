@@ -3,32 +3,40 @@ using Haulory.Domain.Enums;
 
 namespace Haulory.Moblie.ViewModels;
 
-public class VehicleViewModel : BaseViewModel
+public class NewVehicleViewModel : BaseViewModel
 {
     #region Fields
-
+    // Selection
     private VehicleOption<VehicleType>? _selectedVehicleType;
     private VehicleOption<VehicleConfiguration>? _selectedLightConfig;
     private VehicleOption<VehicleConfiguration>? _selectedHeavyConfig;
     private VehicleOption<Class4PowerUnitType>? _selectedClass4UnitType;
     private VehicleOption<FuelType>? _selectedFuelType;
 
+    // Rego
     private string _unit1Rego = string.Empty;
     private string _unit2Rego = string.Empty;
     private string _unit3Rego = string.Empty;
 
+    // Rego Expiry
     private DateTime? _unit1RegoExpiry;
     private DateTime? _unit2RegoExpiry;
     private DateTime? _unit3RegoExpiry;
 
+    // Odo Numbers
     private int? _powerUnitOdometerKm;
     private int? _trailer1OdometerKm;
     private int? _trailer2OdometerKm;
 
+    // COF/WOF Expiry date (per unit)
+    private DateTime? _unit1CertExpiry;
+    private DateTime? _unit2CertExpiry;
+    private DateTime? _unit3CertExpiry;
     #endregion
 
     #region Pickers (Options)
 
+    // Vehicle selection type
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
         {
@@ -44,6 +52,7 @@ public class VehicleViewModel : BaseViewModel
             new(VehicleType.TruckClass4AndTrailerClass5, "Truck (Class 4) + Trailer (Class 5)")
         };
 
+    // Light trailer config
     public ObservableCollection<VehicleOption<VehicleConfiguration>> LightTrailerConfigurations { get; } =
         new()
         {
@@ -67,6 +76,7 @@ public class VehicleViewModel : BaseViewModel
             new(Class4PowerUnitType.Tractor, "Tractor")
         };
 
+    // Fuel selection type
     public ObservableCollection<VehicleOption<FuelType>> FuelTypes { get; } =
         new()
         {
@@ -88,44 +98,32 @@ public class VehicleViewModel : BaseViewModel
             _selectedVehicleType = value;
 
             // reset dependent selections when type changes
-            _selectedLightConfig = null;
-            _selectedHeavyConfig = null;
-            _selectedClass4UnitType = null;
-            _selectedFuelType = null;
+            SelectedLightConfig = null;
+            SelectedHeavyConfig = null;
+            SelectedClass4UnitType = null;
+            SelectedFuelType = null;
 
             // clear regos
-            _unit1Rego = string.Empty;
-            _unit2Rego = string.Empty;
-            _unit3Rego = string.Empty;
+            Unit1Rego = string.Empty;
+            Unit2Rego = string.Empty;
+            Unit3Rego = string.Empty;
 
-            // clear expiries
-            _unit1RegoExpiry = null;
-            _unit2RegoExpiry = null;
-            _unit3RegoExpiry = null;
+            // clear rego expiries
+            Unit1RegoExpiry = null;
+            Unit2RegoExpiry = null;
+            Unit3RegoExpiry = null;
+
+            // clear cert expiries
+            Unit1CertExpiry = null;
+            Unit2CertExpiry = null;
+            Unit3CertExpiry = null;
 
             // clear odos
-            _powerUnitOdometerKm = null;
-            _trailer1OdometerKm = null;
-            _trailer2OdometerKm = null;
+            PowerUnitOdometerKm = null;
+            Trailer1OdometerKm = null;
+            Trailer2OdometerKm = null;
 
-            OnPropertyChanged(nameof(SelectedVehicleType));
-            OnPropertyChanged(nameof(SelectedLightConfig));
-            OnPropertyChanged(nameof(SelectedHeavyConfig));
-            OnPropertyChanged(nameof(SelectedClass4UnitType));
-            OnPropertyChanged(nameof(SelectedFuelType));
-
-            OnPropertyChanged(nameof(Unit1Rego));
-            OnPropertyChanged(nameof(Unit2Rego));
-            OnPropertyChanged(nameof(Unit3Rego));
-
-            OnPropertyChanged(nameof(Unit1RegoExpiry));
-            OnPropertyChanged(nameof(Unit2RegoExpiry));
-            OnPropertyChanged(nameof(Unit3RegoExpiry));
-
-            OnPropertyChanged(nameof(PowerUnitOdometerKm));
-            OnPropertyChanged(nameof(Trailer1OdometerKm));
-            OnPropertyChanged(nameof(Trailer2OdometerKm));
-
+            OnPropertyChanged();
             RaiseAllVisibility();
         }
     }
@@ -144,6 +142,15 @@ public class VehicleViewModel : BaseViewModel
             Unit2RegoExpiry = null;
             Unit3RegoExpiry = null;
 
+            Unit2CertExpiry = null;
+            Unit3CertExpiry = null;
+
+            SelectedFuelType = null;
+
+            PowerUnitOdometerKm = null;
+            Trailer1OdometerKm = null;
+            Trailer2OdometerKm = null;
+
             OnPropertyChanged();
             RaiseAllVisibility();
         }
@@ -156,11 +163,16 @@ public class VehicleViewModel : BaseViewModel
         {
             _selectedClass4UnitType = value;
 
-            // changing unit type should reset dependent flow
+            // changing unit type should reset downstream flow
             SelectedFuelType = null;
+
             Unit1RegoExpiry = null;
             Unit2RegoExpiry = null;
             Unit3RegoExpiry = null;
+
+            Unit1CertExpiry = null;
+            Unit2CertExpiry = null;
+            Unit3CertExpiry = null;
 
             PowerUnitOdometerKm = null;
             Trailer1OdometerKm = null;
@@ -184,6 +196,9 @@ public class VehicleViewModel : BaseViewModel
 
             Unit2RegoExpiry = null;
             Unit3RegoExpiry = null;
+
+            Unit2CertExpiry = null;
+            Unit3CertExpiry = null;
 
             SelectedFuelType = null;
 
@@ -223,36 +238,19 @@ public class VehicleViewModel : BaseViewModel
     public string Unit1Rego
     {
         get => _unit1Rego;
-        set
-        {
-            _unit1Rego = value;
-            OnPropertyChanged();
-
-            // if user edits rego, expiry/fuel/odo should re-evaluate
-            RaiseAllVisibility();
-        }
+        set { _unit1Rego = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     public string Unit2Rego
     {
         get => _unit2Rego;
-        set
-        {
-            _unit2Rego = value;
-            OnPropertyChanged();
-            RaiseAllVisibility();
-        }
+        set { _unit2Rego = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     public string Unit3Rego
     {
         get => _unit3Rego;
-        set
-        {
-            _unit3Rego = value;
-            OnPropertyChanged();
-            RaiseAllVisibility();
-        }
+        set { _unit3Rego = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     #endregion
@@ -262,34 +260,41 @@ public class VehicleViewModel : BaseViewModel
     public DateTime? Unit1RegoExpiry
     {
         get => _unit1RegoExpiry;
-        set
-        {
-            _unit1RegoExpiry = value;
-            OnPropertyChanged();
-            RaiseAllVisibility();
-        }
+        set { _unit1RegoExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     public DateTime? Unit2RegoExpiry
     {
         get => _unit2RegoExpiry;
-        set
-        {
-            _unit2RegoExpiry = value;
-            OnPropertyChanged();
-            RaiseAllVisibility();
-        }
+        set { _unit2RegoExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     public DateTime? Unit3RegoExpiry
     {
         get => _unit3RegoExpiry;
-        set
-        {
-            _unit3RegoExpiry = value;
-            OnPropertyChanged();
-            RaiseAllVisibility();
-        }
+        set { _unit3RegoExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
+    }
+
+    #endregion
+
+    #region COF/WOF Expiry (per unit)
+
+    public DateTime? Unit1CertExpiry
+    {
+        get => _unit1CertExpiry;
+        set { _unit1CertExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
+    }
+
+    public DateTime? Unit2CertExpiry
+    {
+        get => _unit2CertExpiry;
+        set { _unit2CertExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
+    }
+
+    public DateTime? Unit3CertExpiry
+    {
+        get => _unit3CertExpiry;
+        set { _unit3CertExpiry = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
     #endregion
@@ -336,6 +341,20 @@ public class VehicleViewModel : BaseViewModel
         (!ShowClass4UnitType || SelectedClass4UnitType != null) &&
         (!ShowHeavyConfig || SelectedHeavyConfig != null);
 
+    public bool IsHeavyVehicle =>
+        HasVehicleType &&
+        (SelectedVehicleType!.Value == VehicleType.TruckClass2 ||
+         SelectedVehicleType.Value == VehicleType.TruckClass2AndTrailerClass3 ||
+         SelectedVehicleType.Value == VehicleType.TruckClass4 ||
+         SelectedVehicleType.Value == VehicleType.TruckClass4AndTrailerClass5);
+
+    // WOF for light, COF for heavy
+    public ComplianceCertificateType RequiredCertificate =>
+        IsHeavyVehicle ? ComplianceCertificateType.Cof : ComplianceCertificateType.Wof;
+
+    public string CertificateName => RequiredCertificate == ComplianceCertificateType.Cof ? "COF" : "WOF";
+    public string CertificatePluralName => RequiredCertificate == ComplianceCertificateType.Cof ? "COFs" : "WOFs";
+
     public bool RegoComplete
     {
         get
@@ -366,10 +385,39 @@ public class VehicleViewModel : BaseViewModel
         }
     }
 
-    // Fuel only AFTER expiry is complete
-    public bool ShowFuelType => RegoExpiryComplete;
+    // show COF/WOF after rego expiry is complete
+    public bool ShowCertificateStep => RegoExpiryComplete;
 
-    // Odo only AFTER fuel chosen
+    // number of certificates required matches unit count rules:
+    // car=1, car+trailer=2, class4=1, class4+5=2, b-train=3
+    public int CertificateCount => RegoCount;
+
+    public bool ShowUnit1Cert => ShowCertificateStep;
+    public bool ShowUnit2Cert => ShowCertificateStep && CertificateCount >= 2;
+    public bool ShowUnit3Cert => ShowCertificateStep && CertificateCount >= 3;
+
+    public string Unit1CertLabel => $"{Unit1Label} {CertificateName} expiry";
+    public string Unit2CertLabel => $"{Unit2Label} {CertificateName} expiry";
+    public string Unit3CertLabel => $"{Unit3Label} {CertificateName} expiry";
+
+    public bool CertificateComplete
+    {
+        get
+        {
+            if (!ShowCertificateStep) return false;
+
+            if (Unit1CertExpiry == null) return false;
+            if (CertificateCount >= 2 && Unit2CertExpiry == null) return false;
+            if (CertificateCount >= 3 && Unit3CertExpiry == null) return false;
+
+            return true;
+        }
+    }
+
+    // fuel shows after certificate complete
+    public bool ShowFuelType => CertificateComplete;
+
+    // odo shows after fuel chosen
     public bool ShowOdometers => ShowFuelType && SelectedFuelType != null;
 
     public int RegoCount
@@ -459,6 +507,11 @@ public class VehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(ShowHeavyConfig));
 
         OnPropertyChanged(nameof(ReadyForRego));
+        OnPropertyChanged(nameof(IsHeavyVehicle));
+
+        OnPropertyChanged(nameof(RequiredCertificate));
+        OnPropertyChanged(nameof(CertificateName));
+        OnPropertyChanged(nameof(CertificatePluralName));
 
         OnPropertyChanged(nameof(RegoCount));
         OnPropertyChanged(nameof(ShowUnit1Rego));
@@ -472,6 +525,16 @@ public class VehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(RegoComplete));
         OnPropertyChanged(nameof(ShowRegoExpiry));
         OnPropertyChanged(nameof(RegoExpiryComplete));
+
+        OnPropertyChanged(nameof(ShowCertificateStep));
+        OnPropertyChanged(nameof(CertificateCount));
+        OnPropertyChanged(nameof(ShowUnit1Cert));
+        OnPropertyChanged(nameof(ShowUnit2Cert));
+        OnPropertyChanged(nameof(ShowUnit3Cert));
+        OnPropertyChanged(nameof(Unit1CertLabel));
+        OnPropertyChanged(nameof(Unit2CertLabel));
+        OnPropertyChanged(nameof(Unit3CertLabel));
+        OnPropertyChanged(nameof(CertificateComplete));
 
         OnPropertyChanged(nameof(ShowFuelType));
 

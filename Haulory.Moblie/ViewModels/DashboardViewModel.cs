@@ -124,7 +124,7 @@ public class DashboardViewModel : BaseViewModel
             await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
 
         GoToVehiclesCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(VehiclesPage)));
+            await Shell.Current.GoToAsync(nameof(VehicleCollectionPage)));
 
         GoToDriversCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(DriversPage)));
@@ -155,6 +155,7 @@ public class DashboardViewModel : BaseViewModel
 
         if (nextJob == null)
         {
+
             CurrentJobSummary = "No active jobs yet";
             OnPropertyChanged(nameof(CurrentJobSummary));
             return;
@@ -169,15 +170,15 @@ public class DashboardViewModel : BaseViewModel
         OnPropertyChanged(nameof(CurrentJobSummary));
     }
 
-
     public async Task LoadCompletedReportSummaryAsync()
     {
         var receipts = await _deliveryReceiptRepository.GetAllAsync();
 
-        var todayUtc = DateTime.UtcNow.Date;
+        // Use LOCAL "today" so NZ users don’t miss late-night/early-morning deliveries
+        var todayLocal = DateTime.Now.Date;
 
         var todayReceipts = receipts
-            .Where(r => r.DeliveredAtUtc.Date == todayUtc)
+            .Where(r => ToLocalDate(r.DeliveredAtUtc) == todayLocal)
             .OrderByDescending(r => r.DeliveredAtUtc)
             .ToList();
 
@@ -193,6 +194,13 @@ public class DashboardViewModel : BaseViewModel
     #endregion
 
     #region Private Methods
+
+    private static DateTime ToLocalDate(DateTime deliveredAtUtc)
+    {
+        // Ensure treated as UTC, then convert to local date for “today” comparisons
+        var utc = DateTime.SpecifyKind(deliveredAtUtc, DateTimeKind.Utc);
+        return utc.ToLocalTime().Date;
+    }
 
     private async Task LogoutAsync()
     {

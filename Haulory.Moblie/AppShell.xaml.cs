@@ -14,10 +14,11 @@ public partial class AppShell : Shell
 
         Routing.RegisterRoute(nameof(NewJobPage), typeof(NewJobPage));
         Routing.RegisterRoute(nameof(JobsCollectionPage), typeof(JobsCollectionPage));
-        Routing.RegisterRoute(nameof(VehiclesPage), typeof(VehiclesPage));
+        Routing.RegisterRoute(nameof(NewVehiclePage), typeof(NewVehiclePage));
         Routing.RegisterRoute(nameof(DriversPage), typeof(DriversPage));
         Routing.RegisterRoute(nameof(ReportsPage), typeof(ReportsPage));
         Routing.RegisterRoute(nameof(DeliverySignaturePage), typeof(DeliverySignaturePage));
+        Routing.RegisterRoute(nameof(VehicleCollectionPage), typeof(VehicleCollectionPage));
 
 
         Navigating += OnNavigating;

@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 
 namespace Haulory.Moblie.Views;
 
-public partial class VehiclesPage : ContentPage
+public partial class NewVehiclePage : ContentPage
 {
-	public VehiclesPage(VehicleViewModel vm)
+	public NewVehiclePage(NewVehicleViewModel vm)
 	{
 		InitializeComponent();
 

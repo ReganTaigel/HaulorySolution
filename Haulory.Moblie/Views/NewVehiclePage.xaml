@@ -2,8 +2,8 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Moblie.Views.VehiclesPage"
-    Title="Vehicles">
+    x:Class="Haulory.Moblie.Views.NewVehiclePage"
+    Title="Add Vehicles">
 
     <ScrollView>
         <VerticalStackLayout Spacing="14" Padding="20">
@@ -159,6 +159,38 @@
                         <DatePicker Date="{Binding Unit3RegoExpiry}"
                                     Format="dd/MM/yyyy" />
                     </VerticalStackLayout>
+                </VerticalStackLayout>
+                
+            </Border>
+            
+            <!-- WOF / COF EXPIRY -->
+            <Border IsVisible="{Binding ShowCertificateStep}"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                Padding="14">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="{Binding CertificatePluralName}"
+                       FontAttributes="Bold"
+                       FontSize="16" />
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit1Cert}" Spacing="6">
+                        <Label Text="{Binding Unit1CertLabel}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit1CertExpiry}" Format="dd/MM/yyyy"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit2Cert}" Spacing="6">
+                        <Label Text="{Binding Unit2CertLabel}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit2CertExpiry}" Format="dd/MM/yyyy"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit3Cert}" Spacing="6">
+                        <Label Text="{Binding Unit3CertLabel}" FontSize="12" TextColor="Gray"/>
+                        <DatePicker Date="{Binding Unit3CertExpiry}" Format="dd/MM/yyyy"/>
+                    </VerticalStackLayout>
+
                 </VerticalStackLayout>
             </Border>
 

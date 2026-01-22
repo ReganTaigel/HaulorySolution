@@ -20,4 +20,12 @@ namespace Haulory.Domain.Enums
         Truck = 0,
         Tractor = 1
     }
+
+
+    public enum ComplianceCertificateType
+    {
+        None = 0,
+        Wof = 1,
+        Cof = 2
+    }
 }
