@@ -1,12 +1,112 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Haulory.Moblie.Views.VehicleCollectionPage"
-             Title="VehicleCollectionPage">
-    <VerticalStackLayout>
+             x:Class="Haulory.Mobile.Views.VehicleCollectionPage"
+             Title="Vehicles">
 
-        <Button 
-            Text="Add"
-            Command="{Binding GoToNewVehicleCommand}"/>
-    </VerticalStackLayout>
+    <Grid RowDefinitions="Auto,*"
+          Padding="20"
+          RowSpacing="14">
+
+        <!-- Header -->
+        <Grid Row="0" ColumnDefinitions="*,Auto">
+            <Label Text="Your Vehicles"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center" />
+
+            <Button Grid.Column="1"
+                    Text="Add"
+                    Command="{Binding GoToNewVehicleCommand}"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- List + Pull to refresh -->
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsBusy}">
+
+            <!-- ✅ Assets instead of Vehicles -->
+            <CollectionView ItemsSource="{Binding Assets}"
+                            SelectionMode="None">
+
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="10" Spacing="8">
+                        <Label Text="No vehicles saved yet."
+                               FontAttributes="Bold"
+                               FontSize="16" />
+                        <Label Text="Tap Add to create your first vehicle."
+                               FontSize="12"
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeThickness="1"
+                                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                                Padding="14"
+                                Margin="0,0,0,12">
+
+                            <VerticalStackLayout Spacing="8">
+
+                                <!-- Title line: Make + Model -->
+                                <Label FontSize="16" FontAttributes="Bold">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding Make}" />
+                                            <Span Text=" " />
+                                            <Span Text="{Binding Model}" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Type line: Vehicle/Trailer + (optional) Vehicle type -->
+                                <HorizontalStackLayout Spacing="8">
+                                    <Label Text="{Binding KindDisplay}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="Gray" />
+
+                                    <!-- Only really useful for power units; will be blank for trailers -->
+                                    <Label Text="{Binding VehicleTypeDisplay}"
+                                           FontSize="12"
+                                           TextColor="Gray"
+                                           VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+
+                                <!-- Rego -->
+                                <Label FontSize="12" TextColor="Gray">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Rego: " />
+                                            <Span Text="{Binding Rego}" FontAttributes="Bold" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- WOF/COF Expiry -->
+                                <Label FontSize="12" TextColor="Gray">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding CertificateNameDisplay}" />
+                                            <Span Text=" expiry: " />
+                                            <Span Text="{Binding CertificateExpiry, StringFormat='{0:dd/MM/yyyy}'}"
+                                                  FontAttributes="Bold" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
 </ContentPage>

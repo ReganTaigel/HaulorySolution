@@ -1,7 +1,7 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
-using Haulory.Moblie.ViewModels;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.ViewModels;
+using Haulory.Mobile.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 

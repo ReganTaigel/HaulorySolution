@@ -4,11 +4,11 @@ using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Infrastructure.Persistence.Json;
 using Haulory.Infrastructure.Services;
-using Haulory.Moblie.ViewModels;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.ViewModels;
+using Haulory.Mobile.Views;
 using Microsoft.Extensions.Logging;
 
-namespace Haulory.Moblie
+namespace Haulory.Mobile
 {
     public static class MauiProgram
     {
@@ -33,6 +33,7 @@ namespace Haulory.Moblie
             builder.Services.AddSingleton<IUserRepository, UserRepository>();
             builder.Services.AddSingleton<ISessionService, SessionService>();
             builder.Services.AddSingleton<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
+            builder.Services.AddSingleton<IVehicleAssetRepository, VehicleAssetRepository>();
 
             // JOBS – ViewModels
             builder.Services.AddTransient<NewJobViewModel>();

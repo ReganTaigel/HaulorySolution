@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace Haulory.Moblie
+namespace Haulory.Mobile
 {
     public class Program
     {

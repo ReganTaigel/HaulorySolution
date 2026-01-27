@@ -7,12 +7,11 @@ namespace Haulory.Domain.Enums
    public enum VehicleType
     {
         Car,
-        CarWithTrailer,
         Ute,
-        UteWithTrailer,
+        LightVehicleTrailer,
         TruckClass2,
-        TruckClass2AndTrailerClass3,
+        TrailerClass3,
         TruckClass4, 
-        TruckClass4AndTrailerClass5,
+        TrailerClass5,
     }
 }

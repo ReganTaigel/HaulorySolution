@@ -3,7 +3,7 @@ using System.Windows.Input;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 public class ReportsViewModel : BaseViewModel
 {

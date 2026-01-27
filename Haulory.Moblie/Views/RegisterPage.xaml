@@ -1,8 +1,8 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Moblie.Views.RegisterPage"
-    xmlns:converters="clr-namespace:Haulory.Moblie.Converters"
+    x:Class="Haulory.Mobile.Views.RegisterPage"
+    xmlns:converters="clr-namespace:Haulory.Mobile.Converters"
     Shell.NavBarIsVisible="False"
     BackgroundColor="{AppThemeBinding Light=#F5F6FA, Dark=#121212}">
 

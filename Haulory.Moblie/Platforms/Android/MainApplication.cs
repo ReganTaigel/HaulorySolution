@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace Haulory.Moblie
+namespace Haulory.Mobile
 {
     [Application]
     public class MainApplication : MauiApplication

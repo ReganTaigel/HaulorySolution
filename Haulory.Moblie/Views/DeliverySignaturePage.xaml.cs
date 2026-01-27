@@ -1,7 +1,7 @@
 using System.Linq;
-using Haulory.Moblie.ViewModels;
+using Haulory.Mobile.ViewModels;
 
-namespace Haulory.Moblie.Views;
+namespace Haulory.Mobile.Views;
 
 public partial class DeliverySignaturePage : ContentPage
 {

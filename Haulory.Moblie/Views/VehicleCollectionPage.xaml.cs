@@ -1,13 +1,20 @@
-using Haulory.Moblie.ViewModels;
+using Haulory.Mobile.ViewModels;
 
-namespace Haulory.Moblie.Views;
+namespace Haulory.Mobile.Views;
 
 public partial class VehicleCollectionPage : ContentPage
 {
-	public VehicleCollectionPage(VehicleCollectionViewModel vm)
-	{
-		InitializeComponent();
+    private readonly VehicleCollectionViewModel _vm;
 
-        BindingContext = vm;
+    public VehicleCollectionPage(VehicleCollectionViewModel vm)
+    {
+        InitializeComponent();
+        BindingContext = _vm = vm;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await _vm.LoadAsync();
     }
 }

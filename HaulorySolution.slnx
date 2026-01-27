@@ -3,7 +3,7 @@
   <Project Path="Haulory.Core/Haulory.Core.csproj" Id="6fb67774-b5e1-42fe-8fae-2f259db1e18c" />
   <Project Path="Haulory.Domain/Haulory.Domain.csproj" Id="11cabdde-e001-40b1-8a79-8fabc2027271" />
   <Project Path="Haulory.Infrastructure/Haulory.Infrastructure.csproj" Id="ec507bb6-3e04-4365-a3de-7a5f9f170037" />
-  <Project Path="Haulory.Moblie/Haulory.Moblie.csproj">
+  <Project Path="Haulory.Moblie/Haulory.Mobile.csproj">
     <Deploy Solution="Debug|*" />
   </Project>
 </Solution>

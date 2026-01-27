@@ -1,6 +1,6 @@
 ﻿using Haulory.Domain.Enums;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 public class ReportJobItem
 {

@@ -1,8 +1,8 @@
 ﻿using Haulory.Application.Interfaces.Services;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
 
-namespace Haulory.Moblie;
+namespace Haulory.Mobile;
 
 public partial class App : Microsoft.Maui.Controls.Application
 {

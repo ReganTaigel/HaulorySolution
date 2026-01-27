@@ -2,7 +2,7 @@
 using Haulory.Application.Interfaces.Services;
 using System.Windows.Input;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 public class LoginViewModel : BaseViewModel
 {

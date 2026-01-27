@@ -1,7 +1,7 @@
 ﻿using Foundation;
 
-namespace Haulory.Moblie
-{
+namespace Haulory.Mobile
+{   
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate
     {

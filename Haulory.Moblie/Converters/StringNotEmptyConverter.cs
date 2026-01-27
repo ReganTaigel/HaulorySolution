@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Haulory.Moblie.Converters;
+namespace Haulory.Mobile.Converters;
 
 public class StringNotEmptyConverter : IValueConverter
 {

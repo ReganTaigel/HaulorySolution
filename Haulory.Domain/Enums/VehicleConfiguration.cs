@@ -10,13 +10,18 @@ namespace Haulory.Domain.Enums
         SingleAxle,
         TandemAxle,
         Rigid,
-        TractorSemi,
-        TruckAndTrailer,
-        BTrain
+        RigidCold,
+        TractorUint,
+        SemiFlatDeck,
+        SemiSkeleton,
+        SemiRefrigerator,
+        RefrigeratorTrailer,
+        CurtainSiderTrailer,
+        BTrainCurtainSider
     }
 
     public enum Class4PowerUnitType
-    {
+    { 
         Truck = 0,
         Tractor = 1
     }

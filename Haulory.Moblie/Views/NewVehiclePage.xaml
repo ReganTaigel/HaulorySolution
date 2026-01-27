@@ -2,7 +2,7 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Moblie.Views.NewVehiclePage"
+    x:Class="Haulory.Mobile.Views.NewVehiclePage"
     Title="Add Vehicles">
 
     <ScrollView>
@@ -160,21 +160,56 @@
                                     Format="dd/MM/yyyy" />
                     </VerticalStackLayout>
                 </VerticalStackLayout>
-                
+
             </Border>
-            
+
+            <!-- MAKE & MODEL (after rego expiry) -->
+            <Border IsVisible="{Binding ShowMakeModel}"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Make And Model"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+
+                    <!-- Unit 1 -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding Unit1MakeModelLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="Make" Text="{Binding Unit1Make}" />
+                        <Entry Placeholder="Model" Text="{Binding Unit1Model}" />
+                    </VerticalStackLayout>
+
+                    <!-- Unit 2 -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
+                        <Label Text="{Binding Unit2MakeModelLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="Make" Text="{Binding Unit2Make}" />
+                        <Entry Placeholder="Model" Text="{Binding Unit2Model}" />
+                    </VerticalStackLayout>
+
+                    <!-- Unit 3 -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
+                        <Label Text="{Binding Unit3MakeModelLabel}" FontSize="12" TextColor="Gray"/>
+                        <Entry Placeholder="Make" Text="{Binding Unit3Make}" />
+                        <Entry Placeholder="Model" Text="{Binding Unit3Model}" />
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
             <!-- WOF / COF EXPIRY -->
             <Border IsVisible="{Binding ShowCertificateStep}"
-                StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 16"
-                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                Padding="14">
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
                 <VerticalStackLayout Spacing="12">
 
                     <Label Text="{Binding CertificatePluralName}"
-                       FontAttributes="Bold"
-                       FontSize="16" />
+                           FontAttributes="Bold"
+                           FontSize="16" />
 
                     <VerticalStackLayout IsVisible="{Binding ShowUnit1Cert}" Spacing="6">
                         <Label Text="{Binding Unit1CertLabel}" FontSize="12" TextColor="Gray"/>
@@ -237,24 +272,32 @@
                         <Label Text="{Binding PowerUnitOdoLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="e.g. 182340"
                                Keyboard="Numeric"
-                               Text="{Binding PowerUnitOdometerText}" />
+                               Text="{Binding PowerUnitOdometerKm}" />
                     </VerticalStackLayout>
 
                     <VerticalStackLayout IsVisible="{Binding ShowTrailer1Odo}" Spacing="6">
                         <Label Text="{Binding Trailer1OdoLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="e.g. 90210"
                                Keyboard="Numeric"
-                               Text="{Binding Trailer1OdometerText}" />
+                               Text="{Binding Trailer1OdometerKm}" />
                     </VerticalStackLayout>
 
                     <VerticalStackLayout IsVisible="{Binding ShowTrailer2Odo}" Spacing="6">
                         <Label Text="{Binding Trailer2OdoLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="e.g. 88120"
                                Keyboard="Numeric"
-                               Text="{Binding Trailer2OdometerText}" />
+                               Text="{Binding Trailer2OdometerKm}" />
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
+
+            <!-- SAVE BUTTON (LAST STEP) -->
+            <Button
+                Text="Save Vehicle"
+                Command="{Binding SaveVehicleCommand}"
+                IsEnabled="{Binding CanSaveVehicle}"
+                IsVisible="{Binding ShowSaveButton}"
+                Margin="0,16,0,0" />
 
         </VerticalStackLayout>
     </ScrollView>

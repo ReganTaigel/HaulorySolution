@@ -1,7 +1,7 @@
-using Haulory.Moblie.ViewModels;
+using Haulory.Mobile.ViewModels;
 using System.Linq.Expressions;
 
-namespace Haulory.Moblie.Views;
+namespace Haulory.Mobile.Views;
 
 public partial class NewVehiclePage : ContentPage
 {

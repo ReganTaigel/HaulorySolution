@@ -1,7 +1,7 @@
 ﻿using Haulory.Application.Features.Users;
 using System.Windows.Input;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 public class RegisterViewModel : BaseViewModel
 {

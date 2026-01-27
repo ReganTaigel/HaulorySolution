@@ -1,4 +1,4 @@
-namespace Haulory.Moblie.Views;
+namespace Haulory.Mobile.Views;
 
 public partial class DriversPage : ContentPage
 {

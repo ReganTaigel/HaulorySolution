@@ -1,7 +1,7 @@
 ﻿using Haulory.Application.Interfaces.Services;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.Views;
 
-namespace Haulory.Moblie;
+namespace Haulory.Mobile;
 
 public partial class AppShell : Shell
 {

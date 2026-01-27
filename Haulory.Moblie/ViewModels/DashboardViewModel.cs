@@ -1,9 +1,9 @@
 ﻿using Haulory.Application.Interfaces.Services;
 using Haulory.Application.Interfaces.Repositories;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.Views;
 using System.Windows.Input;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 public class DashboardViewModel : BaseViewModel
 {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Haulory.Moblie.ViewModels
+namespace Haulory.Mobile.ViewModels
 {
     public class VehicleOption <T>
     {

@@ -1,25 +1,54 @@
-﻿using Haulory.Moblie.Views;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Haulory.Application.Interfaces.Repositories;
+using Haulory.Domain.Entities;
+using Haulory.Mobile.Views;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
-namespace Haulory.Moblie.ViewModels
+namespace Haulory.Mobile.ViewModels;
+
+public class VehicleCollectionViewModel : BaseViewModel
 {
-    public class VehicleCollectionViewModel
+    private readonly IVehicleAssetRepository _assetRepository;
+
+    private bool _isBusy;
+    public bool IsBusy
     {
-        #region Commands
+        get => _isBusy;
+        set { _isBusy = value; OnPropertyChanged(); }
+    }
 
-        public ICommand GoToNewVehicleCommand { get;}
+    public ObservableCollection<VehicleAsset> Assets { get; } = new();
 
-        #endregion
+    public ICommand GoToNewVehicleCommand { get; }
+    public ICommand RefreshCommand { get; }
 
-        #region Constructor
+    public VehicleCollectionViewModel(IVehicleAssetRepository assetRepository)
+    {
+        _assetRepository = assetRepository;
 
-        public VehicleCollectionViewModel()
+        GoToNewVehicleCommand = new Command(async () =>
+            await Shell.Current.GoToAsync(nameof(NewVehiclePage)));
+
+        RefreshCommand = new Command(async () => await LoadAsync());
+    }
+
+    public async Task LoadAsync()
+    {
+        if (IsBusy) return;
+
+        try
         {
-            GoToNewVehicleCommand = new Command(async () => await Shell.Current.GoToAsync(nameof(NewVehiclePage)));
+            IsBusy = true;
+
+            Assets.Clear();
+            var assets = await _assetRepository.GetAllAsync();
+
+            foreach (var a in assets.OrderByDescending(a => a.CreatedUtc))
+                Assets.Add(a);
         }
-        #endregion
+        finally
+        {
+            IsBusy = false;
+        }
     }
 }

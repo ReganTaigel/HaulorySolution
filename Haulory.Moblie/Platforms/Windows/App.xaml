@@ -1,8 +1,8 @@
 ﻿<maui:MauiWinUIApplication
-    x:Class="Haulory.Moblie.WinUI.App"
+    x:Class="Haulory.Mobile.WinUI.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:maui="using:Microsoft.Maui"
-    xmlns:local="using:Haulory.Moblie.WinUI">
+    xmlns:local="using:Haulory.Mobile.WinUI">
 
 </maui:MauiWinUIApplication>

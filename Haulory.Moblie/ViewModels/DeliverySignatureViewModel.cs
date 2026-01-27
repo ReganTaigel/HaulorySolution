@@ -5,7 +5,7 @@ using Microsoft.Maui.Graphics;
 using System.Text.Json;
 using System.Windows.Input;
 
-namespace Haulory.Moblie.ViewModels;
+namespace Haulory.Mobile.ViewModels;
 
 [QueryProperty(nameof(JobId), "jobId")]
 public class DeliverySignatureViewModel : BaseViewModel

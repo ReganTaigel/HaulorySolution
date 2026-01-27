@@ -1,7 +1,7 @@
 ﻿using Haulory.Application.Features.Jobs;
 using Haulory.Domain.Enums;
-using Haulory.Moblie.ViewModels;
-using Haulory.Moblie.Views;
+using Haulory.Mobile.ViewModels;
+using Haulory.Mobile.Views;
 using System.Windows.Input;
 
 public class NewJobViewModel : BaseViewModel
