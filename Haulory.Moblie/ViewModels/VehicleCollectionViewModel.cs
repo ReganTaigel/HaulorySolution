@@ -31,7 +31,6 @@ public class VehicleCollectionViewModel : BaseViewModel
 
         RefreshCommand = new Command(async () => await LoadAsync());
     }
-
     public async Task LoadAsync()
     {
         if (IsBusy) return;
@@ -46,9 +45,16 @@ public class VehicleCollectionViewModel : BaseViewModel
             foreach (var a in assets.OrderByDescending(a => a.CreatedUtc))
                 Assets.Add(a);
         }
+        catch (Exception ex)
+        {
+            // optionally expose an ErrorMessage property or alert in page
+            System.Diagnostics.Debug.WriteLine(ex);
+            throw;
+        }
         finally
         {
             IsBusy = false;
         }
     }
+
 }

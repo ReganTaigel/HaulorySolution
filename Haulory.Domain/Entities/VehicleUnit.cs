@@ -3,15 +3,16 @@
 public class VehicleUnit
 {
     public int UnitNumber { get; set; } // 1,2,3
-    public string Rego { get; set; } = string.Empty;
 
+    public int Year { get; set; }  
+
+    public string Rego { get; set; } = string.Empty;
     public DateTime? RegoExpiry { get; set; }
 
     public string Make { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
 
-    // WOF/COF expiry (depends on vehicle type but store the date either way)
     public DateTime? CertificateExpiry { get; set; }
-
     public int? OdometerKm { get; set; }
+
 }

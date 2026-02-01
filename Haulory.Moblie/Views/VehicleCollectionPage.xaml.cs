@@ -15,6 +15,15 @@ public partial class VehicleCollectionPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.LoadAsync();
+
+        try
+        {
+            await _vm.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+        }
     }
+
 }

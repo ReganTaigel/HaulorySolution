@@ -9,6 +9,12 @@ public class VehicleAssetRepository : IVehicleAssetRepository
     private readonly string _filePath;
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true
+    };
+
     public VehicleAssetRepository()
     {
         _filePath = Path.Combine(FileSystem.AppDataDirectory, "vehicleAssets.json");
@@ -16,27 +22,22 @@ public class VehicleAssetRepository : IVehicleAssetRepository
 
     public async Task AddAsync(VehicleAsset asset)
     {
-        await _lock.WaitAsync();
-        try
-        {
-            var assets = await LoadAsync();
-            assets.Add(asset);
-            await SaveAsync(assets);
-        }
-        finally
-        {
-            _lock.Release();
-        }
+        await AddRangeAsync(new[] { asset });
     }
 
     public async Task AddRangeAsync(IReadOnlyList<VehicleAsset> assetsToAdd)
     {
+        if (assetsToAdd == null || assetsToAdd.Count == 0) return;
+
         await _lock.WaitAsync();
         try
         {
-            var assets = await LoadAsync();
-            assets.AddRange(assetsToAdd);
-            await SaveAsync(assets);
+            var assets = await LoadUnsafeAsync();
+
+            foreach (var a in assetsToAdd)
+                assets.Add(Normalize(a));
+
+            await SaveUnsafeAtomicAsync(assets);
         }
         finally
         {
@@ -46,13 +47,29 @@ public class VehicleAssetRepository : IVehicleAssetRepository
 
     public async Task<IReadOnlyList<VehicleAsset>> GetAllAsync()
     {
-        return await LoadAsync();
+        await _lock.WaitAsync();
+        try
+        {
+            return await LoadUnsafeAsync();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task<VehicleAsset?> GetByIdAsync(Guid id)
     {
-        var assets = await LoadAsync();
-        return assets.FirstOrDefault(a => a.Id == id);
+        await _lock.WaitAsync();
+        try
+        {
+            var assets = await LoadUnsafeAsync();
+            return assets.FirstOrDefault(a => a.Id == id);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task UpdateAsync(VehicleAsset asset)
@@ -60,12 +77,12 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await _lock.WaitAsync();
         try
         {
-            var assets = await LoadAsync();
+            var assets = await LoadUnsafeAsync();
             var index = assets.FindIndex(a => a.Id == asset.Id);
             if (index < 0) return;
 
-            assets[index] = asset;
-            await SaveAsync(assets);
+            assets[index] = Normalize(asset);
+            await SaveUnsafeAtomicAsync(assets);
         }
         finally
         {
@@ -78,10 +95,10 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await _lock.WaitAsync();
         try
         {
-            var assets = await LoadAsync();
+            var assets = await LoadUnsafeAsync();
             var removed = assets.RemoveAll(a => a.Id == id);
             if (removed > 0)
-                await SaveAsync(assets);
+                await SaveUnsafeAtomicAsync(assets);
         }
         finally
         {
@@ -89,23 +106,65 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         }
     }
 
-    private async Task<List<VehicleAsset>> LoadAsync()
+    private async Task<List<VehicleAsset>> LoadUnsafeAsync()
     {
         if (!File.Exists(_filePath))
             return new List<VehicleAsset>();
 
-        var json = await File.ReadAllTextAsync(_filePath);
+        try
+        {
+            var json = await File.ReadAllTextAsync(_filePath);
 
-        return JsonSerializer.Deserialize<List<VehicleAsset>>(json)
-               ?? new List<VehicleAsset>();
+            // tolerate empty file
+            if (string.IsNullOrWhiteSpace(json))
+                return new List<VehicleAsset>();
+
+            return JsonSerializer.Deserialize<List<VehicleAsset>>(json, JsonOptions)
+                   ?? new List<VehicleAsset>();
+        }
+        catch (JsonException)
+        {
+            // If corrupted, preserve it for diagnostics and start clean
+            var corruptPath = _filePath + ".corrupt_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            try { File.Copy(_filePath, corruptPath, overwrite: true); } catch { /* ignore */ }
+
+            return new List<VehicleAsset>();
+        }
     }
 
-    private async Task SaveAsync(List<VehicleAsset> assets)
+    private async Task SaveUnsafeAtomicAsync(List<VehicleAsset> assets)
     {
-        var json = JsonSerializer.Serialize(
-            assets,
-            new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(assets, JsonOptions);
 
-        await File.WriteAllTextAsync(_filePath, json);
+        var dir = Path.GetDirectoryName(_filePath)!;
+        Directory.CreateDirectory(dir);
+
+        var tmp = _filePath + ".tmp";
+        await File.WriteAllTextAsync(tmp, json);
+
+        // atomic-ish replace
+        if (File.Exists(_filePath))
+            File.Delete(_filePath);
+
+        File.Move(tmp, _filePath);
+    }
+
+    private static VehicleAsset Normalize(VehicleAsset a)
+    {
+        // basic hygiene (doesn't change business meaning)
+        a.Rego = (a.Rego ?? string.Empty).Trim().ToUpperInvariant();
+        a.Make = (a.Make ?? string.Empty).Trim();
+        a.Model = (a.Model ?? string.Empty).Trim();
+
+        if (a.VehicleSetId == Guid.Empty)
+            a.VehicleSetId = Guid.NewGuid();
+
+        if (a.Id == Guid.Empty)
+            a.Id = Guid.NewGuid();
+
+        if (a.CreatedUtc == default)
+            a.CreatedUtc = DateTime.UtcNow;
+
+        return a;
     }
 }

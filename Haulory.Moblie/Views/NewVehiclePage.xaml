@@ -129,72 +129,79 @@
 
             <!-- REGO EXPIRY -->
             <Border IsVisible="{Binding ShowRegoExpiry}"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                    Padding="14">
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                Padding="14">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Rego Expiry"
-                           FontAttributes="Bold"
-                           FontSize="16"/>
+                       FontAttributes="Bold"
+                       FontSize="16"/>
                     <Label Text="Select the expiry date for each rego."
-                           FontSize="12"
-                           TextColor="Gray"/>
+                       FontSize="12"
+                       TextColor="Gray"/>
 
-                    <VerticalStackLayout Spacing="6">
+                    <!-- Unit 1 (POWERED ONLY) -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
                         <Label Text="{Binding Unit1Label}" FontSize="12" TextColor="Gray"/>
                         <DatePicker Date="{Binding Unit1RegoExpiry}"
-                                    Format="dd/MM/yyyy" />
+                            Format="dd/MM/yyyy" />
                     </VerticalStackLayout>
 
+                    <!-- Unit 2 (TRAILER #1) -->
                     <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
                         <Label Text="{Binding Unit2Label}" FontSize="12" TextColor="Gray"/>
                         <DatePicker Date="{Binding Unit2RegoExpiry}"
-                                    Format="dd/MM/yyyy" />
+                            Format="dd/MM/yyyy" />
                     </VerticalStackLayout>
 
+                    <!-- Unit 3 (B-TRAIN TRAILER #2) -->
                     <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
                         <Label Text="{Binding Unit3Label}" FontSize="12" TextColor="Gray"/>
                         <DatePicker Date="{Binding Unit3RegoExpiry}"
-                                    Format="dd/MM/yyyy" />
+                            Format="dd/MM/yyyy" />
                     </VerticalStackLayout>
-                </VerticalStackLayout>
 
+                </VerticalStackLayout>
             </Border>
 
             <!-- MAKE & MODEL (after rego expiry) -->
             <Border IsVisible="{Binding ShowMakeModel}"
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                    Padding="14">
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 16"
+                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                Padding="14">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Make And Model"
-                           FontAttributes="Bold"
-                           FontSize="16"/>
+                       FontAttributes="Bold"
+                       FontSize="16"/>
 
-                    <!-- Unit 1 -->
-                    <VerticalStackLayout Spacing="6">
+                    <!-- Unit 1 (POWERED ONLY) -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
                         <Label Text="{Binding Unit1MakeModelLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="Make" Text="{Binding Unit1Make}" />
                         <Entry Placeholder="Model" Text="{Binding Unit1Model}" />
+                        <Entry Placeholder="Year (e.g. 2018)" Keyboard="Numeric" Text="{Binding Unit1Year}" />
                     </VerticalStackLayout>
 
-                    <!-- Unit 2 -->
+                    <!-- Unit 2 (TRAILER #1) -->
                     <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
                         <Label Text="{Binding Unit2MakeModelLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="Make" Text="{Binding Unit2Make}" />
                         <Entry Placeholder="Model" Text="{Binding Unit2Model}" />
+                        <Entry Placeholder="Year (e.g. 2018)" Keyboard="Numeric" Text="{Binding Unit2Year}" />
                     </VerticalStackLayout>
 
-                    <!-- Unit 3 -->
+                    <!-- Unit 3 (B-TRAIN TRAILER #2) -->
                     <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
                         <Label Text="{Binding Unit3MakeModelLabel}" FontSize="12" TextColor="Gray"/>
                         <Entry Placeholder="Make" Text="{Binding Unit3Make}" />
                         <Entry Placeholder="Model" Text="{Binding Unit3Model}" />
+                        <Entry Placeholder="Year (e.g. 2018)" Keyboard="Numeric" Text="{Binding Unit3Year}" />
                     </VerticalStackLayout>
+
                 </VerticalStackLayout>
             </Border>
 
@@ -253,7 +260,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ODOMETER -->
+            <!-- ODOMETER -->  
             <Border IsVisible="{Binding ShowOdometers}"
                     StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
@@ -288,6 +295,78 @@
                                Keyboard="Numeric"
                                Text="{Binding Trailer2OdometerKm}" />
                     </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- RUC (Road User Charges) -->
+            <Border IsVisible="{Binding ShowRucStep}"
+        StrokeThickness="1"
+        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+        StrokeShape="RoundRectangle 16"
+        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+        Padding="14">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Road User Charges (RUC)"
+               FontAttributes="Bold"
+               FontSize="16" />
+                    <Label Text="Enter the last RUC licence range (start and end)."
+               FontSize="12"
+               TextColor="Gray" />
+
+                    <!-- UNIT 1 -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit1Ruc}" Spacing="10">
+                        <Label Text="{Binding Unit1RucLabel}" FontAttributes="Bold" FontSize="14"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label Text="Licence start (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 1000" Keyboard="Numeric" Text="{Binding Unit1RucLicenceStartKm}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Licence end (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 2000" Keyboard="Numeric" Text="{Binding Unit1RucLicenceEndKm}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+
+                    <!-- UNIT 2 -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit2Ruc}" Spacing="10">
+                        <Label Text="{Binding Unit2RucLabel}" FontAttributes="Bold" FontSize="14"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label Text="Licence start (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 1000" Keyboard="Numeric" Text="{Binding Unit2RucLicenceStartKm}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Licence end (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 2000" Keyboard="Numeric" Text="{Binding Unit2RucLicenceEndKm}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+
+                    <!-- UNIT 3 -->
+                    <VerticalStackLayout IsVisible="{Binding ShowUnit3Ruc}" Spacing="10">
+                        <Label Text="{Binding Unit3RucLabel}" FontAttributes="Bold" FontSize="14"/>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                <Label Text="Licence start (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 1000" Keyboard="Numeric" Text="{Binding Unit3RucLicenceStartKm}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                <Label Text="Licence end (km)" FontSize="12" TextColor="Gray"/>
+                                <Entry Placeholder="e.g. 2000" Keyboard="Numeric" Text="{Binding Unit3RucLicenceEndKm}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                    </VerticalStackLayout>
+
                 </VerticalStackLayout>
             </Border>
 

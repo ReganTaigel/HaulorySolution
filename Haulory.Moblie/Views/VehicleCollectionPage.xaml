@@ -26,7 +26,6 @@
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsBusy}">
 
-            <!-- ✅ Assets instead of Vehicles -->
             <CollectionView ItemsSource="{Binding Assets}"
                             SelectionMode="None">
 
@@ -52,10 +51,14 @@
 
                             <VerticalStackLayout Spacing="8">
 
-                                <!-- Title line: Make + Model -->
+                                <!-- TITLE -->
                                 <Label FontSize="16" FontAttributes="Bold">
                                     <Label.FormattedText>
                                         <FormattedString>
+                                            <Span Text="{Binding TitlePrefix}" />
+                                            <Span Text=" • " />
+                                            <Span Text="{Binding Year}" />
+                                            <Span Text=" " />
                                             <Span Text="{Binding Make}" />
                                             <Span Text=" " />
                                             <Span Text="{Binding Model}" />
@@ -63,41 +66,66 @@
                                     </Label.FormattedText>
                                 </Label>
 
-                                <!-- Type line: Vehicle/Trailer + (optional) Vehicle type -->
+                                <!-- TYPE LINE -->
                                 <HorizontalStackLayout Spacing="8">
-                                    <Label Text="{Binding KindDisplay}"
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           TextColor="Gray" />
-
-                                    <!-- Only really useful for power units; will be blank for trailers -->
                                     <Label Text="{Binding VehicleTypeDisplay}"
                                            FontSize="12"
                                            TextColor="Gray"
                                            VerticalOptions="Center" />
                                 </HorizontalStackLayout>
 
-                                <!-- Rego -->
+                                <!-- REGO -->
                                 <Label FontSize="12" TextColor="Gray">
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="Rego: " />
                                             <Span Text="{Binding Rego}" FontAttributes="Bold" />
+                                            <Span Text=" -- Expires: " />
+                                            <Span Text="{Binding RegoExpiryDisplay}" FontAttributes="Bold" />
                                         </FormattedString>
                                     </Label.FormattedText>
                                 </Label>
 
-                                <!-- WOF/COF Expiry -->
+                                <!-- WOF / COF -->
                                 <Label FontSize="12" TextColor="Gray">
                                     <Label.FormattedText>
                                         <FormattedString>
                                             <Span Text="{Binding CertificateNameDisplay}" />
                                             <Span Text=" expiry: " />
-                                            <Span Text="{Binding CertificateExpiry, StringFormat='{0:dd/MM/yyyy}'}"
-                                                  FontAttributes="Bold" />
+                                            <Span Text="{Binding CertificateExpiryDisplay}" FontAttributes="Bold" />
+                                            <Span Text="{Binding CertStatusDisplay}" />
                                         </FormattedString>
                                     </Label.FormattedText>
                                 </Label>
+
+                                <!-- RUC (Licence range) -->
+                                <!-- Only shows for diesel/electric power units OR Class 3/5 trailers (via IsRucApplicable) -->
+                                <VerticalStackLayout IsVisible="{Binding IsRucApplicable}" Spacing="2">
+
+                                    <Label FontSize="12" TextColor="Gray">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text="RUC licence: " />
+                                                <Span Text="{Binding RucLicenceStartKm}" FontAttributes="Bold" />
+                                                <Span Text=" - " />
+                                                <Span Text="{Binding RucLicenceEndKm}" FontAttributes="Bold" />
+                                                <Span Text=" km" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+
+                                    <!-- Optional: show next due + remaining if you still compute these -->
+                                    <Label FontSize="12" TextColor="Gray">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span Text=" Remaining: " />
+                                                <Span Text="{Binding RucNextDueDisplay}" FontAttributes="Bold" />
+                                                <Span Text="{Binding RucRemainingDisplay}" FontAttributes="Bold" />
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+
+                                </VerticalStackLayout>
 
                             </VerticalStackLayout>
 
