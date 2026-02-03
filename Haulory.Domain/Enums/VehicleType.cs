@@ -6,8 +6,8 @@ namespace Haulory.Domain.Enums
 {
    public enum VehicleType
     {
-        Car,
-        Ute,
+        LightVehicle,
+        UtilityVehicle,
         LightVehicleTrailer,
         TruckClass2,
         TrailerClass3,

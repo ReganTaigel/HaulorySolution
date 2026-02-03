@@ -25,6 +25,13 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await AddRangeAsync(new[] { asset });
     }
 
+    /// <summary>
+    /// Adds or updates assets safely.
+    /// Rules:
+    /// 1) If incoming Id matches an existing asset => replace existing (update)
+    /// 2) Else if VehicleSetId + UnitNumber matches existing => replace existing (wizard slot identity)
+    /// 3) Else add new
+    /// </summary>
     public async Task AddRangeAsync(IReadOnlyList<VehicleAsset> assetsToAdd)
     {
         if (assetsToAdd == null || assetsToAdd.Count == 0) return;
@@ -32,12 +39,40 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await _lock.WaitAsync();
         try
         {
-            var assets = await LoadUnsafeAsync();
+            var existing = await LoadUnsafeAsync();
 
-            foreach (var a in assetsToAdd)
-                assets.Add(Normalize(a));
+            foreach (var incoming in assetsToAdd)
+            {
+                var normalized = Normalize(incoming);
 
-            await SaveUnsafeAtomicAsync(assets);
+                // 1) Match by Id first (strongest identity)
+                var indexById = existing.FindIndex(a => a.Id == normalized.Id && normalized.Id != Guid.Empty);
+                if (indexById >= 0)
+                {
+                    existing[indexById] = normalized;
+                    continue;
+                }
+
+                // 2) If no Id match, match by "slot identity": VehicleSetId + UnitNumber
+                // This prevents duplicates when the same wizard set is saved again.
+                if (normalized.VehicleSetId != Guid.Empty && normalized.UnitNumber > 0)
+                {
+                    var indexBySlot = existing.FindIndex(a =>
+                        a.VehicleSetId == normalized.VehicleSetId &&
+                        a.UnitNumber == normalized.UnitNumber);
+
+                    if (indexBySlot >= 0)
+                    {
+                        existing[indexBySlot] = normalized;
+                        continue;
+                    }
+                }
+
+                // 3) Otherwise it’s new
+                existing.Add(normalized);
+            }
+
+            await SaveUnsafeAtomicAsync(existing);
         }
         finally
         {
@@ -78,6 +113,8 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         try
         {
             var assets = await LoadUnsafeAsync();
+
+            // Update is strictly by Id
             var index = assets.FindIndex(a => a.Id == asset.Id);
             if (index < 0) return;
 
@@ -97,6 +134,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         {
             var assets = await LoadUnsafeAsync();
             var removed = assets.RemoveAll(a => a.Id == id);
+
             if (removed > 0)
                 await SaveUnsafeAtomicAsync(assets);
         }
@@ -132,6 +170,12 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         }
     }
 
+    /// <summary>
+    /// Safer "atomic-ish" save:
+    /// - Writes to .tmp
+    /// - Uses File.Replace when possible (best on Windows)
+    /// - Falls back to delete+move
+    /// </summary>
     private async Task SaveUnsafeAtomicAsync(List<VehicleAsset> assets)
     {
         var json = JsonSerializer.Serialize(assets, JsonOptions);
@@ -140,9 +184,31 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         Directory.CreateDirectory(dir);
 
         var tmp = _filePath + ".tmp";
+        var bak = _filePath + ".bak";
+
         await File.WriteAllTextAsync(tmp, json);
 
-        // atomic-ish replace
+        // If the file exists, File.Replace is the most reliable atomic replace on Windows.
+        // If it fails (platform limitations), we fall back to delete + move.
+        if (File.Exists(_filePath))
+        {
+            try
+            {
+                // Replace destination with tmp, keep backup
+                File.Replace(tmp, _filePath, bak, ignoreMetadataErrors: true);
+
+                // Optional: if you don’t want backups hanging around, you can delete it.
+                // try { File.Delete(bak); } catch { /* ignore */ }
+
+                return;
+            }
+            catch
+            {
+                // fall through to delete+move
+            }
+        }
+
+        // Fallback path
         if (File.Exists(_filePath))
             File.Delete(_filePath);
 

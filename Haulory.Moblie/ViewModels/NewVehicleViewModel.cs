@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Features.Vehicles.CreateVehicleSet;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using System.Collections.ObjectModel;
@@ -11,6 +12,8 @@ public class NewVehicleViewModel : BaseViewModel
     #region Fields
 
     private readonly IVehicleAssetRepository _vehicleRepository;
+    private readonly CreateVehicleHandler _createVehicleHandler;
+
     private bool _isSaving;
 
     // Slot conventions (important for future trailer swapping / recall)
@@ -164,14 +167,12 @@ public class NewVehicleViewModel : BaseViewModel
 
     #region Constructor
 
-    public NewVehicleViewModel(IVehicleAssetRepository vehicleRepository)
+    public NewVehicleViewModel(IVehicleAssetRepository vehicleRepository, CreateVehicleHandler createVehicleHandler)
     {
         _vehicleRepository = vehicleRepository;
+        _createVehicleHandler = createVehicleHandler;
 
-        SaveVehicleCommand = new Command(
-            async () => await ExecuteSaveVehicleAsync(),
-            () => CanSaveVehicle);
-
+        SaveVehicleCommand = new Command(async () => await ExecuteSaveVehicleAsync(), () => CanSaveVehicle);
         RefreshSaveState();
     }
 
@@ -179,43 +180,69 @@ public class NewVehicleViewModel : BaseViewModel
 
     #region Pickers (Options)
 
+    // First selectable option 
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
         {
-            new(VehicleType.Car, "Car"),
-            new(VehicleType.Ute, "Ute"),
+            // Light Vehicles and Utility Vehicle
+            new(VehicleType.LightVehicle, "Light Vehicle"),
+            new(VehicleType.UtilityVehicle, "Utility Vehicle"),
 
-            // Trailer as its own asset
+            // Light Vehicle Trailers
             new(VehicleType.LightVehicleTrailer, "Light Vehicle Trailer"),
 
+            // Heavy Class Vehicles and Trailer
             new(VehicleType.TruckClass2, "Truck (Class 2)"),
             new(VehicleType.TrailerClass3, "Trailer (Class 3)"),
             new(VehicleType.TruckClass4, "Truck (Class 4)"),
             new(VehicleType.TrailerClass5, "Trailer (Class 5)")
         };
 
+    // Light trailer options if Light Trailers is selected
     public ObservableCollection<VehicleOption<VehicleConfiguration>> LightTrailerConfigurations { get; } =
         new()
-        {
+        {   
+            // there may be customs or other options
             new(VehicleConfiguration.SingleAxle, "Single axle trailer"),
             new(VehicleConfiguration.TandemAxle, "Tandem axle trailer"),
         };
 
+    // Heavy class options if anything above class one is selected 
     public ObservableCollection<VehicleOption<VehicleConfiguration>> HeavyConfigurations { get; } =
         new()
         {
-            new(VehicleConfiguration.SemiFlatDeck, "Semi Flat Trailer"),
-            new(VehicleConfiguration.SemiRefrigerator, "Semi Refrigerator Trailer"),
-            new(VehicleConfiguration.SemiSkeleton, "Semi Skeleton Trailer"),
-            new(VehicleConfiguration.CurtainSiderTrailer, "Single Curtainsider Trailer"),
-            new(VehicleConfiguration.BTrainCurtainSider, "B-Train (2 curtain trailers)")
+
+            
+            // Simi Trailer configs
+            new(VehicleConfiguration.SemiCurtainsider, "Semi Trailer (Curtains)"),
+            new(VehicleConfiguration.SemiFlatDeck, "Semi Trailer (Flat Deck)"),
+            new(VehicleConfiguration.SemiRefrigerator, "Semi Trailer (Refrigerated)"),
+            new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
+            new(VehicleConfiguration.SemiSkeleton,"Semi Trailer (Skeleton)"),
+
+            // Rigid Trailers
+            new(VehicleConfiguration.CurtainSiderTrailer, "Curtainsider Trailer(A-Frame)"),
+            new(VehicleConfiguration.FlatDeckTrailer , "Flat Deck (A-Frame)"),
+            new(VehicleConfiguration.RefrigeratorTrailer , "Refrigerated Trailer (A-Frame)"),
+            new(VehicleConfiguration.TankerTrailer , "Tanker Trailer (A-Frame)"),
+
+            // B Train Trailers
+            new(VehicleConfiguration.BCurtainSider, "Curtainsider Trailer (Fifth Wheel)"),
+            new(VehicleConfiguration.BFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
+            new(VehicleConfiguration.BRefigerator, "Refigerator Trailers (Fifth Wheel)"),
+            new(VehicleConfiguration.BTanker, "Tanker Trialer (Fifth Wheel)"),
+
         };
 
     public ObservableCollection<VehicleOption<Class4PowerUnitType>> Class4UnitTypes { get; } =
         new()
         {
-            new(Class4PowerUnitType.Truck, "Truck"),
-            new(Class4PowerUnitType.Tractor, "Tractor")
+            // Rigid Trucks configs
+            new(Class4PowerUnitType.TruckCurtainsider, "Rigid Truck (Curtains)"),
+            new(Class4PowerUnitType.TruckFlatDeck, "Rigid Truck (Flat Deck)"),
+            new(Class4PowerUnitType.TruckRefrigerator, "Rigid Truck (Refrigerated)"),
+            new(Class4PowerUnitType.TruckTanker, "Rigid Truck (Tanker)"),
+            new(Class4PowerUnitType.Tractor, "Tractor"),
         };
 
     public ObservableCollection<VehicleOption<FuelType>> FuelTypes { get; } =
@@ -704,8 +731,8 @@ public class NewVehicleViewModel : BaseViewModel
 
     // powered assets (need fuel + odo)
     public bool IsPoweredVehicle =>
-        SelectedVehicleType?.Value == VehicleType.Car ||
-        SelectedVehicleType?.Value == VehicleType.Ute ||
+        SelectedVehicleType?.Value == VehicleType.LightVehicle ||
+        SelectedVehicleType?.Value == VehicleType.UtilityVehicle||
         SelectedVehicleType?.Value == VehicleType.TruckClass2 ||
         SelectedVehicleType?.Value == VehicleType.TruckClass4;
 
@@ -722,7 +749,10 @@ public class NewVehicleViewModel : BaseViewModel
 
     public bool IsBTrain =>
         SelectedVehicleType?.Value == VehicleType.TrailerClass5 &&
-        SelectedHeavyConfig?.Value == VehicleConfiguration.BTrainCurtainSider;
+        SelectedHeavyConfig?.Value == VehicleConfiguration.BCurtainSider ||
+        SelectedHeavyConfig?.Value == VehicleConfiguration.BFlatDeck ||
+        SelectedHeavyConfig?.Value == VehicleConfiguration.BRefigerator||
+        SelectedHeavyConfig?.Value == VehicleConfiguration.BTanker;
 
     public bool ShowLightTrailerConfig => SelectedVehicleType?.Value == VehicleType.LightVehicleTrailer;
 
@@ -738,8 +768,8 @@ public class NewVehicleViewModel : BaseViewModel
 
     public bool IsHeavyVehicle =>
         SelectedVehicleType?.Value == VehicleType.TruckClass2 ||
-        SelectedVehicleType?.Value == VehicleType.TruckClass4 ||
         SelectedVehicleType?.Value == VehicleType.TrailerClass3 ||
+        SelectedVehicleType?.Value == VehicleType.TruckClass4 ||
         SelectedVehicleType?.Value == VehicleType.TrailerClass5;
 
     public ComplianceCertificateType RequiredCertificate =>
@@ -1125,7 +1155,14 @@ public class NewVehicleViewModel : BaseViewModel
             assets.Add(trailer2);
         }
 
-        await _vehicleRepository.AddRangeAsync(assets);
+        var result = await _createVehicleHandler.HandleAsync(new CreateVehicleCommand
+        {
+            Assets = assets
+        });
+
+        if (!result.Success)
+            throw new InvalidOperationException(result.Message);
+
     }
 
     #endregion

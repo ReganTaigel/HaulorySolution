@@ -37,16 +37,16 @@ public class LoginViewModel : BaseViewModel
 
         if (user != null)
         {
-            // ✅ Store session
+            // Store session
             await _sessionService.SetUserAsync(user);
 
-            // ✅ Navigate to app root
+            // Navigate to app root
             await Shell.Current.GoToAsync("///DashboardPage");
         }
         else
         {
-            // ✅ Correct, non-deprecated alert
-            await Shell.Current.DisplayAlert(
+            // Correct, non-deprecated alert
+            await Shell.Current.DisplayAlertAsync(
                 "Login Failed",
                 "Invalid credentials",
                 "OK");

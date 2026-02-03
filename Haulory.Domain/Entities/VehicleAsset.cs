@@ -54,7 +54,6 @@ public class VehicleAsset
     public int? RucLicenceStartKm { get; set; }   // start odometer on licence (e.g. 1000)
     public int? RucLicenceEndKm { get; set; }     // end odometer on licence (e.g. 2000)
 
-
     // ------------------------
     // Shared
     // ------------------------
@@ -82,8 +81,8 @@ public class VehicleAsset
 
     public string VehicleTypeDisplay => VehicleType switch
     {
-        Enums.VehicleType.Car => "Car",
-        Enums.VehicleType.Ute => "Ute",
+        Enums.VehicleType.LightVehicle => "Light Vehicle",
+        Enums.VehicleType.UtilityVehicle => "Utility Vehicle",
         Enums.VehicleType.LightVehicleTrailer => "Light Vehicle Trailer",
         Enums.VehicleType.TruckClass2 => "Truck (Class 2)",
         Enums.VehicleType.TrailerClass3 => "Trailer (Class 3)",
@@ -116,23 +115,39 @@ public class VehicleAsset
     // Backwards-compat alias
     public string UnitDisplay => UnitRoleDisplay;
 
-    // Trailer / config naming
+    // Trailer / config naming  (KEEPING YOUR EDITS EXACTLY)
     public string ConfigurationDisplay => Configuration switch
     {
+        // Light Trailer configs
         VehicleConfiguration.SingleAxle => "Single Axle Trailer",
         VehicleConfiguration.TandemAxle => "Tandem Axle Trailer",
 
-        VehicleConfiguration.SemiFlatDeck => "Semi Flat Deck Trailer",
-        VehicleConfiguration.SemiSkeleton => "Semi Skeleton Trailer",
-        VehicleConfiguration.SemiRefrigerator => "Semi Refrigerated Trailer",
+        // Simi Trailer configs
+        VehicleConfiguration.SemiCurtainsider => "Semi Trailer (Curtains)",
+        VehicleConfiguration.SemiFlatDeck => "Semi Trailer (Flat Deck)",
+        VehicleConfiguration.SemiRefrigerator => "Semi Trailer (Refrigerated)",
+        VehicleConfiguration.SemiTanker => "Semi Trailer (Tanker)",
+        VehicleConfiguration.SemiSkeleton => "Semi Trailer (Skeleton)",
 
-        VehicleConfiguration.CurtainSiderTrailer => "Curtainsider Trailer",
-        VehicleConfiguration.RefrigeratorTrailer => "Refrigerated Trailer",
+        // Rigid Trucks configs
+        VehicleConfiguration.RigidTruckCurtainsider => "Rigid Truck (Curtains)",
+        VehicleConfiguration.RigidTruckFlatDeck => "Rigid Truck (Flat Deck)",
+        VehicleConfiguration.RigidTruckRefrigerator => "Rigid Truck (Refrigerated)",
+        VehicleConfiguration.RigidTruckTanker => "Rigid Truck (Tanker)",
 
-        VehicleConfiguration.BTrainCurtainSider => "Curtainsider Trailer",
+        // Rigid Trailers
+        VehicleConfiguration.CurtainSiderTrailer => "Curtainsider Trailer(A-Frame)",
+        VehicleConfiguration.FlatDeckTrailer => "Flat Deck (A-Frame)",
+        VehicleConfiguration.RefrigeratorTrailer => "Refrigerated Trailer (A-Frame)",
+        VehicleConfiguration.TankerTrailer => "Tanker Trailer (A-Frame)",
 
-        VehicleConfiguration.Rigid => "Rigid Truck",
-        VehicleConfiguration.RigidCold => "Rigid Refrigerated Truck",
+        // B Train Trailers
+        VehicleConfiguration.BCurtainSider => "Curtainsider Trailer (Fifth Wheel)",
+        VehicleConfiguration.BFlatDeck => "Flat Deck Trailer (Fifth Wheel)",
+        VehicleConfiguration.BRefigerator => "Refigerator Trailers (Fifth Wheel)",
+        VehicleConfiguration.BTanker => "Tanker Trialer (Fifth Wheel)",
+
+        // Tractor Units
         VehicleConfiguration.TractorUint => "Tractor Unit",
 
         _ => string.Empty
@@ -167,18 +182,44 @@ public class VehicleAsset
     public string RegoExpiryDisplay => RegoExpiry?.ToString("dd/MM/yyyy") ?? "—";
     public string CertificateExpiryDisplay => CertificateExpiry?.ToString("dd/MM/yyyy") ?? "—";
 
-    // Compliance status helpers (optional UI badges)
+    // ------------------------
+    // COMPLIANCE: REGO + CERT STATUS (bullet auto disappears)
+    // ------------------------
+
+    public bool IsRegoExpired =>
+        RegoExpiry != null && RegoExpiry.Value.Date < DateTime.Today;
+
+    public bool IsRegoDueSoon =>
+        RegoExpiry != null && RegoExpiry.Value.Date <= DateTime.Today.AddDays(30);
+
+    // returns: "", "EXPIRED", or "DUE SOON"
+    public string RegoStatusDisplay =>
+        RegoExpiry == null ? string.Empty :
+        IsRegoExpired ? "EXPIRED" :
+        IsRegoDueSoon ? "DUE SOON" :
+        string.Empty;
+
+    // returns: "", " • EXPIRED", or " • DUE SOON"
+    public string RegoStatusInlineDisplay =>
+        string.IsNullOrWhiteSpace(RegoStatusDisplay) ? string.Empty : $" • {RegoStatusDisplay}";
+
+    // Certificate status (your original logic)
     public bool IsCertExpired =>
         CertificateExpiry != null && CertificateExpiry.Value.Date < DateTime.Today;
 
     public bool IsCertDueSoon =>
         CertificateExpiry != null && CertificateExpiry.Value.Date <= DateTime.Today.AddDays(30);
 
+    // returns: "", "EXPIRED", or "DUE SOON"
     public string CertStatusDisplay =>
         CertificateExpiry == null ? string.Empty :
-        IsCertExpired ? " • EXPIRED" :
-        IsCertDueSoon ? " • DUE SOON" :
+        IsCertExpired ? "EXPIRED" :
+        IsCertDueSoon ? "DUE SOON" :
         string.Empty;
+
+    // returns: "", " • EXPIRED", or " • DUE SOON"
+    public string CertStatusInlineDisplay =>
+        string.IsNullOrWhiteSpace(CertStatusDisplay) ? string.Empty : $" • {CertStatusDisplay}";
 
     // ------------------------
     // RUC display helpers
@@ -231,4 +272,7 @@ public class VehicleAsset
     public bool IsRucOverdue =>
         IsRucApplicable && OdometerKm != null && RucLicenceEndKm != null
         && OdometerKm.Value > RucLicenceEndKm.Value;
+
+    // YES/NO string for UI
+    public string IsRucOverdueYesNo => IsRucOverdue ? "YES" : "NO";
 }

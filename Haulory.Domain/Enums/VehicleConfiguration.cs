@@ -7,23 +7,46 @@ namespace Haulory.Domain.Enums
 
     public enum VehicleConfiguration
     {
+        // Light Trailers axle
         SingleAxle,
         TandemAxle,
-        Rigid,
-        RigidCold,
+
+        // Rigid Truck
+        RigidTruckCurtainsider,
+        RigidTruckRefrigerator,
+        RigidTruckTanker,
+        RigidTruckFlatDeck,
+
+        // Tractor Units 
         TractorUint,
+
+        // Simi Trailers
+        SemiCurtainsider,
         SemiFlatDeck,
         SemiSkeleton,
         SemiRefrigerator,
+        SemiTanker,
+
+        // Rigid Trailers
         RefrigeratorTrailer,
         CurtainSiderTrailer,
-        BTrainCurtainSider
+        TankerTrailer,
+        FlatDeckTrailer,
+
+        // B Train Trailers
+        BCurtainSider,
+        BFlatDeck,
+        BRefigerator,
+        BTanker
     }
 
     public enum Class4PowerUnitType
-    { 
-        Truck = 0,
-        Tractor = 1
+    {
+        TruckCurtainsider,
+        TruckRefrigerator,
+        TruckTanker,
+        TruckFlatDeck,
+        Tractor
     }
 
 
