@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Haulory.Mobile.Views.DriverCollectionPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Drivers">
+
+    <Grid RowDefinitions="Auto,*" Padding="16" RowSpacing="12">
+
+        <!-- ACTION (gated by Main profile completion) -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,*" ColumnSpacing="10">
+
+            <!-- Continue shown until Main details are completed -->
+            <Button
+                Grid.ColumnSpan="2"
+                Text="Continue"
+                Command="{Binding ContinueCommand}"
+                IsVisible="{Binding ShowContinue}" />
+
+            <!-- Add Driver shown only when Main details are completed -->
+            <Button
+                Grid.Column="1"
+                Text="Add Driver"
+                Command="{Binding AddDriverCommand}"
+                IsVisible="{Binding ShowAddDriver}" />
+
+        </Grid>
+
+        <Border
+            Grid.Row="1"
+            StrokeThickness="1"
+            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+            StrokeShape="RoundRectangle 16"
+            Padding="12">
+
+            <CollectionView
+                ItemsSource="{Binding Drivers}"
+                SelectionMode="Single"
+                SelectionChanged="OnDriverSelected"
+                EmptyView="No drivers added yet.">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="12"
+                            Margin="0,0,0,10">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding DisplayName}"
+                                        FontAttributes="Bold"
+                                        FontSize="16" />
+
+                                    <!-- Simple MAIN/SUB without converter -->
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding IsMainProfile}"
+                                        FontSize="12"
+                                        Opacity="0.7" />
+                                </Grid>
+
+                                <Label
+                                    Text="{Binding Email}"
+                                    FontSize="13"
+                                    Opacity="0.85"
+                                    IsVisible="{Binding Email}" />
+
+                                <Label
+                                    Text="{Binding LicenceNumber, StringFormat='Licence: {0}'}"
+                                    FontSize="13"
+                                    Opacity="0.85"
+                                    IsVisible="{Binding LicenceNumber}" />
+
+                                <!-- Emergency contact details show only if fully set -->
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light='#EEF2F7', Dark='#374151'}"
+                                    StrokeShape="RoundRectangle 10"
+                                    Padding="10"
+                                    IsVisible="{Binding EmergencyContact.IsSet}">
+                                    <VerticalStackLayout Spacing="3">
+                                        <Label Text="Emergency Contact"
+                                               FontSize="12"
+                                               Opacity="0.7" />
+
+                                        <Label
+                                            FontSize="13"
+                                            Text="{Binding EmergencyContact.FirstName, StringFormat='Name: {0}'}" />
+
+                                        <Label
+                                            FontSize="13"
+                                            Text="{Binding EmergencyContact.PhoneNumber, StringFormat='Phone: {0}'}" />
+
+                                        <Label
+                                            FontSize="13"
+                                            Text="{Binding EmergencyContact.Email, StringFormat='Email: {0}'}" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- Always show status so user knows what's missing -->
+                                <Label
+                                    Text="{Binding EmergencyStatus}"
+                                    FontSize="12"
+                                    Opacity="0.7" />
+
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+            </CollectionView>
+        </Border>
+
+    </Grid>
+</ContentPage>

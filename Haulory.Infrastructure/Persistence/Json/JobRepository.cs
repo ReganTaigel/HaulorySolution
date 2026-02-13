@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Infrastructure.Storage;
 
 namespace Haulory.Infrastructure.Persistence.Json;
 
@@ -9,33 +10,34 @@ public class JobRepository : IJobRepository
     private readonly string _filePath;
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true
+    };
+
     public JobRepository()
     {
-        _filePath = Path.Combine(
-            FileSystem.AppDataDirectory,
-            "jobs.json");
+        _filePath = Path.Combine(FileSystem.AppDataDirectory, "jobs.json.enc");
     }
-
-    #region CRUD
 
     public async Task AddAsync(Job job)
     {
         await _lock.WaitAsync();
         try
         {
-            var jobs = await LoadAsync();
+            var jobs = await LoadAsync(); 
             jobs.Add(job);
             await SaveAsync(jobs);
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
 
     public async Task<IReadOnlyList<Job>> GetAllAsync()
     {
-        return await LoadAsync();
+        await _lock.WaitAsync();
+        try { return await LoadAsync(); }
+        finally { _lock.Release(); }
     }
 
     public async Task<Job?> GetByIdAsync(Guid id)
@@ -50,53 +52,38 @@ public class JobRepository : IJobRepository
         try
         {
             var jobs = await LoadAsync();
-
             var index = jobs.FindIndex(j => j.Id == job.Id);
-            if (index < 0)
-                return;
+            if (index < 0) return;
 
             jobs[index] = job;
             await SaveAsync(jobs);
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
 
-    // REMOVE job from active list after delivery
     public async Task DeleteAsync(Guid id)
     {
         await _lock.WaitAsync();
         try
         {
             var jobs = await LoadAsync();
-
             var removed = jobs.RemoveAll(j => j.Id == id);
             if (removed > 0)
                 await SaveAsync(jobs);
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
-
-    #endregion
-
-    #region Sorting
-
-    // Determine next manual sort position
     public async Task<int> GetNextSortOrderAsync()
     {
-        var jobs = await LoadAsync();
-
-        return jobs.Count == 0
-            ? 1
-            : jobs.Max(j => j.SortOrder) + 1;
+        await _lock.WaitAsync();
+        try
+        {
+            var jobs = await LoadAsync();
+            return jobs.Count == 0 ? 1 : jobs.Max(j => j.SortOrder) + 1;
+        }
+        finally { _lock.Release(); }
     }
 
-    // Persist reordered jobs
     public async Task UpdateAllAsync(IReadOnlyList<Job> jobs)
     {
         await _lock.WaitAsync();
@@ -104,35 +91,17 @@ public class JobRepository : IJobRepository
         {
             await SaveAsync(jobs.ToList());
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
-
-    #endregion
-
-    #region JSON Helpers
 
     private async Task<List<Job>> LoadAsync()
     {
-        if (!File.Exists(_filePath))
-            return new List<Job>();
-
-        var json = await File.ReadAllTextAsync(_filePath);
-
-        return JsonSerializer.Deserialize<List<Job>>(json)
-               ?? new List<Job>();
+        var data = await EncryptedJsonStore.LoadAsync<List<Job>>(_filePath, JsonOptions);
+        return data ?? new List<Job>();
     }
 
     private async Task SaveAsync(List<Job> jobs)
     {
-        var json = JsonSerializer.Serialize(
-            jobs,
-            new JsonSerializerOptions { WriteIndented = true });
-
-        await File.WriteAllTextAsync(_filePath, json);
+        await EncryptedJsonStore.SaveAsync(_filePath, jobs, JsonOptions);
     }
-
-    #endregion
 }

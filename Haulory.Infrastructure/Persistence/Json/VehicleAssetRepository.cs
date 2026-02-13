@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Infrastructure.Storage;
 
 namespace Haulory.Infrastructure.Persistence.Json;
 
@@ -17,7 +18,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
 
     public VehicleAssetRepository()
     {
-        _filePath = Path.Combine(FileSystem.AppDataDirectory, "vehicleAssets.json");
+        _filePath = Path.Combine(FileSystem.AppDataDirectory, "vehicleAssets.json.enc");
     }
 
     public async Task AddAsync(VehicleAsset asset)
@@ -25,13 +26,6 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await AddRangeAsync(new[] { asset });
     }
 
-    /// <summary>
-    /// Adds or updates assets safely.
-    /// Rules:
-    /// 1) If incoming Id matches an existing asset => replace existing (update)
-    /// 2) Else if VehicleSetId + UnitNumber matches existing => replace existing (wizard slot identity)
-    /// 3) Else add new
-    /// </summary>
     public async Task AddRangeAsync(IReadOnlyList<VehicleAsset> assetsToAdd)
     {
         if (assetsToAdd == null || assetsToAdd.Count == 0) return;
@@ -45,7 +39,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
             {
                 var normalized = Normalize(incoming);
 
-                // 1) Match by Id first (strongest identity)
+                // 1) Match by Id
                 var indexById = existing.FindIndex(a => a.Id == normalized.Id && normalized.Id != Guid.Empty);
                 if (indexById >= 0)
                 {
@@ -53,8 +47,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
                     continue;
                 }
 
-                // 2) If no Id match, match by "slot identity": VehicleSetId + UnitNumber
-                // This prevents duplicates when the same wizard set is saved again.
+                // 2) Match by VehicleSetId + UnitNumber
                 if (normalized.VehicleSetId != Guid.Empty && normalized.UnitNumber > 0)
                 {
                     var indexBySlot = existing.FindIndex(a =>
@@ -68,11 +61,11 @@ public class VehicleAssetRepository : IVehicleAssetRepository
                     }
                 }
 
-                // 3) Otherwise it’s new
+                // 3) New
                 existing.Add(normalized);
             }
 
-            await SaveUnsafeAtomicAsync(existing);
+            await SaveUnsafeAsync(existing);
         }
         finally
         {
@@ -113,13 +106,11 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         try
         {
             var assets = await LoadUnsafeAsync();
-
-            // Update is strictly by Id
             var index = assets.FindIndex(a => a.Id == asset.Id);
             if (index < 0) return;
 
             assets[index] = Normalize(asset);
-            await SaveUnsafeAtomicAsync(assets);
+            await SaveUnsafeAsync(assets);
         }
         finally
         {
@@ -136,7 +127,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
             var removed = assets.RemoveAll(a => a.Id == id);
 
             if (removed > 0)
-                await SaveUnsafeAtomicAsync(assets);
+                await SaveUnsafeAsync(assets);
         }
         finally
         {
@@ -146,78 +137,17 @@ public class VehicleAssetRepository : IVehicleAssetRepository
 
     private async Task<List<VehicleAsset>> LoadUnsafeAsync()
     {
-        if (!File.Exists(_filePath))
-            return new List<VehicleAsset>();
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(_filePath);
-
-            // tolerate empty file
-            if (string.IsNullOrWhiteSpace(json))
-                return new List<VehicleAsset>();
-
-            return JsonSerializer.Deserialize<List<VehicleAsset>>(json, JsonOptions)
-                   ?? new List<VehicleAsset>();
-        }
-        catch (JsonException)
-        {
-            // If corrupted, preserve it for diagnostics and start clean
-            var corruptPath = _filePath + ".corrupt_" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            try { File.Copy(_filePath, corruptPath, overwrite: true); } catch { /* ignore */ }
-
-            return new List<VehicleAsset>();
-        }
+        var data = await EncryptedJsonStore.LoadAsync<List<VehicleAsset>>(_filePath, JsonOptions);
+        return data ?? new List<VehicleAsset>();
     }
 
-    /// <summary>
-    /// Safer "atomic-ish" save:
-    /// - Writes to .tmp
-    /// - Uses File.Replace when possible (best on Windows)
-    /// - Falls back to delete+move
-    /// </summary>
-    private async Task SaveUnsafeAtomicAsync(List<VehicleAsset> assets)
+    private async Task SaveUnsafeAsync(List<VehicleAsset> assets)
     {
-        var json = JsonSerializer.Serialize(assets, JsonOptions);
-
-        var dir = Path.GetDirectoryName(_filePath)!;
-        Directory.CreateDirectory(dir);
-
-        var tmp = _filePath + ".tmp";
-        var bak = _filePath + ".bak";
-
-        await File.WriteAllTextAsync(tmp, json);
-
-        // If the file exists, File.Replace is the most reliable atomic replace on Windows.
-        // If it fails (platform limitations), we fall back to delete + move.
-        if (File.Exists(_filePath))
-        {
-            try
-            {
-                // Replace destination with tmp, keep backup
-                File.Replace(tmp, _filePath, bak, ignoreMetadataErrors: true);
-
-                // Optional: if you don’t want backups hanging around, you can delete it.
-                // try { File.Delete(bak); } catch { /* ignore */ }
-
-                return;
-            }
-            catch
-            {
-                // fall through to delete+move
-            }
-        }
-
-        // Fallback path
-        if (File.Exists(_filePath))
-            File.Delete(_filePath);
-
-        File.Move(tmp, _filePath);
+        await EncryptedJsonStore.SaveAsync(_filePath, assets, JsonOptions);
     }
 
     private static VehicleAsset Normalize(VehicleAsset a)
     {
-        // basic hygiene (doesn't change business meaning)
         a.Rego = (a.Rego ?? string.Empty).Trim().ToUpperInvariant();
         a.Make = (a.Make ?? string.Empty).Trim();
         a.Model = (a.Model ?? string.Empty).Trim();

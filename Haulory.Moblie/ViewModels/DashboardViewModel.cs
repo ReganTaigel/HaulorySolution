@@ -1,5 +1,5 @@
-﻿using Haulory.Application.Interfaces.Services;
-using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Views;
 using System.Windows.Input;
 
@@ -127,7 +127,7 @@ public class DashboardViewModel : BaseViewModel
             await Shell.Current.GoToAsync(nameof(VehicleCollectionPage)));
 
         GoToDriversCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(DriversPage)));
+            await Shell.Current.GoToAsync(nameof(DriverCollectionPage)));
 
         GoToReportsCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(ReportsPage)));

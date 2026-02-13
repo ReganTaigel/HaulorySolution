@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Infrastructure.Storage;
 
 namespace Haulory.Infrastructure.Persistence.Json;
 
@@ -9,9 +10,15 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
     private readonly string _filePath;
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true
+    };
+
     public DeliveryReceiptRepository()
     {
-        _filePath = Path.Combine(FileSystem.AppDataDirectory, "delivery_receipts.json");
+        _filePath = Path.Combine(FileSystem.AppDataDirectory, "delivery_receipts.json.enc");
     }
 
     public async Task AddAsync(DeliveryReceipt receipt)
@@ -21,19 +28,14 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
         {
             var receipts = await LoadAsync();
 
-            // Only one receipt per job
             if (receipts.Any(r => r.JobId == receipt.JobId))
                 return;
 
             receipts.Add(receipt);
             await SaveAsync(receipts);
         }
-        finally
-        {
-            _lock.Release();
-        }
+        finally { _lock.Release(); }
     }
-
 
     public async Task<IReadOnlyList<DeliveryReceipt>> GetAllAsync()
         => await LoadAsync();
@@ -46,20 +48,12 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
 
     private async Task<List<DeliveryReceipt>> LoadAsync()
     {
-        if (!File.Exists(_filePath))
-            return new List<DeliveryReceipt>();
-
-        var json = await File.ReadAllTextAsync(_filePath);
-
-        return JsonSerializer.Deserialize<List<DeliveryReceipt>>(json)
-               ?? new List<DeliveryReceipt>();
+        var data = await EncryptedJsonStore.LoadAsync<List<DeliveryReceipt>>(_filePath, JsonOptions);
+        return data ?? new List<DeliveryReceipt>();
     }
 
     private async Task SaveAsync(List<DeliveryReceipt> receipts)
     {
-        var json = JsonSerializer.Serialize(receipts,
-            new JsonSerializerOptions { WriteIndented = true });
-
-        await File.WriteAllTextAsync(_filePath, json);
+        await EncryptedJsonStore.SaveAsync(_filePath, receipts, JsonOptions);
     }
 }

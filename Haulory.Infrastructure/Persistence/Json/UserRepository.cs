@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
-using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
-using Haulory.Infrastructure.Security;
-using Haulory.Infrastructure.Services;
+using Haulory.Infrastructure.Storage;
+using Microsoft.Maui.Storage;
+using System.Text.Json;
 
 namespace Haulory.Infrastructure.Persistence.Json;
 
@@ -11,36 +11,44 @@ public class UserRepository : IUserRepository
     private readonly string _filePath;
     private static readonly SemaphoreSlim _lock = new(1, 1);
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true
+    };
+
     public UserRepository()
     {
-        _filePath = Path.Combine(
-            FileSystem.AppDataDirectory,
-            "users.dat");
+        _filePath = Path.Combine(FileSystem.AppDataDirectory, "users.json.enc");
+    }
+
+    public async Task<bool> AnyAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var users = await LoadAsync();
+            return users.Count > 0;
+        }
+        finally { _lock.Release(); }
     }
 
     public async Task AddAsync(User user)
     {
         await _lock.WaitAsync();
-
         try
         {
             var users = await LoadAsync();
 
-            if (users.Any(u =>
-                u.Email.Equals(user.Email, StringComparison.Ordinal)))
-            {
+            // ✅ Prevent duplicates by email
+            if (users.Any(u => u.Email == user.Email))
                 return;
-            }
-
 
             users.Add(user);
             await SaveAsync(users);
         }
-        finally
-        {
-            _lock.Release();
-        }
-    } 
+        finally { _lock.Release(); }
+    }
 
     public async Task<User?> GetByEmailAsync(string? email)
     {
@@ -48,52 +56,67 @@ public class UserRepository : IUserRepository
             return null;
 
         var normalized = email.Trim().ToLowerInvariant();
-        var users = await LoadAsync();
 
-        return users.FirstOrDefault(u => u.Email == normalized);
+        await _lock.WaitAsync();
+        try
+        {
+            var users = await LoadAsync();
+            return users.FirstOrDefault(u => u.Email == normalized);
+        }
+        finally { _lock.Release(); }
     }
 
-    // ------------------------
-    // Encrypted JSON Helpers
-    // ------------------------
+    public async Task<User?> GetByIdAsync(Guid id)
+    {
+        if (id == Guid.Empty) return null;
+
+        await _lock.WaitAsync();
+        try
+        {
+            var users = await LoadAsync();
+            return users.FirstOrDefault(u => u.Id == id);
+        }
+        finally { _lock.Release(); }
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        if (user.Id == Guid.Empty)
+            throw new InvalidOperationException("Cannot update user with empty Id.");
+
+        await _lock.WaitAsync();
+        try
+        {
+            var users = await LoadAsync();
+
+            // ✅ Don't allow updating to an email that belongs to someone else
+            if (users.Any(u => u.Id != user.Id && u.Email == user.Email))
+                throw new InvalidOperationException("That email is already in use.");
+
+            var idx = users.FindIndex(u => u.Id == user.Id);
+            if (idx < 0)
+            {
+                // If missing, add it (upsert)
+                users.Add(user);
+            }
+            else
+            {
+                users[idx] = user;
+            }
+
+            await SaveAsync(users);
+        }
+        finally { _lock.Release(); }
+    }
 
     private async Task<List<User>> LoadAsync()
     {
-        if (!File.Exists(_filePath))
-            return new List<User>();
-
-        try
-        {
-            var key = await KeyService.GetOrCreateKeyAsync();
-            var bytes = await File.ReadAllBytesAsync(_filePath);
-
-            var iv = bytes[..16];
-            var cipher = bytes[16..];
-
-            var json = EncryptionService.Decrypt(cipher, key, iv);
-
-            return JsonSerializer.Deserialize<List<User>>(json)
-                   ?? new List<User>();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException(
-                "Encrypted user store is corrupted or key mismatch.",
-                ex);
-        }
+        var data = await EncryptedJsonStore.LoadAsync<List<User>>(_filePath, JsonOptions);
+        return data ?? new List<User>();
     }
-
 
     private async Task SaveAsync(List<User> users)
     {
-        var key = await KeyService.GetOrCreateKeyAsync();
-
-        var json = JsonSerializer.Serialize(users,
-            new JsonSerializerOptions { WriteIndented = true });
-
-        var cipher = EncryptionService.Encrypt(json, key, out var iv);
-
-        var combined = iv.Concat(cipher).ToArray();
-        await File.WriteAllBytesAsync(_filePath, combined);
+        await EncryptedJsonStore.SaveAsync(_filePath, users, JsonOptions);
     }
 }

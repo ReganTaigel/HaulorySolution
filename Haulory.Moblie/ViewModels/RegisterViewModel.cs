@@ -1,11 +1,15 @@
 ﻿using Haulory.Application.Features.Users;
+using Haulory.Application.Interfaces.Services;
 using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class RegisterViewModel : BaseViewModel
 {
-    private readonly RegisterUserHandler _handler;
+    private readonly RegisterUserHandler _registerHandler;
+    private readonly LoginUserHandler _loginHandler;
+    private readonly ISessionService _sessionService;
+
     private bool _isRegistering;
 
     private string _password = string.Empty;
@@ -39,79 +43,83 @@ public class RegisterViewModel : BaseViewModel
         }
     }
 
-    // LIVE INDICATOR PROPERTIES
-
     public bool PasswordsMatch =>
         !string.IsNullOrEmpty(Password) &&
         Password == ConfirmPassword;
 
-    public string PasswordsMatchMessage
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(ConfirmPassword))
-                return string.Empty;
+    public string PasswordsMatchMessage =>
+        string.IsNullOrEmpty(ConfirmPassword) ? string.Empty :
+        PasswordsMatch ? "Passwords match" : "Passwords do not match";
 
-            return PasswordsMatch
-                ? "Passwords match"
-                : "Passwords do not match";
-        }
-    }
-
-    public Color PasswordsMatchColor =>
-        PasswordsMatch ? Colors.Green : Colors.Red;
+    public Color PasswordsMatchColor => PasswordsMatch ? Colors.Green : Colors.Red;
 
     public ICommand RegisterCommand { get; }
 
-    public RegisterViewModel(RegisterUserHandler handler)
+    public RegisterViewModel(
+        RegisterUserHandler registerHandler,
+        LoginUserHandler loginHandler,
+        ISessionService sessionService)
     {
-        _handler = handler;
+        _registerHandler = registerHandler;
+        _loginHandler = loginHandler;
+        _sessionService = sessionService;
 
-        RegisterCommand = new Command(async () =>
+        RegisterCommand = new Command(async () => await ExecuteRegisterAsync());
+    }
+
+    private async Task ExecuteRegisterAsync()
+    {
+        if (_isRegistering) return;
+        _isRegistering = true;
+
+        try
         {
-            if (_isRegistering) return;
-            _isRegistering = true;
-
-            try
+            if (!PasswordsMatch)
             {
-                // Prevent submit if passwords don't match
-                if (!PasswordsMatch)
-                {
-                    await Shell.Current.DisplayAlertAsync(
-                        "Registration Failed", 
-                        "Passwords do not match.",
-                        "OK");
-                    return;
-                }
-
-                var success = await _handler.HandleAsync(
-                    new RegisterUserCommand(
-                        FirstName,
-                        LastName,
-                        Email,
-                        Password));
-
-                if (success)
-                {
-                    await Shell.Current.DisplayAlertAsync(
-                        "Registration Successful",
-                        "Your account has been created. Please log in.",
-                        "OK");
-
-                    await Shell.Current.GoToAsync("///LoginPage");
-                }
-                else
-                {
-                    await Shell.Current.DisplayAlertAsync(
-                        "Registration Failed",
-                        "A user with this email already exists or the password does not meet requirements.",
-                        "OK");
-                }
+                await Shell.Current.DisplayAlertAsync(
+                    "Registration Failed",
+                    "Passwords do not match.",
+                    "OK");
+                return;
             }
-            finally
+
+            var result = await _registerHandler.HandleAsync(
+                new RegisterUserCommand(FirstName, LastName, Email, Password));
+
+            if (!result.Success)
             {
-                _isRegistering = false;
+                await Shell.Current.DisplayAlertAsync(
+                    "Registration Failed",
+                    result.Error ?? "Registration failed.",
+                    "OK");
+                return;
             }
-        });
+
+
+            // Auto-login immediately (uses same validation as normal login)
+            var user = await _loginHandler.HandleAsync(new LoginUserCommand(Email, Password));
+            if (user == null)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Registration Successful",
+                    "Account created. Please log in.",
+                    "OK");
+                await Shell.Current.GoToAsync("///LoginPage");
+                return;
+            }
+
+            await _sessionService.SetUserAsync(user);
+
+            await Shell.Current.DisplayAlertAsync(
+                "Welcome",
+                "Main account created.",
+                "OK");
+
+            await Shell.Current.GoToAsync("///DashboardPage");
+        }
+        finally
+        {
+            _isRegistering = false;
+        }
     }
 }
