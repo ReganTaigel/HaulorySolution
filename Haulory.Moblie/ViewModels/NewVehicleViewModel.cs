@@ -2,6 +2,7 @@
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -143,7 +144,8 @@ public class NewVehicleViewModel : BaseViewModel
             await SaveVehicleAsync();
 
             await Shell.Current.DisplayAlertAsync("Saved", "Vehicle saved successfully.", "OK");
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync($"///{nameof(VehicleCollectionPage)}");
+
         }
         catch (Exception ex)
         {

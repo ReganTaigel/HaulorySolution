@@ -1,38 +1,28 @@
-﻿using System.Text.Json;
-using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
-
-namespace Haulory.Infrastructure.Services;
+﻿using Haulory.Application.Interfaces.Services;
 
 public class SessionService : ISessionService
 {
-    private const string SessionKey = "haulory_current_user";
+    private const string SessionKey = "haulory_current_account_id";
 
-    public User? CurrentUser { get; private set; }
-
-    public bool IsAuthenticated => CurrentUser != null;
+    public Guid? CurrentAccountId { get; private set; }
+    public bool IsAuthenticated => CurrentAccountId.HasValue;
 
     public async Task RestoreAsync()
     {
-        var json = await SecureStorage.GetAsync(SessionKey);
-
-        if (string.IsNullOrWhiteSpace(json))
-            return;
-
-        CurrentUser = JsonSerializer.Deserialize<User>(json);
+        var value = await SecureStorage.GetAsync(SessionKey);
+        if (Guid.TryParse(value, out var id))
+            CurrentAccountId = id;
     }
 
-    public async Task SetUserAsync(User user)
+    public async Task SetAccountAsync(Guid accountId)
     {
-        CurrentUser = user;
-
-        var json = JsonSerializer.Serialize(user);
-        await SecureStorage.SetAsync(SessionKey, json);
+        CurrentAccountId = accountId;
+        await SecureStorage.SetAsync(SessionKey, accountId.ToString());
     }
 
     public async Task ClearAsync()
     {
-        CurrentUser = null;
+        CurrentAccountId = null;
         SecureStorage.Remove(SessionKey);
         await Task.CompletedTask;
     }

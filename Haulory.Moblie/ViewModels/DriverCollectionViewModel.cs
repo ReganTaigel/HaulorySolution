@@ -11,6 +11,7 @@ namespace Haulory.Mobile.ViewModels;
 public class DriverCollectionViewModel : BaseViewModel
 {
     private readonly IDriverRepository _driverRepository;
+    private readonly IUserAccountRepository _userAccountRepository;
     private readonly ISessionService _sessionService;
     private readonly CreateDriverFromUserHandler _createDriverFromUserHandler;
 
@@ -38,10 +39,12 @@ public class DriverCollectionViewModel : BaseViewModel
 
     public DriverCollectionViewModel(
         IDriverRepository driverRepository,
+        IUserAccountRepository userAccountRepository,
         ISessionService sessionService,
         CreateDriverFromUserHandler createDriverFromUserHandler)
     {
         _driverRepository = driverRepository;
+        _userAccountRepository = userAccountRepository;
         _sessionService = sessionService;
         _createDriverFromUserHandler = createDriverFromUserHandler;
 
@@ -66,11 +69,11 @@ public class DriverCollectionViewModel : BaseViewModel
             IsBusy = true;
             Drivers.Clear();
 
-            // ✅ Restore session on restart
+            // Restore session on restart
             if (!_sessionService.IsAuthenticated)
                 await _sessionService.RestoreAsync();
 
-            var ownerUserId = _sessionService.CurrentUser?.Id ?? Guid.Empty;
+            var ownerUserId = _sessionService.CurrentAccountId ?? Guid.Empty;
             if (!_sessionService.IsAuthenticated || ownerUserId == Guid.Empty)
             {
                 _mainDriver = null;
@@ -79,53 +82,41 @@ public class DriverCollectionViewModel : BaseViewModel
                 return;
             }
 
-            // ✅ Load ALL drivers from file (no filtering)
-            var all = await _driverRepository.GetAllAsync();
+            // Load owned drivers
+            var drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
 
-            // ✅ MIGRATE/REPAIR: if main record exists but OwnerUserId was never set, fix it.
-            // This is the #1 reason your owned list becomes empty after restart.
-            var repaired = false;
-            foreach (var d in all)
-            {
-                // main profile is identified by UserId == current owner
-                if (d.UserId.HasValue && d.UserId.Value == ownerUserId && d.OwnerUserId == Guid.Empty)
-                {
-                    d.EnsureOwner(ownerUserId);
-                    await _driverRepository.SaveAsync(d);
-                    repaired = true;
-                }
-            }
+            // Resolve main driver (the one linked to the current account)
+            var existingMain = drivers.FirstOrDefault(d => d.UserId.HasValue && d.UserId.Value == ownerUserId);
 
-            if (repaired)
-                all = await _driverRepository.GetAllAsync();
-
-            // ✅ Now re-resolve main from the full list FIRST
-            var existingMain = all.FirstOrDefault(d => d.UserId.HasValue && d.UserId.Value == ownerUserId);
-
-            // ✅ If still missing, create it ONCE
+            // If missing, create it once from the UserAccount record
             if (existingMain == null)
             {
-                var user = _sessionService.CurrentUser!;
+                var account = await _userAccountRepository.GetByIdAsync(ownerUserId);
+                if (account == null)
+                {
+                    _mainDriver = null;
+                    _isMainComplete = false;
+                    RaiseGate();
+                    return;
+                }
+
                 existingMain = await _createDriverFromUserHandler.HandleAsync(
                     new CreateDriverFromUserCommand(
                         ownerUserId,
-                        user.FirstName ?? string.Empty,
-                        user.LastName ?? string.Empty,
-                        user.Email ?? string.Empty
+                        account.FirstName ?? string.Empty,
+                        account.LastName ?? string.Empty,
+                        account.Email ?? string.Empty
                     )
                 );
+
+                // Reload owned list after creation
+                drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
             }
 
-            // ✅ Load owned drivers (filter)
-            var drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
-
-            // ✅ Make sure main is included in the owned list (if not, add it in-memory so UI shows it)
+            // Ensure main appears in list (if handler returned it but repo query didn't include yet)
             if (existingMain != null && drivers.All(d => d.Id != existingMain.Id))
-            {
                 drivers.Insert(0, existingMain);
-            }
 
-            // ✅ Populate UI list
             foreach (var d in drivers
                 .OrderByDescending(d => d.UserId.HasValue) // main first
                 .ThenBy(d => d.LastName ?? string.Empty)
@@ -135,27 +126,23 @@ public class DriverCollectionViewModel : BaseViewModel
                 Drivers.Add(d);
             }
 
-            // ✅ Resolve main driver for gate
             _mainDriver = existingMain;
 
-            // ✅ Gate: completed only if emergency contact fully set
             _isMainComplete = _mainDriver != null &&
                               _mainDriver.EmergencyContact != null &&
                               _mainDriver.EmergencyContact.IsSet;
 
             RaiseGate();
 
-            // ✅ PROOF POPUP (turn off once confirmed)
             if (DebugGate)
             {
-                var ownedCount = all.Count(d => d.OwnerUserId == ownerUserId);
-                var mainCount = all.Count(d => d.UserId.HasValue && d.UserId.Value == ownerUserId);
+                var ownedCount = drivers.Count;
+                var mainCount = drivers.Count(d => d.UserId.HasValue && d.UserId.Value == ownerUserId);
 
                 await Shell.Current.DisplayAlertAsync(
                     "Driver Store Proof",
                     $"OwnerUserId: {ownerUserId}\n" +
-                    $"All drivers in file: {all.Count}\n" +
-                    $"Owned drivers (OwnerUserId match): {ownedCount}\n" +
+                    $"Owned drivers: {ownedCount}\n" +
                     $"Main profile (UserId match): {mainCount}\n" +
                     $"UI Drivers count: {Drivers.Count}\n" +
                     $"Gate complete: {_isMainComplete}",
@@ -174,4 +161,3 @@ public class DriverCollectionViewModel : BaseViewModel
         OnPropertyChanged(nameof(ShowAddDriver));
     }
 }
- 

@@ -8,11 +8,11 @@ namespace Haulory.Application.Features.Users
 {
     public class RegisterUserHandler
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserAccountRepository _userRepository;
         private readonly CreateDriverFromUserHandler _createDriverFromUserHandler;
         public record RegisterUserResult(bool Success, string? Error);
         public RegisterUserHandler(
-            IUserRepository userRepository,
+            IUserAccountRepository userRepository,
             CreateDriverFromUserHandler createDriverFromUserHandler)
         {
             _userRepository = userRepository;
@@ -40,11 +40,12 @@ namespace Haulory.Application.Features.Users
 
             var hash = PasswordHasher.Hash(command.Password);
 
-            var user = new User(
-                command.FirstName.Trim().ToUpper(),
-                command.LastName.Trim().ToUpper(),
+            var user = new UserAccount(
+                command.FirstName.Trim().ToUpperInvariant(),
+                command.LastName.Trim().ToUpperInvariant(),
                 email,
-                hash);
+                hash
+            );
 
             await _userRepository.AddAsync(user);
 

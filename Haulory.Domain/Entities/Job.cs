@@ -1,19 +1,18 @@
-﻿using System.Text.Json.Serialization;
-using Haulory.Domain.Enums;
+﻿using Haulory.Domain.Enums;
 
 namespace Haulory.Domain.Entities;
 
 public class Job
 {
-    public Guid Id { get; init; }  
+    public Guid Id { get; private set; } = Guid.NewGuid();
 
     // Pickup
-    public string PickupCompany { get; init; }
-    public string PickupAddress { get; init; }
+    public string PickupCompany { get; private set; } = string.Empty;
+    public string PickupAddress { get; private set; } = string.Empty;
 
     // Delivery
-    public string DeliveryCompany { get; init; }
-    public string DeliveryAddress { get; init; }
+    public string DeliveryCompany { get; private set; } = string.Empty;
+    public string DeliveryAddress { get; private set; } = string.Empty;
 
     // Signature
     public string? ReceiverName { get; private set; }
@@ -23,28 +22,29 @@ public class Job
     public bool IsDelivered => DeliveredAtUtc != null && !string.IsNullOrWhiteSpace(DeliverySignatureJson);
 
     // Load
-    public string ReferenceNumber { get; init; }
-    public string LoadDescription { get; init; }
+    public string ReferenceNumber { get; private set; } = string.Empty;
+    public string LoadDescription { get; private set; } = string.Empty;
 
     // Billing
-    public string InvoiceNumber { get; init; }
-    public RateType RateType { get; init; }
-    public decimal RateValue { get; init; }
-    public int Quantity { get; init; }
+    public string InvoiceNumber { get; private set; } = string.Empty;
+    public RateType RateType { get; private set; }
+    public decimal RateValue { get; private set; }
+    public int Quantity { get; private set; }
 
     public decimal Total => RateValue * Quantity;
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
     // Manual ordering
     public int SortOrder { get; private set; }
 
-    // Interface summary card
     public string CardSummary =>
-    $"{PickupCompany} → {DeliveryCompany}\n" +
-    $"{DeliveryAddress}\n" +
-    $"{LoadDescription}";
+        $"{PickupCompany} → {DeliveryCompany}\n" +
+        $"{DeliveryAddress}\n" +
+        $"{LoadDescription}";
 
-    // Used by your app when creating new jobs
+    // ✅ EF needs this
+    public Job() { }
+
     public Job(
         string pickupCompany,
         string pickupAddress,
@@ -58,8 +58,6 @@ public class Job
         int quantity,
         int sortOrder)
     {
-        Id = Guid.NewGuid(); // app sets it here
-
         PickupCompany = pickupCompany;
         PickupAddress = pickupAddress;
         DeliveryCompany = deliveryCompany;
@@ -73,10 +71,8 @@ public class Job
         SortOrder = sortOrder;
     }
 
-    // Used when manually reordering jobs
     public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
 
-    // Used for delivery completion
     public void MarkDelivered(string receiverName, string signatureJson)
     {
         ReceiverName = receiverName?.Trim();

@@ -7,11 +7,11 @@ namespace Haulory.Mobile;
 public partial class AppShell : Shell
 {
     private readonly ISessionService _sessionService;
-    private readonly IUserRepository _userRepository;
+    private readonly IUserAccountRepository _userRepository;
 
     private bool? _hasMainUser;
 
-    public AppShell(ISessionService sessionService, IUserRepository userRepository)
+    public AppShell(ISessionService sessionService, IUserAccountRepository userRepository)
     {
         InitializeComponent();
         _sessionService = sessionService;

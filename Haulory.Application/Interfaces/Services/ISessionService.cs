@@ -1,13 +1,11 @@
-﻿using Haulory.Domain.Entities;
-
-namespace Haulory.Application.Interfaces.Services;
+﻿namespace Haulory.Application.Interfaces.Services;
 
 public interface ISessionService
 {
-    User? CurrentUser { get; }
+    Guid? CurrentAccountId { get; }
     bool IsAuthenticated { get; }
 
     Task RestoreAsync();
-    Task SetUserAsync(User user);
+    Task SetAccountAsync(Guid accountId);
     Task ClearAsync();
 }

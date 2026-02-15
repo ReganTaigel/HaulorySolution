@@ -108,7 +108,7 @@ public class RegisterViewModel : BaseViewModel
                 return;
             }
 
-            await _sessionService.SetUserAsync(user);
+            await _sessionService.SetAccountAsync(user.Id);
 
             await Shell.Current.DisplayAlertAsync(
                 "Welcome",

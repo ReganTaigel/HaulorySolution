@@ -4,12 +4,13 @@ using Haulory.Application.Features.Users;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Infrastructure.Persistence.Json;
-using Haulory.Infrastructure.Repositories;
 using Haulory.Infrastructure.Services;
 using Haulory.Mobile.ViewModels;
 using Haulory.Mobile.Views;
 using Microsoft.Extensions.Logging;
+using Haulory.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Haulory.Mobile
 {
@@ -34,13 +35,28 @@ namespace Haulory.Mobile
             builder.Services.AddTransient<CreateDriverFromUserHandler>();
             builder.Services.AddTransient<CreateDriverHandler>();
 
+            //DBContext
+
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "haulory.db");
+
+            builder.Services.AddDbContextFactory<HauloryDbContext>(options =>
+                options.UseSqlite($"Filename={dbPath}")
+#if DEBUG
+                .EnableSensitiveDataLogging()
+#endif
+            );
             // Repository
-            builder.Services.AddSingleton<IJobRepository, JobRepository>();
-            builder.Services.AddSingleton<IUserRepository, Haulory.Infrastructure.Persistence.Json.UserRepository>();
+            // IMPORTANT: Scoped (not Singleton)
+            builder.Services.AddScoped<IUserAccountRepository, Infrastructure.Persistence.Repositories.UserAccountRepository>();
+            builder.Services.AddScoped<IJobRepository, Infrastructure.Persistence.Repositories.JobRepository>();
+            builder.Services.AddScoped<IDriverRepository, Infrastructure.Persistence.Repositories.DriverRepository>();
+            builder.Services.AddScoped<IDeliveryReceiptRepository, Infrastructure.Persistence.Repositories.DeliveryReceiptRepository>();
+            builder.Services.AddScoped<IVehicleAssetRepository, Infrastructure.Persistence.Repositories.VehicleAssetRepository>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
+            // Session can remain Singleton (does not depend on DbContext directly)
             builder.Services.AddSingleton<ISessionService, SessionService>();
-            builder.Services.AddSingleton<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
-            builder.Services.AddSingleton<IVehicleAssetRepository, VehicleAssetRepository>();
-            builder.Services.AddSingleton<IDriverRepository, DriverRepository>();
 
             // ViewModels
             // Jobs
@@ -96,7 +112,19 @@ namespace Haulory.Mobile
             builder.Logging.AddDebug();
 #endif
 
-            return builder.Build();
+            var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<HauloryDbContext>>();
+                using var db = factory.CreateDbContext();
+                db.Database.EnsureCreated();
+            }
+
+            return app;
+
+
         }
+
     }
 }

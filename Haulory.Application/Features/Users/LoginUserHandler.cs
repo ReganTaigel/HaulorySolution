@@ -6,14 +6,14 @@ namespace Haulory.Application.Features.Users;
 
 public class LoginUserHandler
 {
-    private readonly IUserRepository _repository;
+    private readonly IUserAccountRepository _repository;
 
-    public LoginUserHandler(IUserRepository repository)
+    public LoginUserHandler(IUserAccountRepository repository)
     {
         _repository = repository;
     }
 
-    public async Task<User?> HandleAsync(LoginUserCommand command)
+    public async Task<UserAccount?> HandleAsync(LoginUserCommand command)
     {
         var email = command.Email?.Trim().ToLowerInvariant();
 

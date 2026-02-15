@@ -38,7 +38,8 @@ public class LoginViewModel : BaseViewModel
         if (user != null)
         {
             // Store session
-            await _sessionService.SetUserAsync(user);
+            await _sessionService.SetAccountAsync(user.Id);
+
 
             // Navigate to app root
             await Shell.Current.GoToAsync("///DashboardPage");

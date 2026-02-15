@@ -1,6 +1,6 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
-using Haulory.Infrastructure.Persistence.Json;
 using Microsoft.Maui.Graphics;
 using System.Text.Json;
 using System.Windows.Input;
@@ -14,6 +14,7 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly IUnitOfWork _uow;
 
     private Job? _job;
     private bool _isSaving;
@@ -102,12 +103,15 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #region Constructor
 
-    public DeliverySignatureViewModel(IJobRepository jobRepository,
-    IDeliveryReceiptRepository deliveryReceiptRepository)
+
+    public DeliverySignatureViewModel(
+        IJobRepository jobRepository,
+        IDeliveryReceiptRepository deliveryReceiptRepository,
+        IUnitOfWork uow)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
-
+        _uow = uow;
         SignatureDrawable = new SignatureDrawable(_strokes);
 
         ClearSignatureCommand = new Command(() =>
@@ -174,8 +178,6 @@ public class DeliverySignatureViewModel : BaseViewModel
     #endregion
 
     #region Save
-
-
     private async Task SaveAsync()
     {
         if (_isSaving) return;
@@ -216,10 +218,9 @@ public class DeliverySignatureViewModel : BaseViewModel
                 return;
             }
 
-            // Build signature JSON (strokes)
             var signatureJson = BuildSignatureJson();
+            var deliveredAtUtc = DateTime.UtcNow;
 
-            // Create receipt snapshot for accounting/audit
             var receipt = new DeliveryReceipt(
                 jobId: _job.Id,
                 referenceNumber: _job.ReferenceNumber,
@@ -234,15 +235,16 @@ public class DeliverySignatureViewModel : BaseViewModel
                 quantity: _job.Quantity,
                 total: _job.Total,
                 receiverName: ReceiverName.Trim(),
-                deliveredAtUtc: DateTime.UtcNow,
+                deliveredAtUtc: deliveredAtUtc,
                 signatureJson: signatureJson
             );
 
-            // 1) Save receipt to delivery_receipts.json
-            await _deliveryReceiptRepository.AddAsync(receipt);
-
-            // 2) Remove job from jobs.json so it disappears from active list
-            await _jobRepository.DeleteAsync(_job.Id);
+            // Atomic: either both happen, or neither
+            await _uow.ExecuteInTransactionAsync(async () =>
+            {
+                await _deliveryReceiptRepository.AddAsync(receipt);
+                await _jobRepository.DeleteAsync(_job.Id);
+            });
 
             await Shell.Current.DisplayAlertAsync("Saved", "Delivery signed and saved.", "OK");
             await Shell.Current.GoToAsync("..");
@@ -252,7 +254,6 @@ public class DeliverySignatureViewModel : BaseViewModel
             _isSaving = false;
         }
     }
-
 
     private bool HasSignature()
         => _strokes.Any(s => s.Count > 2);

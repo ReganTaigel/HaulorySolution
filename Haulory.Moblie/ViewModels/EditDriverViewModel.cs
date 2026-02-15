@@ -10,7 +10,7 @@ public class EditDriverViewModel : BaseViewModel
 {
     private readonly IDriverRepository _repo;
     private readonly ISessionService _session;
-    private readonly IUserRepository _users;
+    private readonly IUserAccountRepository _users;
 
     private Driver? _driver;
     private bool _isSaving;
@@ -18,7 +18,7 @@ public class EditDriverViewModel : BaseViewModel
     private string _driverId = string.Empty;
     private bool _isLoaded;
 
-    public EditDriverViewModel(IDriverRepository repo, ISessionService sessionService, IUserRepository users)
+    public EditDriverViewModel(IDriverRepository repo, ISessionService sessionService, IUserAccountRepository users)
     {
         _repo = repo;
         _session = sessionService;
@@ -93,7 +93,7 @@ public class EditDriverViewModel : BaseViewModel
             return;
 
         // Must be logged in
-        var ownerUserId = _session.CurrentUser?.Id ?? Guid.Empty;
+        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
         if (!_session.IsAuthenticated || ownerUserId == Guid.Empty)
             return;
 
@@ -162,7 +162,6 @@ public class EditDriverViewModel : BaseViewModel
             _driver.UpdateIdentity(FirstName, LastName, Email);
             _driver.UpdateLicenceNumber(string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber);
 
-            // emergency (same as your current logic)
             var ec = new EmergencyContact(
                 EmergencyFirstName,
                 EmergencyLastName,
@@ -175,14 +174,15 @@ public class EditDriverViewModel : BaseViewModel
 
             await _repo.SaveAsync(_driver);
 
-            // ✅ CRITICAL: if this is MAIN profile, update the existing User record (NO new User!)
-            if (_driver.UserId.HasValue && _session.CurrentUser?.Id == _driver.UserId.Value)
+            // If this driver is the MAIN user's profile, sync UserAccount identity too
+            if (_driver.UserId.HasValue && (_session.CurrentAccountId == _driver.UserId.Value))
             {
-                var u = _session.CurrentUser!;
-                u.UpdateIdentity(FirstName, LastName, Email);
-
-                await _users.UpdateAsync(u);
-                await _session.SetUserAsync(u); // keep session consistent
+                var account = await _users.GetByIdAsync(_driver.UserId.Value);
+                if (account != null)
+                {
+                    account.UpdateIdentity(FirstName, LastName, Email);
+                    await _users.UpdateAsync(account);
+                }
             }
 
             await Shell.Current.DisplayAlertAsync("Saved", "Driver updated.", "OK");
@@ -198,6 +198,7 @@ public class EditDriverViewModel : BaseViewModel
             Refresh();
         }
     }
+
     private void Refresh()
     {
         OnPropertyChanged(nameof(CanSave));

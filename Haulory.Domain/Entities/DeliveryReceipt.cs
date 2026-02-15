@@ -4,28 +4,31 @@ namespace Haulory.Domain.Entities;
 
 public class DeliveryReceipt
 {
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; private set; } = Guid.NewGuid();
 
-    public Guid JobId { get; }
+    public Guid JobId { get; private set; }
 
-    public string ReferenceNumber { get; }
-    public string InvoiceNumber { get; }
+    public string ReferenceNumber { get; private set; } = string.Empty;
+    public string InvoiceNumber { get; private set; } = string.Empty;
 
-    public string PickupCompany { get; }
-    public string PickupAddress { get; }
-    public string DeliveryCompany { get; }
-    public string DeliveryAddress { get; }
-    public string LoadDescription { get; }
+    public string PickupCompany { get; private set; } = string.Empty;
+    public string PickupAddress { get; private set; } = string.Empty;
+    public string DeliveryCompany { get; private set; } = string.Empty;
+    public string DeliveryAddress { get; private set; } = string.Empty;
+    public string LoadDescription { get; private set; } = string.Empty;
 
-    public RateType RateType { get; }
-    public decimal RateValue { get; }
-    public int Quantity { get; }
-    public decimal Total { get; }
+    public RateType RateType { get; private set; }
+    public decimal RateValue { get; private set; }
+    public int Quantity { get; private set; }
+    public decimal Total { get; private set; }
 
-    public string ReceiverName { get; }
-    public DateTime DeliveredAtUtc { get; }
+    public string ReceiverName { get; private set; } = string.Empty;
+    public DateTime DeliveredAtUtc { get; private set; }
 
-    public string SignatureJson { get; }
+    public string SignatureJson { get; private set; } = string.Empty;
+
+    // ✅ Required by EF
+    public DeliveryReceipt() { }
 
     public DeliveryReceipt(
         Guid jobId,

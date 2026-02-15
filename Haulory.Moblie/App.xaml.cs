@@ -9,7 +9,7 @@ public partial class App : Microsoft.Maui.Controls.Application
     public App(
         AppShell shell,
         ISessionService sessionService,
-        IUserRepository userRepository)
+        IUserAccountRepository userRepository)
     {
         InitializeComponent();
 

@@ -13,13 +13,13 @@ public class NewDriverViewModel : BaseViewModel
     private string _driverId = string.Empty;
     private bool _isSaving;
 
+    // Driver
     private string _firstName = string.Empty;
     private string _lastName = string.Empty;
     private string _email = string.Empty;
-
     private string _licenceNumber = string.Empty;
 
-    // Emergency Contact
+    // Emergency Contact (required)
     private string _ecFirstName = string.Empty;
     private string _ecLastName = string.Empty;
     private string _ecRelationship = string.Empty;
@@ -30,11 +30,7 @@ public class NewDriverViewModel : BaseViewModel
     public string DriverId
     {
         get => _driverId;
-        set
-        {
-            _driverId = value;
-            // New page: not loading an existing driver here
-        }
+        set => _driverId = value;
     }
 
     public string FirstName { get => _firstName; set { _firstName = value; OnPropertyChanged(); RefreshSaveState(); } }
@@ -55,17 +51,17 @@ public class NewDriverViewModel : BaseViewModel
         {
             if (_isSaving) return false;
 
-            // Must be logged in to create owned sub drivers
+            // Must be logged in
             if (!_sessionService.IsAuthenticated) return false;
-            if (_sessionService.CurrentUser == null) return false;
+            var ownerId = _sessionService.CurrentAccountId ?? Guid.Empty;
+            if (ownerId == Guid.Empty) return false;
 
-            // Driver
+            // Driver fields
             if (string.IsNullOrWhiteSpace(FirstName)) return false;
             if (string.IsNullOrWhiteSpace(LastName)) return false;
 
             var email = Email?.Trim();
-            if (string.IsNullOrWhiteSpace(email)) return false;
-            if (!email.Contains('@')) return false;
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@')) return false;
 
             // Emergency Contact (required)
             if (string.IsNullOrWhiteSpace(EmergencyFirstName)) return false;
@@ -73,8 +69,7 @@ public class NewDriverViewModel : BaseViewModel
             if (string.IsNullOrWhiteSpace(EmergencyRelationship)) return false;
 
             var ecEmail = EmergencyEmail?.Trim();
-            if (string.IsNullOrWhiteSpace(ecEmail)) return false;
-            if (!ecEmail.Contains('@')) return false;
+            if (string.IsNullOrWhiteSpace(ecEmail) || !ecEmail.Contains('@')) return false;
 
             if (string.IsNullOrWhiteSpace(EmergencyPhoneNumber)) return false;
 
@@ -84,7 +79,9 @@ public class NewDriverViewModel : BaseViewModel
 
     public ICommand SaveDriverCommand { get; }
 
-    public NewDriverViewModel(CreateDriverHandler createDriverHandler, ISessionService sessionService)
+    public NewDriverViewModel(
+        CreateDriverHandler createDriverHandler,
+        ISessionService sessionService)
     {
         _createDriverHandler = createDriverHandler;
         _sessionService = sessionService;
@@ -95,10 +92,6 @@ public class NewDriverViewModel : BaseViewModel
 
     private async Task ExecuteSaveAsync()
     {
-        // restore session on restart
-        if (!_sessionService.IsAuthenticated)
-            await _sessionService.RestoreAsync();
-
         if (!CanSave) return;
 
         try
@@ -106,29 +99,34 @@ public class NewDriverViewModel : BaseViewModel
             _isSaving = true;
             RefreshSaveState();
 
-            var ownerUserId = _sessionService.CurrentUser?.Id ?? Guid.Empty;
-            if (ownerUserId == Guid.Empty)
-                throw new InvalidOperationException("You must be logged in to add a driver.");
+            var ownerId = _sessionService.CurrentAccountId!.Value;
 
-            var result = await _createDriverHandler.HandleAsync(
-                new CreateDriverCommand(
-                    ownerUserId,
-                    FirstName,
-                    LastName,
-                    Email,
-                    string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber,
-                    EmergencyFirstName,
-                    EmergencyLastName,
-                    EmergencyRelationship,
-                    EmergencyEmail,
-                    EmergencyPhoneNumber,
-                    string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber) ? null : EmergencySecondaryPhoneNumber
-                ));
+            var cmd = new CreateDriverCommand(
+                OwnerUserId: ownerId,
+                FirstName: FirstName.Trim(),
+                LastName: LastName.Trim(),
+                Email: Email.Trim().ToLowerInvariant(),
+                LicenceNumber: string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
 
-            if (result == null)
-                throw new InvalidOperationException("Please check the details and try again.");
+                EmergencyFirstName: EmergencyFirstName.Trim(),
+                EmergencyLastName: EmergencyLastName.Trim(),
+                EmergencyRelationship: EmergencyRelationship.Trim(),
+                EmergencyEmail: EmergencyEmail.Trim().ToLowerInvariant(),
+                EmergencyPhoneNumber: EmergencyPhoneNumber.Trim(),
+                EmergencySecondaryPhoneNumber: string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
+                    ? null
+                    : EmergencySecondaryPhoneNumber.Trim()
+            );
 
-            await Shell.Current.DisplayAlertAsync("Saved", "Driver saved successfully.", "OK");
+            var created = await _createDriverHandler.HandleAsync(cmd);
+
+            if (created == null)
+            {
+                await Shell.Current.DisplayAlertAsync("Save failed", "Unable to create driver.", "OK");
+                return;
+            }
+
+            await Shell.Current.DisplayAlertAsync("Saved", "Driver created.", "OK");
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)

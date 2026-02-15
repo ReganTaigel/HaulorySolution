@@ -9,21 +9,13 @@ public partial class VehicleCollectionPage : ContentPage
     public VehicleCollectionPage(VehicleCollectionViewModel vm)
     {
         InitializeComponent();
-        BindingContext = _vm = vm;
+        _vm = vm;
+        BindingContext = vm;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        try
-        {
-            await _vm.LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
-        }
+        await _vm.LoadAsync();
     }
-
 }

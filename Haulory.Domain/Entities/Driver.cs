@@ -1,40 +1,28 @@
 ﻿using Domain.Entities;
-using System.Text.Json.Serialization;
 
 namespace Haulory.Domain.Entities
 {
     public class Driver
     {
-        [JsonInclude]
         public Guid Id { get; private set; } = Guid.NewGuid();
 
         // Owner/main account that owns this driver record
-        [JsonInclude]
         public Guid OwnerUserId { get; private set; }
 
         // If this driver is the main user's own profile, link to the user account
-        [JsonInclude]
         public Guid? UserId { get; private set; }
 
-        [JsonInclude]
         public string? FirstName { get; private set; }
-
-        [JsonInclude]
         public string? LastName { get; private set; }
-
-        [JsonInclude]
         public string? Email { get; private set; }
 
-        [JsonInclude]
         public string? LicenceNumber { get; private set; }
 
-        [JsonInclude]
         public EmergencyContact EmergencyContact { get; private set; } = new EmergencyContact();
 
-        [JsonInclude]
         public DriverStatus Status { get; private set; } = DriverStatus.Active;
 
-        // Needed for JSON deserialization
+        // ✅ Required by EF
         public Driver() { }
 
         public Driver(Guid ownerUserId, Guid? userId, string firstName, string lastName, string email)
@@ -66,7 +54,6 @@ namespace Haulory.Domain.Entities
 
         public string DisplayName => $"{FirstName} {LastName}".Trim();
 
-        // Helpful status string for UI
         public string EmergencyStatus
         {
             get
@@ -97,6 +84,5 @@ namespace Haulory.Domain.Entities
             if (OwnerUserId == Guid.Empty)
                 OwnerUserId = ownerUserId;
         }
-
     }
 }
