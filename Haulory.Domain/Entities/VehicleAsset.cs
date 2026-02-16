@@ -4,6 +4,9 @@ namespace Haulory.Domain.Entities;
 
 public class VehicleAsset
 {
+    
+    public Guid OwnerUserId { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
 
     // Links assets created in one wizard run

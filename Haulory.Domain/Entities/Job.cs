@@ -6,6 +6,13 @@ public class Job
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
 
+    // Ownership / assignment
+    public Guid OwnerUserId { get; private set; }            // MAIN owner
+    public Guid? AssignedToUserId { get; private set; }      // SUB (later)
+
+    public Guid? DriverId { get; private set; }
+    public Guid? VehicleAssetId { get; private set; }        // Power unit asset id
+
     // Pickup
     public string PickupCompany { get; private set; } = string.Empty;
     public string PickupAddress { get; private set; } = string.Empty;
@@ -18,7 +25,6 @@ public class Job
     public string? ReceiverName { get; private set; }
     public DateTime? DeliveredAtUtc { get; private set; }
     public string? DeliverySignatureJson { get; private set; }
-
     public bool IsDelivered => DeliveredAtUtc != null && !string.IsNullOrWhiteSpace(DeliverySignatureJson);
 
     // Load
@@ -29,23 +35,24 @@ public class Job
     public string InvoiceNumber { get; private set; } = string.Empty;
     public RateType RateType { get; private set; }
     public decimal RateValue { get; private set; }
-    public int Quantity { get; private set; }
+    public decimal Quantity { get; private set; }            // <-- decimal
+    public QuantityUnit QuantityUnit { get; private set; } = QuantityUnit.None;
 
-    public decimal Total => RateValue * Quantity;
+    public decimal Total => RateType switch
+    {
+        RateType.FixedFee => RateValue,
+        _ => RateValue * Quantity
+    };
+
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
-    // Manual ordering
+    // Ordering
     public int SortOrder { get; private set; }
 
-    public string CardSummary =>
-        $"{PickupCompany} → {DeliveryCompany}\n" +
-        $"{DeliveryAddress}\n" +
-        $"{LoadDescription}";
-
-    // ✅ EF needs this
-    public Job() { }
+    public Job() { } // EF
 
     public Job(
+        Guid ownerUserId,
         string pickupCompany,
         string pickupAddress,
         string deliveryCompany,
@@ -55,21 +62,56 @@ public class Job
         string invoiceNumber,
         RateType rateType,
         decimal rateValue,
-        int quantity,
-        int sortOrder)
+        decimal quantity,
+        int sortOrder,
+        Guid? driverId = null,
+        Guid? vehicleAssetId = null)
     {
+        if (ownerUserId == Guid.Empty) throw new ArgumentException("OwnerUserId required.");
+
+        OwnerUserId = ownerUserId;
+
         PickupCompany = pickupCompany;
         PickupAddress = pickupAddress;
         DeliveryCompany = deliveryCompany;
         DeliveryAddress = deliveryAddress;
+
         ReferenceNumber = referenceNumber;
         LoadDescription = loadDescription;
+
         InvoiceNumber = invoiceNumber;
+
+        SetRate(rateType, rateValue, quantity);
+
+        SortOrder = sortOrder;
+
+        DriverId = driverId;
+        VehicleAssetId = vehicleAssetId;
+    }
+
+    public void SetRate(RateType rateType, decimal rateValue, decimal quantity)
+    {
         RateType = rateType;
         RateValue = rateValue;
-        Quantity = quantity;
-        SortOrder = sortOrder;
+
+        QuantityUnit = rateType switch
+        {
+            RateType.PerLoad => QuantityUnit.Load,
+            RateType.PerPallet => QuantityUnit.Pallet,
+            RateType.PerTonne => QuantityUnit.Tonne,
+            RateType.PerKm => QuantityUnit.Km,
+            RateType.Hourly => QuantityUnit.Hour,
+            _ => QuantityUnit.None
+        };
+
+        Quantity = (rateType == RateType.FixedFee || rateType == RateType.Percentage) ? 1m : quantity;
     }
+
+    public void AssignDriver(Guid? driverId) => DriverId = driverId;
+    public void AssignVehicle(Guid? vehicleAssetId) => VehicleAssetId = vehicleAssetId;
+
+    // later:
+    public void AssignToSubUser(Guid? subUserId) => AssignedToUserId = subUserId;
 
     public void SetSortOrder(int sortOrder) => SortOrder = sortOrder;
 

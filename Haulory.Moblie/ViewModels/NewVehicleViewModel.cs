@@ -1,5 +1,6 @@
 ﻿using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Views;
@@ -14,6 +15,7 @@ public class NewVehicleViewModel : BaseViewModel
 
     private readonly IVehicleAssetRepository _vehicleRepository;
     private readonly CreateVehicleHandler _createVehicleHandler;
+    private readonly ISessionService _session;
 
     private bool _isSaving;
 
@@ -144,7 +146,7 @@ public class NewVehicleViewModel : BaseViewModel
             await SaveVehicleAsync();
 
             await Shell.Current.DisplayAlertAsync("Saved", "Vehicle saved successfully.", "OK");
-            await Shell.Current.GoToAsync($"///{nameof(VehicleCollectionPage)}");
+            await Shell.Current.GoToAsync(nameof(VehicleCollectionPage));
 
         }
         catch (Exception ex)
@@ -169,14 +171,19 @@ public class NewVehicleViewModel : BaseViewModel
 
     #region Constructor
 
-    public NewVehicleViewModel(IVehicleAssetRepository vehicleRepository, CreateVehicleHandler createVehicleHandler)
+    public NewVehicleViewModel(
+        IVehicleAssetRepository vehicleRepository,
+        CreateVehicleHandler createVehicleHandler,
+        ISessionService session)
     {
         _vehicleRepository = vehicleRepository;
         _createVehicleHandler = createVehicleHandler;
+        _session = session;
 
         SaveVehicleCommand = new Command(async () => await ExecuteSaveVehicleAsync(), () => CanSaveVehicle);
         RefreshSaveState();
     }
+
 
     #endregion
 
@@ -999,6 +1006,11 @@ public class NewVehicleViewModel : BaseViewModel
         if (SelectedVehicleType == null)
             throw new InvalidOperationException("Vehicle type is required.");
 
+        // ✅ Get active main account (OwnerUserId) for FK
+        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        if (ownerUserId == Guid.Empty)
+            throw new InvalidOperationException("No active account. Please log in again.");
+
         var setId = Guid.NewGuid();
         var certType = RequiredCertificate;
 
@@ -1016,6 +1028,8 @@ public class NewVehicleViewModel : BaseViewModel
 
             var asset = new VehicleAsset
             {
+                OwnerUserId = ownerUserId, // ✅ ADD THIS
+
                 VehicleSetId = setId,
                 UnitNumber = POWER_UNIT_SLOT,
                 Kind = AssetKind.PowerUnit,
@@ -1038,22 +1052,21 @@ public class NewVehicleViewModel : BaseViewModel
             // Slot-based RUC (Unit 1 only) when it applies
             if (RucCount == 1)
             {
-                // Keep these for stats / cost per km later
                 asset.RucPurchasedDate = Unit1RucPurchasedDate;
                 asset.RucDistancePurchasedKm = Unit1RucDistancePurchasedKm;
 
-                // NEW: licence range is the compliance source of truth
                 asset.RucLicenceStartKm = Unit1RucLicenceStartKm;
                 asset.RucLicenceEndKm = Unit1RucLicenceEndKm;
 
-                // Do NOT assume "odo at purchase" == "licence start"
                 asset.RucOdometerAtPurchaseKm = null;
-
-                // Next due is derived from licence end (not odo + distance)
                 asset.RucNextDueOdometerKm = Unit1RucLicenceEndKm;
             }
 
             assets.Add(asset);
+
+            // ✅ Safety net (future-proof if more assets get added here later)
+            foreach (var a in assets)
+                a.OwnerUserId = ownerUserId;
 
             await _vehicleRepository.AddRangeAsync(assets);
             return;
@@ -1064,11 +1077,12 @@ public class NewVehicleViewModel : BaseViewModel
         if (Unit2Year == null)
             throw new InvalidOperationException("Trailer year is required.");
 
-        // Trailer #1 ALWAYS Unit 2
         var trailer1Odo = IsHeavyTrailer ? Trailer1OdometerKm : null;
 
         var trailer1 = new VehicleAsset
         {
+            OwnerUserId = ownerUserId, // ✅ ADD THIS
+
             VehicleSetId = setId,
             UnitNumber = TRAILER_1_SLOT,
             Kind = AssetKind.Trailer,
@@ -1094,21 +1108,15 @@ public class NewVehicleViewModel : BaseViewModel
             OdometerKm = trailer1Odo
         };
 
-        // RUC for heavy trailers (Unit 2)
         if (IsHeavyTrailer)
         {
-            // Keep these for stats / cost per km later
             trailer1.RucPurchasedDate = Unit2RucPurchasedDate;
             trailer1.RucDistancePurchasedKm = Unit2RucDistancePurchasedKm;
 
-            // NEW: licence range is the compliance source of truth
             trailer1.RucLicenceStartKm = Unit2RucLicenceStartKm;
             trailer1.RucLicenceEndKm = Unit2RucLicenceEndKm;
 
-            // Do NOT assume "odo at purchase" == "licence start"
             trailer1.RucOdometerAtPurchaseKm = null;
-
-            // Next due is derived from licence end (not odo + distance)
             trailer1.RucNextDueOdometerKm = Unit2RucLicenceEndKm;
         }
 
@@ -1123,6 +1131,8 @@ public class NewVehicleViewModel : BaseViewModel
 
             var trailer2 = new VehicleAsset
             {
+                OwnerUserId = ownerUserId, // ✅ ADD THIS
+
                 VehicleSetId = setId,
                 UnitNumber = TRAILER_2_SLOT,
                 Kind = AssetKind.Trailer,
@@ -1143,8 +1153,6 @@ public class NewVehicleViewModel : BaseViewModel
                 OdometerKm = trailer2Odo
             };
 
-            // RUC for heavy trailers (Unit 3)
-            // (B-train implies heavy trailer config here)
             trailer2.RucPurchasedDate = Unit3RucPurchasedDate;
             trailer2.RucDistancePurchasedKm = Unit3RucDistancePurchasedKm;
 
@@ -1157,6 +1165,10 @@ public class NewVehicleViewModel : BaseViewModel
             assets.Add(trailer2);
         }
 
+        // Safety net for trailer path too
+        foreach (var a in assets)
+            a.OwnerUserId = ownerUserId;
+
         var result = await _createVehicleHandler.HandleAsync(new CreateVehicleCommand
         {
             Assets = assets
@@ -1164,9 +1176,9 @@ public class NewVehicleViewModel : BaseViewModel
 
         if (!result.Success)
             throw new InvalidOperationException(result.Message);
-
     }
 
     #endregion
+
 
 }

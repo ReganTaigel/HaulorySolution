@@ -64,7 +64,30 @@
 
                 </VerticalStackLayout>
             </Border>
+            
+            <!-- ASSIGNMENT -->
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="16"
+                    Stroke="#E5E7EB">
+                <VerticalStackLayout Spacing="12">
 
+                    <Label Text="Assignment"
+                            FontSize="18"
+                            FontAttributes="Bold" />
+
+                    <Picker Title="Driver"
+                            ItemsSource="{Binding Drivers}"
+                            ItemDisplayBinding="{Binding DisplayName}"
+                            SelectedItem="{Binding SelectedDriver}" />
+
+                    <Picker Title="Vehicle"
+                            ItemsSource="{Binding Vehicles}"
+                            ItemDisplayBinding="{Binding Rego}"
+                            SelectedItem="{Binding SelectedVehicle}" />
+
+                </VerticalStackLayout>
+            </Border>
+            
             <!-- BILLING -->
             <Border StrokeShape="RoundRectangle 16"
                     Padding="16"
@@ -88,7 +111,7 @@
                                Text="{Binding RateValue}" />
 
                         <Entry Grid.Column="1"
-                               Placeholder="Quantity"
+                               Placeholder="{Binding QuantityLabel}"
                                Keyboard="Numeric"
                                Text="{Binding Quantity}" />
                     </Grid>

@@ -3,7 +3,19 @@
 public enum RateType
 {
     PerLoad,
-    PerHour,
+    PerPallet,
+    PerTonne,
     PerKm,
-    FlatRate
+    Hourly,
+    FixedFee,
+    Percentage
+}
+public enum QuantityUnit
+{
+    Load,       // 1 job = 1 load
+    Pallet,
+    Tonne,
+    Km,
+    Hour,
+    None        // for FixedFee, etc.
 }

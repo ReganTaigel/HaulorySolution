@@ -3,6 +3,7 @@
 namespace Haulory.Application.Features.Jobs;
 
 public record CreateJobCommand(
+    Guid OwnerUserId,
     string PickupCompany,
     string PickupAddress,
     string DeliveryCompany,
@@ -11,4 +12,8 @@ public record CreateJobCommand(
     string LoadDescription,
     RateType RateType,
     decimal RateValue,
-    int Quantity);
+    decimal Quantity,
+    Guid? DriverId,
+    Guid? VehicleAssetId
+);
+

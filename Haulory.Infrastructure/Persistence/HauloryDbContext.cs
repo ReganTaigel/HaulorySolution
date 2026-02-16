@@ -58,27 +58,26 @@ public class HauloryDbContext : DbContext
             entity.OwnsOne(d => d.EmergencyContact);
         });
 
-
         modelBuilder.Entity<VehicleAsset>(entity =>
         {
             entity.HasKey(v => v.Id);
 
-            // Important index for performance
-            entity.HasIndex(v => v.VehicleSetId);
+            entity.Property(v => v.OwnerUserId).IsRequired();
 
+            entity.HasOne<UserAccount>()
+                  .WithMany()
+                  .HasForeignKey(v => v.OwnerUserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(v => v.OwnerUserId);
+
+            entity.HasIndex(v => v.VehicleSetId);
             entity.HasIndex(v => v.Rego);
 
-            entity.Property(v => v.Rego)
-                  .IsRequired();
-
-            entity.Property(v => v.Make)
-                  .IsRequired();
-
-            entity.Property(v => v.Model)
-                  .IsRequired();
-
-            entity.Property(v => v.CreatedUtc)
-                  .IsRequired();
+            entity.Property(v => v.Rego).IsRequired();
+            entity.Property(v => v.Make).IsRequired();
+            entity.Property(v => v.Model).IsRequired();
+            entity.Property(v => v.CreatedUtc).IsRequired();
         });
 
         modelBuilder.Entity<VehicleAsset>()
@@ -87,23 +86,32 @@ public class HauloryDbContext : DbContext
 
         modelBuilder.Entity<Job>(entity =>
         {
-            entity.HasKey(j => j.Id);
+            entity.Property(j => j.OwnerUserId).IsRequired();
+            entity.HasIndex(j => j.OwnerUserId);
 
-            entity.Property(j => j.PickupCompany).IsRequired();
-            entity.Property(j => j.PickupAddress).IsRequired();
-            entity.Property(j => j.DeliveryCompany).IsRequired();
-            entity.Property(j => j.DeliveryAddress).IsRequired();
-
-            entity.Property(j => j.ReferenceNumber).IsRequired();
-            entity.Property(j => j.LoadDescription).IsRequired();
-
-            entity.Property(j => j.InvoiceNumber).IsRequired();
-
+            entity.Property(j => j.Quantity).HasColumnType("decimal(18,2)");
             entity.Property(j => j.RateValue).HasColumnType("decimal(18,2)");
 
-            entity.HasIndex(j => j.SortOrder);
-            entity.HasIndex(j => j.CreatedAt);
+            entity.Property(j => j.QuantityUnit).IsRequired();
 
+            entity.HasIndex(j => j.DriverId);
+            entity.HasIndex(j => j.VehicleAssetId);
+
+            // Optional FKs (recommended)
+            entity.HasOne<UserAccount>()
+                  .WithMany()
+                  .HasForeignKey(j => j.OwnerUserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Driver>()
+                  .WithMany()
+                  .HasForeignKey(j => j.DriverId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<VehicleAsset>()
+                  .WithMany()
+                  .HasForeignKey(j => j.VehicleAssetId)
+                  .OnDelete(DeleteBehavior.SetNull);
             // Optional: if invoice numbers should be unique, uncomment:
             // entity.HasIndex(j => j.InvoiceNumber).IsUnique();
         });

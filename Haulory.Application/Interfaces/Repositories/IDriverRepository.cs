@@ -13,5 +13,6 @@ namespace Haulory.Application.Interfaces.Repositories
         Task<List<Driver>> GetAllByOwnerUserIdAsync(Guid ownerUserId);
 
         Task SaveAsync(Driver driver);
+        Task<Driver> GetByIdAsync(Guid id);
     }
 }

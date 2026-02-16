@@ -14,10 +14,10 @@ public class CreateJobHandler
 
     public async Task HandleAsync(CreateJobCommand command)
     {
-        // Determine manual sort order
         var nextOrder = await _jobRepository.GetNextSortOrderAsync();
 
         var job = new Job(
+            command.OwnerUserId,
             command.PickupCompany,
             command.PickupAddress,
             command.DeliveryCompany,
@@ -28,7 +28,10 @@ public class CreateJobHandler
             command.RateType,
             command.RateValue,
             command.Quantity,
-            nextOrder);
+            nextOrder,
+            driverId: command.DriverId,
+            vehicleAssetId: command.VehicleAssetId
+        );
 
         await _jobRepository.AddAsync(job);
     }

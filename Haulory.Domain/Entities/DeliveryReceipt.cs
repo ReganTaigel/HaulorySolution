@@ -19,7 +19,7 @@ public class DeliveryReceipt
 
     public RateType RateType { get; private set; }
     public decimal RateValue { get; private set; }
-    public int Quantity { get; private set; }
+    public decimal Quantity { get; private set; }
     public decimal Total { get; private set; }
 
     public string ReceiverName { get; private set; } = string.Empty;
@@ -27,7 +27,7 @@ public class DeliveryReceipt
 
     public string SignatureJson { get; private set; } = string.Empty;
 
-    // ✅ Required by EF
+    // Required by EF
     public DeliveryReceipt() { }
 
     public DeliveryReceipt(
@@ -41,7 +41,7 @@ public class DeliveryReceipt
         string loadDescription,
         RateType rateType,
         decimal rateValue,
-        int quantity,
+        decimal quantity,
         decimal total,
         string receiverName,
         DateTime deliveredAtUtc,

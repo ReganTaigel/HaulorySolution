@@ -134,20 +134,6 @@ public class DriverCollectionViewModel : BaseViewModel
 
             RaiseGate();
 
-            if (DebugGate)
-            {
-                var ownedCount = drivers.Count;
-                var mainCount = drivers.Count(d => d.UserId.HasValue && d.UserId.Value == ownerUserId);
-
-                await Shell.Current.DisplayAlertAsync(
-                    "Driver Store Proof",
-                    $"OwnerUserId: {ownerUserId}\n" +
-                    $"Owned drivers: {ownedCount}\n" +
-                    $"Main profile (UserId match): {mainCount}\n" +
-                    $"UI Drivers count: {Drivers.Count}\n" +
-                    $"Gate complete: {_isMainComplete}",
-                    "OK");
-            }
         }
         finally
         {

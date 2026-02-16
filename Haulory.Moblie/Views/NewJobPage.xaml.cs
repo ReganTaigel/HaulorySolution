@@ -9,4 +9,12 @@ public partial class NewJobPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is NewJobViewModel vm)
+            await vm.LoadAsync();
+    }
 }

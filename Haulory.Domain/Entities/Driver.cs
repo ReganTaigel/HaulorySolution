@@ -22,7 +22,7 @@ namespace Haulory.Domain.Entities
 
         public DriverStatus Status { get; private set; } = DriverStatus.Active;
 
-        // ✅ Required by EF
+        // Required by EF
         public Driver() { }
 
         public Driver(Guid ownerUserId, Guid? userId, string firstName, string lastName, string email)

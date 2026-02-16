@@ -108,11 +108,84 @@
                                 </HorizontalStackLayout>
                             </Grid>
 
-                            <!-- SUMMARY -->
-                            <Label Text="{Binding CardSummary}"
-                                   FontSize="13"
-                                   TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}"
-                                   LineBreakMode="WordWrap" />
+                            <!-- DETAILS -->
+                            <Grid RowDefinitions="Auto,Auto"
+      ColumnDefinitions="Auto,*"
+      ColumnSpacing="10"
+      RowSpacing="8">
+
+                                <Label Text="Driver"
+           Grid.Row="0" Grid.Column="0"
+           FontSize="12"
+           TextColor="Gray" />
+
+                                <Label Text="{Binding DriverName}"
+           Grid.Row="0" Grid.Column="1"
+           FontSize="13"
+           FontAttributes="Bold"
+           LineBreakMode="TailTruncation" />
+
+                                <Label Text="Truck"
+           Grid.Row="1" Grid.Column="0"
+           FontSize="12"
+           TextColor="Gray" />
+
+                                <Label Text="{Binding TruckDisplay}"
+           Grid.Row="1" Grid.Column="1"
+           FontSize="13"
+           LineBreakMode="TailTruncation" />
+                            </Grid>
+
+                            <Grid RowDefinitions="Auto,Auto"
+      ColumnDefinitions="Auto,*"
+      ColumnSpacing="10"
+      RowSpacing="8">
+
+                                <Label Text="Pickup"
+           Grid.Row="0" Grid.Column="0"
+           FontSize="12"
+           TextColor="Gray" />
+
+                                <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="1">
+                                    <Label Text="{Binding PickupCompany}"
+               FontSize="13"
+               FontAttributes="Bold"
+               LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding PickupAddress}"
+               FontSize="12"
+               TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}"
+               LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+
+                                <Label Text="Drop"
+           Grid.Row="1" Grid.Column="0"
+           FontSize="12"
+           TextColor="Gray" />
+
+                                <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="1">
+                                    <Label Text="{Binding DeliveryCompany}"
+               FontSize="13"
+               FontAttributes="Bold"
+               LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding DeliveryAddress}"
+               FontSize="12"
+               TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}"
+               LineBreakMode="TailTruncation" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Label Text="{Binding LoadDescription}"
+       FontSize="12"
+       TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}" />
+
+                            <Label Text="{Binding RateLine}"
+       FontSize="12"
+       TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}" />
+
+                            <Label Text="{Binding TotalLine}"
+       FontSize="12"
+       TextColor="{AppThemeBinding Light='#4B5563', Dark='#9CA3AF'}" />
+
 
                             <!-- ACTIONS -->
                             <Grid ColumnDefinitions="*"
