@@ -90,6 +90,18 @@ public class DriverRepository : IDriverRepository
 
         // Status if you allow changes (optional)
         // target.SetStatus(driver.Status); // if you add a method
+        target.UpdatePhone(driver.PhoneNumber);
+        target.UpdateDateOfBirthUtc(driver.DateOfBirthUtc);
+        target.UpdateLicenceExpiryUtc(driver.LicenceExpiresOnUtc);
+        target.UpdateAddress(
+                driver.Line1,
+                driver.Line2,
+                driver.Suburb,
+                driver.City,
+                driver.Region,
+                driver.Postcode,
+                driver.Country);
+
 
         await _db.SaveChangesAsync();
     }

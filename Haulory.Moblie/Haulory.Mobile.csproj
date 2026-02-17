@@ -66,6 +66,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\AddInductionRequirementPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\AddWorkSitePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\DashboardPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -78,6 +84,9 @@
 	  <MauiXaml Update="Views\EditDriverPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Views\InductionTemplatesPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\JobsCollectionPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -88,6 +97,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\NewJobPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\ManageInductionsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\RegisterPage.xaml">
@@ -121,6 +133,9 @@
 	  </Compile>
 	  <Compile Update="Views\JobsCollectionPage.xaml.cs">
 	    <DependentUpon>JobsCollectionPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="Views\ManageInductionsPage.xaml.cs">
+	    <DependentUpon>ManageInductionsPage.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Views\NewVehiclePage.xaml.cs">
 	    <DependentUpon>NewVehiclePage.xaml</DependentUpon>

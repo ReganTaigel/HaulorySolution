@@ -7,6 +7,22 @@ public record CreateDriverCommand(
     string Email,
     string? LicenceNumber,
 
+    // NEW: Contact + profile
+    string? PhoneNumber,
+    DateTime? DateOfBirthUtc,
+
+    // NEW: Licence
+    DateTime? LicenceExpiresOnUtc,
+
+    // NEW: Address
+    string? Line1,
+    string? Line2,
+    string? Suburb,
+    string? City,
+    string? Region,
+    string? Postcode,
+    string? Country,
+
     // Emergency Contact (required)
     string EmergencyFirstName,
     string EmergencyLastName,

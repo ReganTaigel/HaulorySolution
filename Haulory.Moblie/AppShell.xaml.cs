@@ -34,6 +34,13 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(NewDriverPage), typeof(NewDriverPage));
         Routing.RegisterRoute(nameof(EditDriverPage), typeof(EditDriverPage));
 
+
+        //Inductions
+        Routing.RegisterRoute(nameof(ManageInductionsPage), typeof(ManageInductionsPage));
+        Routing.RegisterRoute(nameof(InductionTemplatesPage), typeof(InductionTemplatesPage));
+        Routing.RegisterRoute(nameof(AddWorkSitePage), typeof(AddWorkSitePage));
+        Routing.RegisterRoute(nameof(AddInductionRequirementPage), typeof(AddInductionRequirementPage));
+
         Navigating += OnNavigating;
     }
 

@@ -36,6 +36,66 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- CONTACT + LICENCE + ADDRESS -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+
+                    <Label Text="Contact and Licence"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+
+                    <Entry Placeholder="Phone number (optional)"
+                           Keyboard="Telephone"
+                           Text="{Binding PhoneNumber}" />
+
+                    <Label Text="Date of birth (optional)"
+                           FontSize="12"
+                           Opacity="0.7" />
+                    <DatePicker Date="{Binding DateOfBirthLocal}" />
+
+                    <Label Text="Licence expiry (optional)"
+                           FontSize="12"
+                           Opacity="0.7" />
+                    <DatePicker Date="{Binding LicenceExpiryLocal}" />
+
+                    <Label Text="Address (optional)"
+                           FontSize="12"
+                           Opacity="0.7" />
+
+                    <Entry Placeholder="Address line 1"
+                           Text="{Binding Line1}" />
+
+                    <Entry Placeholder="Address line 2"
+                           Text="{Binding Line2}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Entry Grid.Column="0"
+                               Placeholder="Suburb"
+                               Text="{Binding Suburb}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="City"
+                               Text="{Binding City}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Entry Grid.Column="0"
+                               Placeholder="Region"
+                               Text="{Binding Region}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Postcode"
+                               Text="{Binding Postcode}" />
+                    </Grid>
+
+                    <Entry Placeholder="Country"
+                           Text="{Binding Country}" />
+
+                </VerticalStackLayout>
+            </Border>
+
             <!-- EMERGENCY CONTACT -->
             <Border StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
@@ -54,7 +114,7 @@
                     <Entry Placeholder="Last name"
                            Text="{Binding EmergencyLastName}" />
 
-                    <Entry Placeholder="Relationship (e.g. Partner, Parent)"
+                    <Entry Placeholder="Relationship"
                            Text="{Binding EmergencyRelationship}" />
 
                     <Entry Placeholder="Email"
@@ -75,9 +135,7 @@
             <Button Text="Save Driver"
                     Command="{Binding SaveDriverCommand}"
                     IsEnabled="{Binding CanSave}"
-                    IsVisible="{Binding CanSave}"
                     Margin="0,10,0,0"/>
-
 
         </VerticalStackLayout>
     </ScrollView>

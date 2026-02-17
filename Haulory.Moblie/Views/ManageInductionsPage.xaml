@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Haulory.Mobile.Views.ManageInductionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Inductions">
+
+    <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="12">
+
+        <!-- Driver picker row -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+            <Picker Title="Select Driver"
+                    ItemsSource="{Binding Drivers}"
+                    ItemDisplayBinding="{Binding DisplayName}"
+                    SelectedItem="{Binding SelectedDriver}" />
+
+            <Button Grid.Column="1"
+                    Text="Add Induction"
+                    Padding="14,0"
+                    HeightRequest="44"
+                    CornerRadius="12"
+                    Command="{Binding AddInductionCommand}" />
+
+            <Button Grid.Column="1"
+                    Text="Templates"
+                    Padding="14,0"
+                    HeightRequest="44"
+                    CornerRadius="12"
+                    Command="{Binding GoToTemplatesCommand}" />
+
+        </Grid>
+
+        <!-- Hint -->
+        <Label Grid.Row="1"
+               Text="Tap an item to update status, completion date and expiry (per driver)."
+               FontSize="12"
+               Opacity="0.7" />
+
+        <!-- Inductions list -->
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Inductions}"
+                        EmptyView="No inductions for this driver yet. Tap 'Add Induction'."
+>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="12"
+                            Margin="0,0,0,10">
+                        <VerticalStackLayout Spacing="6">
+
+                            <Label Text="{Binding WorkSiteName}"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+
+                            <Label Text="{Binding RequirementTitle}"
+                                   FontSize="16"
+                                   FontAttributes="Bold" />
+
+                            <Label Text="{Binding PpeRequired, StringFormat='PPE: {0}'}"
+                                   FontSize="13"
+                                   Opacity="0.85"
+                                   IsVisible="{Binding PpeRequired}" />
+
+                            <VerticalStackLayout Spacing="4">
+
+                                <Label Text="{Binding Status}"
+                                       FontSize="13"
+                                       FontAttributes="Bold" />
+
+                                <Label Text="{Binding CompletedOnUtc, StringFormat='Completion: {0:yyyy-MM-dd}'}"
+                                       FontSize="13"
+                                       Opacity="0.85"
+                                       IsVisible="{Binding HasCompletedOn}" />
+
+                                <Label Text="{Binding ExpiresOnUtc, StringFormat='Due/Expires: {0:yyyy-MM-dd}'}"
+                                       FontSize="13"
+                                       Opacity="0.85"
+                                        IsVisible="{Binding HasExpiresOn}" />
+
+                                <Label Text="{Binding DaysLeft, StringFormat='Days left: {0}'}"
+                                       FontSize="13"
+                                       Opacity="0.85"
+                                       IsVisible="{Binding HasDaysLeft}" />
+
+                            </VerticalStackLayout>
+
+
+                            <Button Text="Edit"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}"
+                                    CommandParameter="{Binding}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

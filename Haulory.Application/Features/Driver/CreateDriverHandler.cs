@@ -6,10 +6,12 @@ namespace Haulory.Application.Features.Drivers;
 public class CreateDriverHandler
 {
     private readonly IDriverRepository _repository;
+    private readonly IComplianceEnsurer _complianceEnsurer;
 
-    public CreateDriverHandler(IDriverRepository repository)
+    public CreateDriverHandler(IDriverRepository repository, IComplianceEnsurer complianceEnsurer)
     {
         _repository = repository;
+        _complianceEnsurer = complianceEnsurer;
     }
 
     public async Task<Driver?> HandleAsync(CreateDriverCommand command)
@@ -55,13 +57,33 @@ public class CreateDriverHandler
             email: email!
         );
 
+        // Existing
         driver.UpdateLicenceNumber(command.LicenceNumber);
+
+        // NEW fields
+        driver.UpdatePhone(command.PhoneNumber);
+        driver.UpdateDateOfBirthUtc(command.DateOfBirthUtc);
+        driver.UpdateLicenceExpiryUtc(command.LicenceExpiresOnUtc);
+
+        driver.UpdateAddress(
+            command.Line1,
+            command.Line2,
+            command.Suburb,
+            command.City,
+            command.Region,
+            command.Postcode,
+            command.Country
+        );
 
         driver.UpdateEmergencyContact(new EmergencyContact(
             ecFirst!, ecLast!, ecRel!, ecEmail!, ecPhone!, ecPhone2
         ));
 
         await _repository.SaveAsync(driver);
+
+        // auto-create induction/compliance rows for this driver
+        await _complianceEnsurer.EnsureDriverInductionsExistForDriverAsync(command.OwnerUserId, driver.Id);
+
         return driver;
     }
 }

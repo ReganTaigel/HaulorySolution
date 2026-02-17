@@ -1,4 +1,3 @@
-using Haulory.Domain.Entities;
 using Haulory.Mobile.ViewModels;
 
 namespace Haulory.Mobile.Views;
@@ -21,13 +20,15 @@ public partial class DriverCollectionPage : ContentPage
 
     private async void OnDriverSelected(object sender, SelectionChangedEventArgs e)
     {
-        var selected = e.CurrentSelection?.FirstOrDefault() as Driver;
-        if (selected == null) return;
+        // Items are DriverListItem now
+        var selectedItem = e.CurrentSelection?.FirstOrDefault() as DriverListItem;
+        var driver = selectedItem?.Driver;
+        if (driver == null) return;
 
         // clear selection so it can be tapped again
         ((CollectionView)sender).SelectedItem = null;
 
         // edit main OR sub
-        await Shell.Current.GoToAsync($"{nameof(EditDriverPage)}?driverId={selected.Id}");
+        await Shell.Current.GoToAsync($"{nameof(EditDriverPage)}?driverId={driver.Id}");
     }
 }

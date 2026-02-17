@@ -1,7 +1,6 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
-using Haulory.Mobile.Views;
 using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
@@ -26,6 +25,7 @@ public class EditDriverViewModel : BaseViewModel
 
         SaveCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
     }
+
     public ICommand SaveCommand { get; }
 
     public async Task InitializeAsync(string driverId)
@@ -35,7 +35,9 @@ public class EditDriverViewModel : BaseViewModel
         await LoadAsync();
     }
 
-    // Editable fields
+    // -------------------------
+    // Editable fields (existing)
+    // -------------------------
     private string _firstName = string.Empty;
     public string FirstName { get => _firstName; set { _firstName = value; OnPropertyChanged(); Refresh(); } }
 
@@ -48,7 +50,43 @@ public class EditDriverViewModel : BaseViewModel
     private string _licenceNumber = string.Empty;
     public string LicenceNumber { get => _licenceNumber; set { _licenceNumber = value; OnPropertyChanged(); Refresh(); } }
 
+    // -------------------------
+    // NEW: Contact + licence + address
+    // -------------------------
+    private string _phoneNumber = string.Empty;
+    public string PhoneNumber { get => _phoneNumber; set { _phoneNumber = value; OnPropertyChanged(); Refresh(); } }
+
+    // DatePickers need a value; we’ll default to Today, but on load we set to existing DOB/expiry when available.
+    private DateTime _dateOfBirthLocal = DateTime.Today;
+    public DateTime DateOfBirthLocal { get => _dateOfBirthLocal; set { _dateOfBirthLocal = value; OnPropertyChanged(); } }
+
+    private DateTime _licenceExpiryLocal = DateTime.Today;
+    public DateTime LicenceExpiryLocal { get => _licenceExpiryLocal; set { _licenceExpiryLocal = value; OnPropertyChanged(); } }
+
+    private string _line1 = string.Empty;
+    public string Line1 { get => _line1; set { _line1 = value; OnPropertyChanged(); } }
+
+    private string _line2 = string.Empty;
+    public string Line2 { get => _line2; set { _line2 = value; OnPropertyChanged(); } }
+
+    private string _suburb = string.Empty;
+    public string Suburb { get => _suburb; set { _suburb = value; OnPropertyChanged(); } }
+
+    private string _city = string.Empty;
+    public string City { get => _city; set { _city = value; OnPropertyChanged(); } }
+
+    private string _region = string.Empty;
+    public string Region { get => _region; set { _region = value; OnPropertyChanged(); } }
+
+    private string _postcode = string.Empty;
+    public string Postcode { get => _postcode; set { _postcode = value; OnPropertyChanged(); } }
+
+    private string _country = string.Empty;
+    public string Country { get => _country; set { _country = value; OnPropertyChanged(); } }
+
+    // -------------------------
     // Emergency Contact
+    // -------------------------
     private string _ecFirstName = string.Empty;
     public string EmergencyFirstName { get => _ecFirstName; set { _ecFirstName = value; OnPropertyChanged(); Refresh(); } }
 
@@ -104,12 +142,30 @@ public class EditDriverViewModel : BaseViewModel
         if (_driver == null)
             return;
 
-        // Populate UI fields
+        // Populate UI fields (existing)
         FirstName = _driver.FirstName ?? string.Empty;
         LastName = _driver.LastName ?? string.Empty;
         Email = _driver.Email ?? string.Empty;
         LicenceNumber = _driver.LicenceNumber ?? string.Empty;
 
+        // Populate NEW fields
+        PhoneNumber = _driver.PhoneNumber ?? string.Empty;
+
+        if (_driver.DateOfBirthUtc.HasValue)
+            DateOfBirthLocal = _driver.DateOfBirthUtc.Value.ToLocalTime().Date;
+
+        if (_driver.LicenceExpiresOnUtc.HasValue)
+            LicenceExpiryLocal = _driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
+
+        Line1 = _driver.Line1 ?? string.Empty;
+        Line2 = _driver.Line2 ?? string.Empty;
+        Suburb = _driver.Suburb ?? string.Empty;
+        City = _driver.City ?? string.Empty;
+        Region = _driver.Region ?? string.Empty;
+        Postcode = _driver.Postcode ?? string.Empty;
+        Country = _driver.Country ?? string.Empty;
+
+        // Emergency contact
         var ec = _driver.EmergencyContact ?? new EmergencyContact();
         EmergencyFirstName = ec.FirstName ?? string.Empty;
         EmergencyLastName = ec.LastName ?? string.Empty;
@@ -122,32 +178,6 @@ public class EditDriverViewModel : BaseViewModel
         Refresh();
     }
 
-    private bool HasAnyEmergencyInput()
-    {
-        return !string.IsNullOrWhiteSpace(EmergencyFirstName) ||
-               !string.IsNullOrWhiteSpace(EmergencyLastName) ||
-               !string.IsNullOrWhiteSpace(EmergencyRelationship) ||
-               !string.IsNullOrWhiteSpace(EmergencyEmail) ||
-               !string.IsNullOrWhiteSpace(EmergencyPhoneNumber) ||
-               !string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber);
-    }
-
-    private void EnsureEmergencyIsValidIfProvided()
-    {
-        if (!HasAnyEmergencyInput())
-            return;
-
-        if (string.IsNullOrWhiteSpace(EmergencyFirstName) ||
-            string.IsNullOrWhiteSpace(EmergencyLastName) ||
-            string.IsNullOrWhiteSpace(EmergencyRelationship) ||
-            string.IsNullOrWhiteSpace(EmergencyPhoneNumber))
-            throw new InvalidOperationException("Please complete the emergency contact details before saving them.");
-
-        var ecEmail = EmergencyEmail?.Trim();
-        if (string.IsNullOrWhiteSpace(ecEmail) || !ecEmail.Contains('@'))
-            throw new InvalidOperationException("Please enter a valid emergency email.");
-    }
-
     private async Task ExecuteSaveAsync()
     {
         if (_driver == null) return;
@@ -158,10 +188,30 @@ public class EditDriverViewModel : BaseViewModel
             _isSaving = true;
             Refresh();
 
-            // update driver
+            // update driver (existing)
             _driver.UpdateIdentity(FirstName, LastName, Email);
             _driver.UpdateLicenceNumber(string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber);
 
+            // update NEW fields
+            _driver.UpdatePhone(string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber);
+
+            var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
+            _driver.UpdateDateOfBirthUtc(dobUtc);
+
+            var licExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
+            _driver.UpdateLicenceExpiryUtc(licExpUtc);
+
+            _driver.UpdateAddress(
+                string.IsNullOrWhiteSpace(Line1) ? null : Line1,
+                string.IsNullOrWhiteSpace(Line2) ? null : Line2,
+                string.IsNullOrWhiteSpace(Suburb) ? null : Suburb,
+                string.IsNullOrWhiteSpace(City) ? null : City,
+                string.IsNullOrWhiteSpace(Region) ? null : Region,
+                string.IsNullOrWhiteSpace(Postcode) ? null : Postcode,
+                string.IsNullOrWhiteSpace(Country) ? null : Country
+            );
+
+            // emergency contact (unchanged)
             var ec = new EmergencyContact(
                 EmergencyFirstName,
                 EmergencyLastName,

@@ -6,10 +6,17 @@ namespace Haulory.Application.Features.Drivers;
 public class CreateDriverFromUserHandler
 {
     private readonly IDriverRepository _repository;
+    private readonly IComplianceEnsurer _complianceEnsurer;
+    private readonly IUserAccountRepository _users;
 
-    public CreateDriverFromUserHandler(IDriverRepository repository)
+    public CreateDriverFromUserHandler(
+        IDriverRepository repository,
+        IComplianceEnsurer complianceEnsurer,
+        IUserAccountRepository users)
     {
         _repository = repository;
+        _complianceEnsurer = complianceEnsurer;
+        _users = users;
     }
 
     public async Task<Driver?> HandleAsync(CreateDriverFromUserCommand command)
@@ -27,19 +34,36 @@ public class CreateDriverFromUserHandler
         if (string.IsNullOrWhiteSpace(email))
             return null;
 
-        var existing = await _repository.GetByUserIdAsync(command.UserId);
+        // actor = the login account we are creating a Driver profile for
+        var actor = await _users.GetByIdAsync(command.UserId);
+        if (actor == null)
+            return null;
+
+        // ownerUserId must ALWAYS be the main account id
+        var ownerUserId = actor.Role == UserRole.Main
+            ? actor.Id
+            : (actor.ParentMainUserId ?? Guid.Empty);
+
+        if (ownerUserId == Guid.Empty)
+            return null;
+
+        // one driver profile per user account
+        var existing = await _repository.GetByUserIdAsync(actor.Id);
         if (existing != null)
             return existing;
 
         var driver = new Driver(
-            ownerUserId: command.UserId,
-            userId: command.UserId,
+            ownerUserId: ownerUserId,   // main account id
+            userId: actor.Id,           // linked user account id
             firstName: firstName!,
             lastName: lastName!,
             email: email!);
 
         await _repository.SaveAsync(driver);
 
+        await _complianceEnsurer.EnsureDriverInductionsExistForDriverAsync(ownerUserId, driver.Id);
+
         return driver;
     }
+
 }

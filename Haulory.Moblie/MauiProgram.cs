@@ -4,13 +4,13 @@ using Haulory.Application.Features.Users;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Infrastructure.Services;
+using Haulory.Infrastructure.Persistence;
+using Haulory.Infrastructure.Persistence.Repositories;
+using Haulory.Infrastructure.Persistence.Services;
 using Haulory.Mobile.ViewModels;
 using Haulory.Mobile.Views;
-using Microsoft.Extensions.Logging;
-using Haulory.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Logging;
 
 namespace Haulory.Mobile
 {
@@ -53,6 +53,10 @@ namespace Haulory.Mobile
             builder.Services.AddScoped<IDeliveryReceiptRepository, Infrastructure.Persistence.Repositories.DeliveryReceiptRepository>();
             builder.Services.AddScoped<IVehicleAssetRepository, Infrastructure.Persistence.Repositories.VehicleAssetRepository>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
+            builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
+            builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
+            builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
 
 
             // Session can remain Singleton (does not depend on DbContext directly)
@@ -83,6 +87,12 @@ namespace Haulory.Mobile
             builder.Services.AddTransient<NewDriverViewModel>();
             builder.Services.AddTransient<EditDriverViewModel>();
 
+            //Inductions
+            builder.Services.AddTransient<AddWorkSiteViewModel>();
+            builder.Services.AddTransient<AddInductionRequirementViewModel>();
+            builder.Services.AddTransient<ManageInductionsViewModel>();
+            builder.Services.AddTransient<InductionTemplatesViewModel>();
+
             // Pages
             //Jobs
             builder.Services.AddTransient<JobsCollectionPage>();
@@ -108,6 +118,13 @@ namespace Haulory.Mobile
             builder.Services.AddTransient<DriverCollectionPage>();
             builder.Services.AddTransient<NewDriverPage>();
             builder.Services.AddTransient<EditDriverPage>();
+
+            //Inductions
+            builder.Services.AddTransient<ManageInductionsPage>();
+            builder.Services.AddTransient<AddWorkSitePage>();
+            builder.Services.AddTransient<AddInductionRequirementPage>();
+            builder.Services.AddTransient<InductionTemplatesPage>();
+
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
@@ -123,8 +140,6 @@ namespace Haulory.Mobile
 
             return app;
 
-
         }
-
     }
 }
