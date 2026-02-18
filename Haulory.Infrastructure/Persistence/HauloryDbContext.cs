@@ -5,7 +5,13 @@ namespace Haulory.Infrastructure.Persistence;
 
 public class HauloryDbContext : DbContext
 {
+    #region Constructor
+
     public HauloryDbContext(DbContextOptions<HauloryDbContext> options) : base(options) { }
+
+    #endregion
+
+    #region DbSets
 
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
     public DbSet<Driver> Drivers => Set<Driver>();
@@ -15,14 +21,32 @@ public class HauloryDbContext : DbContext
 
     public DbSet<WorkSite> WorkSites => Set<WorkSite>();
     public DbSet<InductionRequirement> InductionRequirements => Set<InductionRequirement>();
-
     public DbSet<DriverInduction> DriverInductions => Set<DriverInduction>();
+
+    #endregion
+
+    #region EF Model Configuration
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        //User
+        ConfigureUserAccounts(modelBuilder);
+        ConfigureDrivers(modelBuilder);
+        ConfigureVehicleAssets(modelBuilder);
+        ConfigureJobs(modelBuilder);
+        ConfigureDeliveryReceipts(modelBuilder);
+        ConfigureWorkSites(modelBuilder);
+        ConfigureInductionRequirements(modelBuilder);
+        ConfigureDriverInductions(modelBuilder);
+    }
+
+    #endregion
+
+    #region Entity Config: UserAccount
+
+    private static void ConfigureUserAccounts(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<UserAccount>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -33,16 +57,15 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.PasswordHash).IsRequired();
 
             entity.HasIndex(x => x.ParentMainUserId);
-
-            // Example if Driver has OwnerUserId:
-            // modelBuilder.Entity<Driver>()
-            //   .HasOne<User>()
-            //   .WithMany()
-            //   .HasForeignKey(x => x.OwnerUserId);
         });
+    }
 
-        // DRIVER
-        // DRIVER
+    #endregion
+
+    #region Entity Config: Driver
+
+    private static void ConfigureDrivers(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Driver>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -70,9 +93,18 @@ public class HauloryDbContext : DbContext
             entity.Property(d => d.Region);
             entity.Property(d => d.Postcode);
             entity.Property(d => d.Country);
+
+            // Owned value object
             entity.OwnsOne(d => d.EmergencyContact);
         });
+    }
 
+    #endregion
+
+    #region Entity Config: VehicleAsset
+
+    private static void ConfigureVehicleAssets(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<VehicleAsset>(entity =>
         {
             entity.HasKey(v => v.Id);
@@ -95,10 +127,18 @@ public class HauloryDbContext : DbContext
             entity.Property(v => v.CreatedUtc).IsRequired();
         });
 
+        // Ensure one asset per slot per vehicle set
         modelBuilder.Entity<VehicleAsset>()
             .HasIndex(v => new { v.VehicleSetId, v.UnitNumber })
             .IsUnique();
+    }
 
+    #endregion
+
+    #region Entity Config: Job
+
+    private static void ConfigureJobs(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<Job>(entity =>
         {
             entity.Property(j => j.OwnerUserId).IsRequired();
@@ -112,12 +152,13 @@ public class HauloryDbContext : DbContext
             entity.HasIndex(j => j.DriverId);
             entity.HasIndex(j => j.VehicleAssetId);
 
-            // Optional FKs (recommended)
+            // Ownership link
             entity.HasOne<UserAccount>()
                   .WithMany()
                   .HasForeignKey(j => j.OwnerUserId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            // Optional assignment links
             entity.HasOne<Driver>()
                   .WithMany()
                   .HasForeignKey(j => j.DriverId)
@@ -127,15 +168,24 @@ public class HauloryDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(j => j.VehicleAssetId)
                   .OnDelete(DeleteBehavior.SetNull);
+
             // Optional: if invoice numbers should be unique, uncomment:
             // entity.HasIndex(j => j.InvoiceNumber).IsUnique();
         });
+    }
 
+    #endregion
+
+    #region Entity Config: DeliveryReceipt
+
+    private static void ConfigureDeliveryReceipts(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<DeliveryReceipt>(entity =>
         {
             entity.HasKey(r => r.Id);
 
-            entity.HasIndex(r => r.JobId).IsUnique(); // 1 receipt per job
+            // One receipt per job
+            entity.HasIndex(r => r.JobId).IsUnique();
 
             entity.HasOne<Job>()
                   .WithMany()
@@ -150,10 +200,20 @@ public class HauloryDbContext : DbContext
 
             entity.HasIndex(r => r.DeliveredAtUtc);
         });
+    }
+
+    #endregion
+
+    #region Entity Config: WorkSite
+
+    private static void ConfigureWorkSites(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<WorkSite>(entity =>
         {
             entity.HasKey(x => x.Id);
+
             entity.Property(x => x.CompanyName);
+
             entity.Property(x => x.OwnerUserId).IsRequired();
             entity.Property(x => x.Name).IsRequired();
             entity.Property(x => x.IsActive).IsRequired();
@@ -162,7 +222,14 @@ public class HauloryDbContext : DbContext
             entity.HasIndex(x => new { x.OwnerUserId, x.IsActive });
             entity.HasIndex(x => new { x.OwnerUserId, x.Name });
         });
+    }
 
+    #endregion
+
+    #region Entity Config: InductionRequirement
+
+    private static void ConfigureInductionRequirements(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<InductionRequirement>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -183,6 +250,14 @@ public class HauloryDbContext : DbContext
                   .HasForeignKey(x => x.WorkSiteId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
+    }
+
+    #endregion
+
+    #region Entity Config: DriverInduction
+
+    private static void ConfigureDriverInductions(ModelBuilder modelBuilder)
+    {
         modelBuilder.Entity<DriverInduction>(entity =>
         {
             entity.HasKey(x => x.Id);
@@ -192,9 +267,11 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.WorkSiteId).IsRequired();
             entity.Property(x => x.RequirementId).IsRequired();
 
+            entity.Property(x => x.IssueDateUtc).IsRequired();
+
+            // Prevent duplicates per owner/driver/site/requirement
             entity.HasIndex(x => new { x.OwnerUserId, x.DriverId, x.WorkSiteId, x.RequirementId })
                   .IsUnique();
-            entity.Property(x => x.IssueDateUtc).IsRequired();
 
             entity.HasIndex(x => new { x.OwnerUserId, x.DriverId });
 
@@ -214,6 +291,8 @@ public class HauloryDbContext : DbContext
                   .HasForeignKey(x => x.RequirementId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
-
     }
+
+    #endregion
 }
+ 

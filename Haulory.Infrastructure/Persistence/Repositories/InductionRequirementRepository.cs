@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,9 +7,22 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class InductionRequirementRepository : IInductionRequirementRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
 
-    public InductionRequirementRepository(HauloryDbContext db) => _db = db;
+    #endregion
+
+    #region Constructor
+
+    public InductionRequirementRepository(HauloryDbContext db)
+    {
+        _db = db;
+    }
+
+    #endregion
+
+    #region Commands
 
     public async Task AddAsync(InductionRequirement req)
     {
@@ -16,9 +30,14 @@ public class InductionRequirementRepository : IInductionRequirementRepository
         await _db.SaveChangesAsync();
     }
 
+    #endregion
+
+    #region Queries
+
     public async Task<IReadOnlyList<InductionRequirement>> GetActiveByOwnerAsync(Guid ownerUserId)
     {
-        if (ownerUserId == Guid.Empty) return Array.Empty<InductionRequirement>();
+        if (ownerUserId == Guid.Empty)
+            return Array.Empty<InductionRequirement>();
 
         return await _db.InductionRequirements
             .AsNoTracking()
@@ -30,7 +49,8 @@ public class InductionRequirementRepository : IInductionRequirementRepository
 
     public async Task<IReadOnlyList<InductionRequirement>> GetActiveBySiteAsync(Guid ownerUserId, Guid workSiteId)
     {
-        if (ownerUserId == Guid.Empty || workSiteId == Guid.Empty) return Array.Empty<InductionRequirement>();
+        if (ownerUserId == Guid.Empty || workSiteId == Guid.Empty)
+            return Array.Empty<InductionRequirement>();
 
         return await _db.InductionRequirements
             .AsNoTracking()
@@ -40,4 +60,6 @@ public class InductionRequirementRepository : IInductionRequirementRepository
             .OrderBy(x => x.Title)
             .ToListAsync();
     }
+
+    #endregion
 }

@@ -1,4 +1,6 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using System.Collections.Generic;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,15 +8,29 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class DriverRepository : IDriverRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
+
+    #endregion
+
+    #region Constructor
 
     public DriverRepository(HauloryDbContext db)
     {
         _db = db;
     }
 
+    #endregion
+
+    #region Debug
+
     // Optional dev helper (no file path anymore)
     public string DebugFilePath => "SQLite: haulory.db";
+
+    #endregion
+
+    #region Queries
 
     public async Task<List<Driver>> GetAllAsync()
     {
@@ -49,6 +65,21 @@ public class DriverRepository : IDriverRepository
         return driver;
     }
 
+    public async Task<Driver?> GetByUserIdAsync(Guid userId)
+    {
+        if (userId == Guid.Empty)
+            return null;
+
+        return await _db.Drivers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d =>
+                d.UserId.HasValue &&
+                d.UserId.Value == userId);
+    }
+
+    #endregion
+
+    #region Persistence
 
     public async Task SaveAsync(Driver driver)
     {
@@ -74,6 +105,7 @@ public class DriverRepository : IDriverRepository
         }
 
         // Update scalars explicitly (safe + predictable)
+
         // Identity fields
         if (!string.IsNullOrWhiteSpace(driver.FirstName) &&
             !string.IsNullOrWhiteSpace(driver.LastName) &&
@@ -82,40 +114,32 @@ public class DriverRepository : IDriverRepository
             target.UpdateIdentity(driver.FirstName!, driver.LastName!, driver.Email!);
         }
 
-        // Optional fields
+        // Licence
         target.UpdateLicenceNumber(driver.LicenceNumber);
 
-        // Owned type update (important)
+        // Owned type update
         target.UpdateEmergencyContact(driver.EmergencyContact);
 
-        // Status if you allow changes (optional)
-        // target.SetStatus(driver.Status); // if you add a method
+        // Profile
         target.UpdatePhone(driver.PhoneNumber);
         target.UpdateDateOfBirthUtc(driver.DateOfBirthUtc);
         target.UpdateLicenceExpiryUtc(driver.LicenceExpiresOnUtc);
-        target.UpdateAddress(
-                driver.Line1,
-                driver.Line2,
-                driver.Suburb,
-                driver.City,
-                driver.Region,
-                driver.Postcode,
-                driver.Country);
 
+        // Address
+        target.UpdateAddress(
+            driver.Line1,
+            driver.Line2,
+            driver.Suburb,
+            driver.City,
+            driver.Region,
+            driver.Postcode,
+            driver.Country);
+
+        // Status if you allow changes later (optional)
+        // target.SetStatus(driver.Status);
 
         await _db.SaveChangesAsync();
     }
-    public async Task<Driver?> GetByUserIdAsync(Guid userId)
-    {
-        if (userId == Guid.Empty)
-            return null;
 
-        return await _db.Drivers
-            .AsNoTracking()
-            .FirstOrDefaultAsync(d =>
-                d.UserId.HasValue &&
-                d.UserId.Value == userId);
-    }
-
-
+    #endregion
 }

@@ -1,38 +1,65 @@
-﻿using Haulory.Application.Features.Drivers;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Haulory.Application.Features.Drivers;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Mobile.Views;
-using System.Collections.ObjectModel;
-using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class DriverCollectionViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly IDriverRepository _driverRepository;
     private readonly IUserAccountRepository _userAccountRepository;
     private readonly ISessionService _sessionService;
     private readonly CreateDriverFromUserHandler _createDriverFromUserHandler;
     private readonly IDriverInductionRepository _driverInductionRepository;
 
-    private bool _isBusy;
-    public bool IsBusy
-    {
-        get => _isBusy;
-        set { _isBusy = value; OnPropertyChanged(); }
-    }
+    #endregion
 
+    #region State
+
+    private bool _isBusy;
     private Driver? _mainDriver;
     private bool _isMainComplete;
 
+    #endregion
+
+    #region Bindable Properties
+
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            _isBusy = value;
+            OnPropertyChanged();
+        }
+    }
+
+    // Gate: only allow adding sub-drivers once main driver profile is complete
     public bool ShowAddDriver => _isMainComplete;
 
     public ObservableCollection<DriverListItem> Drivers { get; } = new();
 
+    #endregion
+
+    #region Commands
+
     public ICommand AddDriverCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ManageInductionsCommand { get; }
+
+    #endregion
+
+    #region Constructor
 
     public DriverCollectionViewModel(
         IDriverRepository driverRepository,
@@ -56,15 +83,22 @@ public class DriverCollectionViewModel : BaseViewModel
         RefreshCommand = new Command(async () => await LoadAsync());
     }
 
+    #endregion
+
+    #region Public Methods
+
     public async Task LoadAsync()
     {
-        if (IsBusy) return;
+        if (IsBusy)
+            return;
 
         try
         {
             IsBusy = true;
+
             Drivers.Clear();
 
+            // Ensure session restored
             if (!_sessionService.IsAuthenticated)
                 await _sessionService.RestoreAsync();
 
@@ -78,10 +112,10 @@ public class DriverCollectionViewModel : BaseViewModel
                 return;
             }
 
-            // Load owned drivers
+            // Load all drivers for this owner
             var drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
 
-            // Resolve main driver
+            // Resolve main driver (driver linked to the main user account)
             var existingMain = drivers.FirstOrDefault(d =>
                 d.UserId.HasValue && d.UserId.Value == ownerUserId);
 
@@ -106,14 +140,15 @@ public class DriverCollectionViewModel : BaseViewModel
                     )
                 );
 
+                // Reload after creation
                 drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
             }
 
-            // Ensure main appears
+            // Ensure main appears (safety)
             if (existingMain != null && drivers.All(d => d.Id != existingMain.Id))
                 drivers.Insert(0, existingMain);
 
-            // 🔥 NEW: Get expiring induction counts (within 30 days)
+            // Get expiring induction counts (within 30 days)
             var expiringSoon =
                 await _driverInductionRepository
                     .CountExpiringSoonByDriverAsync(ownerUserId, 30);
@@ -135,6 +170,7 @@ public class DriverCollectionViewModel : BaseViewModel
 
             _mainDriver = existingMain;
 
+            // Gate based on main driver emergency contact completion
             _isMainComplete =
                 _mainDriver != null &&
                 _mainDriver.EmergencyContact != null &&
@@ -148,8 +184,14 @@ public class DriverCollectionViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region UI Helpers
+
     private void RaiseGate()
     {
         OnPropertyChanged(nameof(ShowAddDriver));
     }
+
+    #endregion
 }

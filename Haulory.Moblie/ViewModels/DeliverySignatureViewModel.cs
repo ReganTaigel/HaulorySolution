@@ -1,20 +1,29 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
-using System.Text.Json;
-using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
 [QueryProperty(nameof(JobId), "jobId")]
 public class DeliverySignatureViewModel : BaseViewModel
 {
-    #region Fields
+    #region Dependencies
 
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
     private readonly IUnitOfWork _uow;
+
+    #endregion
+
+    #region State
 
     private Job? _job;
     private bool _isSaving;
@@ -26,7 +35,7 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 
-    #region Bindable Properties (Job Details)
+    #region Bindable Properties - Job Details
 
     public string ReferenceNumber => _job?.ReferenceNumber ?? string.Empty;
     public string PickupCompany => _job?.PickupCompany ?? string.Empty;
@@ -38,29 +47,29 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 
-    #region Receiver
+    #region Bindable Properties - Receiver + Status
 
     public string ReceiverName
     {
         get => _receiverName;
         set
         {
-            if (_receiverName == value) return;
+            if (_receiverName == value)
+                return;
+
             _receiverName = value;
             OnPropertyChanged();
         }
     }
-
-    #endregion
-
-    #region Status
 
     public string StatusMessage
     {
         get => _statusMessage;
         set
         {
-            if (_statusMessage == value) return;
+            if (_statusMessage == value)
+                return;
+
             _statusMessage = value;
             OnPropertyChanged();
         }
@@ -68,7 +77,7 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 
-    #region Signature Data (Strokes)
+    #region Signature Data
 
     private readonly List<List<PointF>> _strokes = new();
     private List<PointF>? _currentStroke;
@@ -94,6 +103,8 @@ public class DeliverySignatureViewModel : BaseViewModel
             if (Guid.TryParse(value, out var id))
             {
                 _jobId = id;
+
+                // Fire-and-forget load, safe because LoadJobAsync updates StatusMessage
                 _ = LoadJobAsync();
             }
         }
@@ -103,7 +114,6 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #region Constructor
 
-
     public DeliverySignatureViewModel(
         IJobRepository jobRepository,
         IDeliveryReceiptRepository deliveryReceiptRepository,
@@ -112,6 +122,7 @@ public class DeliverySignatureViewModel : BaseViewModel
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
         _uow = uow;
+
         SignatureDrawable = new SignatureDrawable(_strokes);
 
         ClearSignatureCommand = new Command(() =>
@@ -160,6 +171,7 @@ public class DeliverySignatureViewModel : BaseViewModel
     {
         _currentStroke = new List<PointF> { point };
         _strokes.Add(_currentStroke);
+
         SignatureDrawable.InvalidateRequested?.Invoke();
     }
 
@@ -177,10 +189,13 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 
-    #region Save
+    #region Save Flow
+
     private async Task SaveAsync()
     {
-        if (_isSaving) return;
+        if (_isSaving)
+            return;
+
         _isSaving = true;
 
         try
@@ -256,7 +271,10 @@ public class DeliverySignatureViewModel : BaseViewModel
     }
 
     private bool HasSignature()
-        => _strokes.Any(s => s.Count > 2);
+    {
+        // Require at least one stroke with enough points to be a real signature
+        return _strokes.Any(s => s.Count > 2);
+    }
 
     private string BuildSignatureJson()
     {
@@ -287,6 +305,7 @@ public record SignatureData(List<SignatureStroke> Strokes);
 public class SignatureDrawable : IDrawable
 {
     private readonly List<List<PointF>> _strokes;
+
     public Action? InvalidateRequested;
 
     public SignatureDrawable(List<List<PointF>> strokes)
@@ -296,7 +315,10 @@ public class SignatureDrawable : IDrawable
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
+        // Transparent background; view decides surface
         canvas.FillColor = Colors.Transparent;
+
+        // Signature styling
         canvas.StrokeColor = Colors.Black;
         canvas.StrokeSize = 3;
 

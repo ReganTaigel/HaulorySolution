@@ -1,10 +1,22 @@
 ﻿namespace Haulory.Domain.Entities;
 
+#region Entity: Vehicle Unit (Lightweight Slot Model)
+
 public class VehicleUnit
 {
-    public int UnitNumber { get; set; } // 1,2,3
+    #region Slot Identity
 
-    public int Year { get; set; }  
+    // Slot position in a vehicle set
+    // 1 = Power unit
+    // 2 = Trailer 1
+    // 3 = Trailer 2 (B-Train)
+    public int UnitNumber { get; set; }
+
+    #endregion
+
+    #region Core Details
+
+    public int Year { get; set; }
 
     public string Rego { get; set; } = string.Empty;
     public DateTime? RegoExpiry { get; set; }
@@ -12,7 +24,16 @@ public class VehicleUnit
     public string Make { get; set; } = string.Empty;
     public string Model { get; set; } = string.Empty;
 
+    #endregion
+
+    #region Compliance
+
     public DateTime? CertificateExpiry { get; set; }
+
+    // Odometer relevant for powered units and heavy trailers
     public int? OdometerKm { get; set; }
 
+    #endregion
 }
+
+#endregion

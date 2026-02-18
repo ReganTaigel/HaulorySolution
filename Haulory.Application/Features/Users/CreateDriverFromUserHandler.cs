@@ -5,9 +5,15 @@ namespace Haulory.Application.Features.Drivers;
 
 public class CreateDriverFromUserHandler
 {
+    #region Dependencies
+
     private readonly IDriverRepository _repository;
     private readonly IComplianceEnsurer _complianceEnsurer;
     private readonly IUserAccountRepository _users;
+
+    #endregion
+
+    #region Constructor
 
     public CreateDriverFromUserHandler(
         IDriverRepository repository,
@@ -19,27 +25,46 @@ public class CreateDriverFromUserHandler
         _users = users;
     }
 
+    #endregion
+
+    #region Public API
+
+    // Creates a Driver profile linked to an existing authenticated User account.
+    // Rules:
+    // - UserId must exist.
+    // - One Driver profile per User account.
+    // - OwnerUserId must always resolve to the Main account.
+    // - Automatically seeds compliance/induction records.
     public async Task<Driver?> HandleAsync(CreateDriverFromUserCommand command)
     {
-        var email = command.Email?.Trim().ToLowerInvariant();
-        var firstName = command.FirstName?.Trim();
-        var lastName = command.LastName?.Trim();
+        #region Basic Validation
 
         if (command.UserId == Guid.Empty)
             return null;
 
-        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+        var email = command.Email?.Trim().ToLowerInvariant();
+        var firstName = command.FirstName?.Trim();
+        var lastName = command.LastName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(firstName) ||
+            string.IsNullOrWhiteSpace(lastName) ||
+            string.IsNullOrWhiteSpace(email))
             return null;
 
-        if (string.IsNullOrWhiteSpace(email))
-            return null;
+        #endregion
 
-        // actor = the login account we are creating a Driver profile for
+        #region Load Actor Account
+
+        // The authenticated user we are converting into a Driver profile
         var actor = await _users.GetByIdAsync(command.UserId);
         if (actor == null)
             return null;
 
-        // ownerUserId must ALWAYS be the main account id
+        #endregion
+
+        #region Resolve Owner (Main Account Enforcement)
+
+        // OwnerUserId must ALWAYS be the main/root account
         var ownerUserId = actor.Role == UserRole.Main
             ? actor.Id
             : (actor.ParentMainUserId ?? Guid.Empty);
@@ -47,23 +72,41 @@ public class CreateDriverFromUserHandler
         if (ownerUserId == Guid.Empty)
             return null;
 
-        // one driver profile per user account
+        #endregion
+
+        #region Prevent Duplicate Driver Profiles
+
+        // One driver profile per user account
         var existing = await _repository.GetByUserIdAsync(actor.Id);
         if (existing != null)
             return existing;
 
+        #endregion
+
+        #region Create Driver Aggregate
+
         var driver = new Driver(
-            ownerUserId: ownerUserId,   // main account id
-            userId: actor.Id,           // linked user account id
+            ownerUserId: ownerUserId,  // Main account
+            userId: actor.Id,          // Linked login account
             firstName: firstName!,
             lastName: lastName!,
-            email: email!);
+            email: email!
+        );
 
         await _repository.SaveAsync(driver);
 
-        await _complianceEnsurer.EnsureDriverInductionsExistForDriverAsync(ownerUserId, driver.Id);
+        #endregion
+
+        #region Seed Compliance Records
+
+        // Automatically create required induction/compliance rows
+        await _complianceEnsurer
+            .EnsureDriverInductionsExistForDriverAsync(ownerUserId, driver.Id);
+
+        #endregion
 
         return driver;
     }
 
+    #endregion
 }

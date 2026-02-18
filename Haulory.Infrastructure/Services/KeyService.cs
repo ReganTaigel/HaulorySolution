@@ -1,15 +1,24 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
+using Microsoft.Maui.Storage;
 
 namespace Haulory.Infrastructure.Services;
 
 public static class KeyService
 {
+    #region Constants
+
     private const string KeyName = "haulory_user_store_key";
+
+    #endregion
+
+    #region Public API
 
     public static async Task<byte[]> GetOrCreateKeyAsync()
     {
         try
         {
+            // Attempt to retrieve existing key from secure storage
             var stored = await SecureStorage.GetAsync(KeyName);
 
             if (!string.IsNullOrWhiteSpace(stored))
@@ -17,14 +26,16 @@ public static class KeyService
         }
         catch (Exception ex)
         {
-            // Never generate a new key silently
+            // Never silently generate a new key if secure storage fails
+            // This prevents accidental data loss from key mismatch
             throw new InvalidOperationException(
                 "SecureStorage unavailable. Cannot access encryption key.",
                 ex);
         }
 
-        // FIRST INSTALL ONLY
-        var key = RandomNumberGenerator.GetBytes(32); // 256-bit key
+        // First install only
+        // Generate new 256-bit encryption key
+        var key = RandomNumberGenerator.GetBytes(32);
 
         await SecureStorage.SetAsync(
             KeyName,
@@ -32,4 +43,6 @@ public static class KeyService
 
         return key;
     }
+
+    #endregion
 }

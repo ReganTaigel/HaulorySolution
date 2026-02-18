@@ -1,5 +1,7 @@
 ﻿namespace Haulory.Domain.Entities;
 
+#region Enum: Compliance Status
+
 public enum ComplianceStatus
 {
     NotStarted = 0,
@@ -8,31 +10,50 @@ public enum ComplianceStatus
     Expired = 3
 }
 
+#endregion
+
+#region Entity: Driver Induction
+
 public class DriverInduction
 {
+    #region Identity / Ownership
+
     public Guid Id { get; private set; } = Guid.NewGuid();
 
+    // Tenant boundary
     public Guid OwnerUserId { get; private set; }
 
     public Guid DriverId { get; private set; }
     public Guid WorkSiteId { get; private set; }
     public Guid RequirementId { get; private set; }
 
+    #endregion
+
+    #region Status / Dates
+
     public ComplianceStatus Status { get; private set; } = ComplianceStatus.NotStarted;
 
     public DateTime? CompletedOnUtc { get; private set; }
     public DateTime? ExpiresOnUtc { get; private set; }
 
-    // ✅ anchor for "days left" comparisons
+    // Anchor date for calculating expiry and days-left
     public DateTime IssueDateUtc { get; private set; }
+
+    #endregion
+
+    #region Evidence / Notes
 
     public string? EvidenceFilePath { get; private set; }
     public string? Notes { get; private set; }
 
-    // EF
-    public DriverInduction() { }
+    #endregion
 
-    // ✅ existing constructor now sets issue date automatically
+    #region Constructors
+
+    // Required by EF Core
+    private DriverInduction() { }
+
+    // Default constructor sets IssueDateUtc to now
     public DriverInduction(Guid ownerUserId, Guid driverId, Guid workSiteId, Guid requirementId)
     {
         OwnerUserId = ownerUserId;
@@ -40,49 +61,98 @@ public class DriverInduction
         WorkSiteId = workSiteId;
         RequirementId = requirementId;
 
-        IssueDateUtc = DateTime.UtcNow; // ✅ default
+        IssueDateUtc = DateTime.UtcNow;
     }
 
-    // ✅ new overload: create with an explicit issue date (what your UI wants)
-    public DriverInduction(Guid ownerUserId, Guid driverId, Guid workSiteId, Guid requirementId, DateTime issueDateUtc)
+    // Overload allowing explicit issue date (used by UI workflows)
+    public DriverInduction(
+        Guid ownerUserId,
+        Guid driverId,
+        Guid workSiteId,
+        Guid requirementId,
+        DateTime issueDateUtc)
         : this(ownerUserId, driverId, workSiteId, requirementId)
     {
         IssueDateUtc = DateTime.SpecifyKind(issueDateUtc, DateTimeKind.Utc);
     }
 
+    #endregion
+
+    #region State Transitions
+
     public void MarkInProgress()
     {
-        if (Status == ComplianceStatus.Completed) return;
+        if (Status == ComplianceStatus.Completed)
+            return;
+
         Status = ComplianceStatus.InProgress;
     }
 
-    public void MarkCompleted(DateTime completedOnUtc, DateTime? expiresOnUtc, string? evidenceFilePath = null, string? notes = null)
+    public void MarkCompleted(
+        DateTime completedOnUtc,
+        DateTime? expiresOnUtc,
+        string? evidenceFilePath = null,
+        string? notes = null)
     {
-        CompletedOnUtc = completedOnUtc;
-        ExpiresOnUtc = expiresOnUtc;
-        EvidenceFilePath = string.IsNullOrWhiteSpace(evidenceFilePath) ? null : evidenceFilePath.Trim();
-        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        CompletedOnUtc = DateTime.SpecifyKind(completedOnUtc, DateTimeKind.Utc);
+        ExpiresOnUtc = expiresOnUtc.HasValue
+            ? DateTime.SpecifyKind(expiresOnUtc.Value, DateTimeKind.Utc)
+            : null;
+
+        EvidenceFilePath = string.IsNullOrWhiteSpace(evidenceFilePath)
+            ? null
+            : evidenceFilePath.Trim();
+
+        Notes = string.IsNullOrWhiteSpace(notes)
+            ? null
+            : notes.Trim();
+
         Status = ComplianceStatus.Completed;
     }
 
-    public bool IsExpiringWithinDays(DateTime utcNow, int days)
+    public void MarkExpired()
     {
-        if (!ExpiresOnUtc.HasValue) return false;
-        var exp = ExpiresOnUtc.Value;
-        return exp > utcNow && exp <= utcNow.AddDays(days);
+        Status = ComplianceStatus.Expired;
     }
 
-    public void MarkExpired() => Status = ComplianceStatus.Expired;
+    #endregion
+
+    #region Expiry Logic
 
     public bool IsExpired(DateTime utcNow) =>
         ExpiresOnUtc.HasValue && ExpiresOnUtc.Value <= utcNow;
 
-    public void SetStatus(ComplianceStatus status) => Status = status;
-    public void SetCompletedOnUtc(DateTime? completedOnUtc) => CompletedOnUtc = completedOnUtc;
-    public void SetExpiresOnUtc(DateTime? expiresOnUtc) => ExpiresOnUtc = expiresOnUtc;
-    public void SetNotes(string? notes) => Notes = notes;
+    public bool IsExpiringWithinDays(DateTime utcNow, int days)
+    {
+        if (!ExpiresOnUtc.HasValue)
+            return false;
 
-    // ✅ optional: allow changing the issue date later (if you want "edit relative dates")
+        var exp = ExpiresOnUtc.Value;
+
+        return exp > utcNow && exp <= utcNow.AddDays(days);
+    }
+
+    #endregion
+
+    #region Manual Setters (Used Carefully)
+
+    // Direct state override (use cautiously in application layer)
+    public void SetStatus(ComplianceStatus status) => Status = status;
+
+    public void SetCompletedOnUtc(DateTime? completedOnUtc) =>
+        CompletedOnUtc = completedOnUtc;
+
+    public void SetExpiresOnUtc(DateTime? expiresOnUtc) =>
+        ExpiresOnUtc = expiresOnUtc;
+
+    public void SetNotes(string? notes) =>
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+
+    // Allows editing of issue date (useful for recalculating relative expiry)
     public void SetIssueDateUtc(DateTime issueDateUtc) =>
         IssueDateUtc = DateTime.SpecifyKind(issueDateUtc, DateTimeKind.Utc);
+
+    #endregion
 }
+
+#endregion

@@ -6,16 +6,27 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class DeliveryReceiptRepository : IDeliveryReceiptRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
+
+    #endregion
+
+    #region Constructor
 
     public DeliveryReceiptRepository(HauloryDbContext db)
     {
         _db = db;
     }
 
+    #endregion
+
+    #region Commands
+
     public async Task AddAsync(DeliveryReceipt receipt)
     {
-        // Match JSON behavior: ignore duplicates for the same JobId
+        // Match previous JSON behavior:
+        // Ignore duplicates for the same JobId (1 receipt per job)
         var exists = await _db.DeliveryReceipts
             .AnyAsync(r => r.JobId == receipt.JobId);
 
@@ -25,6 +36,10 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
         _db.DeliveryReceipts.Add(receipt);
         await _db.SaveChangesAsync();
     }
+
+    #endregion
+
+    #region Queries
 
     public async Task<IReadOnlyList<DeliveryReceipt>> GetAllAsync()
     {
@@ -40,4 +55,6 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
             .Where(r => r.JobId == jobId)
             .ToListAsync();
     }
+
+    #endregion
 }

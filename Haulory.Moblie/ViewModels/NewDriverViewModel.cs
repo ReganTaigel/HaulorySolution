@@ -1,29 +1,44 @@
-﻿using Haulory.Application.Features.Drivers;
-using Haulory.Application.Interfaces.Services;
+﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using Haulory.Application.Features.Drivers;
+using Haulory.Application.Interfaces.Services;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 [QueryProperty(nameof(DriverId), "driverId")]
 public class NewDriverViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly CreateDriverHandler _createDriverHandler;
     private readonly ISessionService _sessionService;
+
+    #endregion
+
+    #region State
 
     private string _driverId = string.Empty;
     private bool _isSaving;
 
-    // Driver (existing)
+    #endregion
+
+    #region Driver Fields
+
     private string _firstName = string.Empty;
     private string _lastName = string.Empty;
     private string _email = string.Empty;
     private string _licenceNumber = string.Empty;
 
-    // NEW: Contact + licence + address
+    #endregion
+
+    #region Contact + Licence + Address
+
     private string _phoneNumber = string.Empty;
 
     // DatePickers require a value; default to Today.
-    // (If you want true optional later, we add HasDob/HasLicenceExpiry toggles.)
+    // If you want true optional later, add HasDob/HasLicenceExpiry toggles.
     private DateTime _dateOfBirthLocal = DateTime.Today;
     private DateTime _licenceExpiryLocal = DateTime.Today;
 
@@ -35,7 +50,10 @@ public class NewDriverViewModel : BaseViewModel
     private string _postcode = string.Empty;
     private string _country = string.Empty;
 
-    // Emergency Contact (required)
+    #endregion
+
+    #region Emergency Contact (Required)
+
     private string _ecFirstName = string.Empty;
     private string _ecLastName = string.Empty;
     private string _ecRelationship = string.Empty;
@@ -43,53 +61,97 @@ public class NewDriverViewModel : BaseViewModel
     private string _ecPhoneNumber = string.Empty;
     private string _ecSecondaryPhoneNumber = string.Empty;
 
+    #endregion
+
+    #region Query Properties
+
     public string DriverId
     {
         get => _driverId;
         set => _driverId = value;
     }
 
+    #endregion
+
+    #region Bindable Properties (Driver)
+
     public string FirstName
     {
         get => _firstName;
-        set { _firstName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _firstName = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string LastName
     {
         get => _lastName;
-        set { _lastName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _lastName = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string Email
     {
         get => _email;
-        set { _email = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _email = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string LicenceNumber
     {
         get => _licenceNumber;
-        set { _licenceNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _licenceNumber = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
-    // NEW bindings
+    #endregion
+
+    #region Bindable Properties (Contact + Licence + Address)
+
     public string PhoneNumber
     {
         get => _phoneNumber;
-        set { _phoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _phoneNumber = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public DateTime DateOfBirthLocal
     {
         get => _dateOfBirthLocal;
-        set { _dateOfBirthLocal = value; OnPropertyChanged(); }
+        set
+        {
+            _dateOfBirthLocal = value;
+            OnPropertyChanged();
+        }
     }
 
     public DateTime LicenceExpiryLocal
     {
         get => _licenceExpiryLocal;
-        set { _licenceExpiryLocal = value; OnPropertyChanged(); }
+        set
+        {
+            _licenceExpiryLocal = value;
+            OnPropertyChanged();
+        }
     }
 
     public string Line1 { get => _line1; set { _line1 = value; OnPropertyChanged(); } }
@@ -100,76 +162,136 @@ public class NewDriverViewModel : BaseViewModel
     public string Postcode { get => _postcode; set { _postcode = value; OnPropertyChanged(); } }
     public string Country { get => _country; set { _country = value; OnPropertyChanged(); } }
 
+    #endregion
+
+    #region Bindable Properties (Emergency Contact)
+
     public string EmergencyFirstName
     {
         get => _ecFirstName;
-        set { _ecFirstName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecFirstName = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyLastName
     {
         get => _ecLastName;
-        set { _ecLastName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecLastName = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyRelationship
     {
         get => _ecRelationship;
-        set { _ecRelationship = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecRelationship = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyEmail
     {
         get => _ecEmail;
-        set { _ecEmail = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecEmail = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyPhoneNumber
     {
         get => _ecPhoneNumber;
-        set { _ecPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecPhoneNumber = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
 
     public string EmergencySecondaryPhoneNumber
     {
         get => _ecSecondaryPhoneNumber;
-        set { _ecSecondaryPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            _ecSecondaryPhoneNumber = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
     }
+
+    #endregion
+
+    #region Save Gate
 
     public bool CanSave
     {
         get
         {
-            if (_isSaving) return false;
+            if (_isSaving)
+                return false;
 
             // Must be logged in
-            if (!_sessionService.IsAuthenticated) return false;
+            if (!_sessionService.IsAuthenticated)
+                return false;
 
             var ownerId = _sessionService.CurrentAccountId ?? Guid.Empty;
-            if (ownerId == Guid.Empty) return false;
+            if (ownerId == Guid.Empty)
+                return false;
 
-            // Driver fields
-            if (string.IsNullOrWhiteSpace(FirstName)) return false;
-            if (string.IsNullOrWhiteSpace(LastName)) return false;
+            // Driver identity fields
+            if (string.IsNullOrWhiteSpace(FirstName))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(LastName))
+                return false;
 
             var email = Email?.Trim();
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@')) return false;
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+                return false;
 
-            // Emergency Contact (required)
-            if (string.IsNullOrWhiteSpace(EmergencyFirstName)) return false;
-            if (string.IsNullOrWhiteSpace(EmergencyLastName)) return false;
-            if (string.IsNullOrWhiteSpace(EmergencyRelationship)) return false;
+            // Emergency contact (required)
+            if (string.IsNullOrWhiteSpace(EmergencyFirstName))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(EmergencyLastName))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(EmergencyRelationship))
+                return false;
 
             var ecEmail = EmergencyEmail?.Trim();
-            if (string.IsNullOrWhiteSpace(ecEmail) || !ecEmail.Contains('@')) return false;
+            if (string.IsNullOrWhiteSpace(ecEmail) || !ecEmail.Contains('@'))
+                return false;
 
-            if (string.IsNullOrWhiteSpace(EmergencyPhoneNumber)) return false;
+            if (string.IsNullOrWhiteSpace(EmergencyPhoneNumber))
+                return false;
 
             return true;
         }
     }
 
+    #endregion
+
+    #region Commands
+
     public ICommand SaveDriverCommand { get; }
+
+    #endregion
+
+    #region Constructor
 
     public NewDriverViewModel(
         CreateDriverHandler createDriverHandler,
@@ -179,12 +301,18 @@ public class NewDriverViewModel : BaseViewModel
         _sessionService = sessionService;
 
         SaveDriverCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
+
         RefreshSaveState();
     }
 
+    #endregion
+
+    #region Save Logic
+
     private async Task ExecuteSaveAsync()
     {
-        if (!CanSave) return;
+        if (!CanSave)
+            return;
 
         try
         {
@@ -248,9 +376,15 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region Helpers
+
     private void RefreshSaveState()
     {
         OnPropertyChanged(nameof(CanSave));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
+
+    #endregion
 }

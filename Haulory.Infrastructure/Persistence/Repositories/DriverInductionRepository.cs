@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Features.Incductions;
+﻿using System;
+using Haulory.Application.Features.Incductions;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -7,12 +8,22 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class DriverInductionRepository : IDriverInductionRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
+
+    #endregion
+
+    #region Constructor
 
     public DriverInductionRepository(HauloryDbContext db)
     {
         _db = db;
     }
+
+    #endregion
+
+    #region Commands
 
     public async Task AddAsync(DriverInduction record)
     {
@@ -26,6 +37,33 @@ public class DriverInductionRepository : IDriverInductionRepository
         await _db.SaveChangesAsync();
     }
 
+    public async Task UpdateAsync(Guid ownerUserId, Guid driverId, DriverInduction record)
+    {
+        // Ensure record belongs to the correct owner + driver
+        var existing = await _db.DriverInductions.FirstOrDefaultAsync(x =>
+            x.Id == record.Id &&
+            x.OwnerUserId == ownerUserId &&
+            x.DriverId == driverId);
+
+        if (existing == null)
+            throw new InvalidOperationException("Induction not found for this driver.");
+
+        // Apply updates via domain methods
+        existing.SetStatus(record.Status);
+        existing.SetCompletedOnUtc(record.CompletedOnUtc);
+        existing.SetExpiresOnUtc(record.ExpiresOnUtc);
+        existing.SetNotes(record.Notes);
+
+        // Evidence too if you want
+        // existing.SetEvidence(record.EvidenceFilePath);
+
+        await _db.SaveChangesAsync();
+    }
+
+    #endregion
+
+    #region Existence Checks
+
     public async Task<bool> ExistsAsync(Guid ownerUserId, Guid driverId, Guid workSiteId, Guid requirementId)
     {
         return await _db.DriverInductions.AnyAsync(x =>
@@ -35,8 +73,13 @@ public class DriverInductionRepository : IDriverInductionRepository
             x.RequirementId == requirementId);
     }
 
+    #endregion
+
+    #region Queries
+
     public async Task<IReadOnlyList<DriverInductionListItemDto>> GetListItemsByDriverAsync(Guid ownerUserId, Guid driverId)
     {
+        // Join inductions with worksites and requirements to build a UI-ready DTO list
         var rows = await _db.DriverInductions
             .AsNoTracking()
             .Where(x => x.OwnerUserId == ownerUserId && x.DriverId == driverId)
@@ -52,23 +95,25 @@ public class DriverInductionRepository : IDriverInductionRepository
                     DriverInductionId = x.di.Id,
                     WorkSiteId = x.ws.Id,
                     WorkSiteName = x.ws.Name,
+
                     RequirementId = r.Id,
                     RequirementTitle = r.Title,
                     ValidForDays = r.ValidForDays,
                     PpeRequired = r.PpeRequired,
+
                     Status = x.di.Status,
 
-                    // ✅ NEW: include issue date so UI can display/edit later
+                    // Include issue date so UI can display/edit later
                     IssueDateUtc = x.di.IssueDateUtc,
 
                     CompletedOnUtc = x.di.CompletedOnUtc,
-                    ExpiresOnUtc = x.di.ExpiresOnUtc,
+                    ExpiresOnUtc = x.di.ExpiresOnUtc
                 })
             .OrderBy(x => x.WorkSiteName)
             .ThenBy(x => x.RequirementTitle)
             .ToListAsync();
 
-        //compute "next due" + "days left" safely in C#
+        // Compute "days left" safely in C#
         var utcNow = DateTime.UtcNow;
         foreach (var dto in rows)
         {
@@ -81,7 +126,6 @@ public class DriverInductionRepository : IDriverInductionRepository
         return rows;
     }
 
-
     public async Task<DriverInduction?> GetAsync(Guid ownerUserId, Guid driverId, Guid workSiteId, Guid requirementId)
     {
         return await _db.DriverInductions
@@ -92,28 +136,10 @@ public class DriverInductionRepository : IDriverInductionRepository
                 x.RequirementId == requirementId);
     }
 
-    public async Task UpdateAsync(Guid ownerUserId, Guid driverId, DriverInduction record)
-    {
-        var existing = await _db.DriverInductions.FirstOrDefaultAsync(x =>
-            x.Id == record.Id &&
-            x.OwnerUserId == ownerUserId &&
-            x.DriverId == driverId);
-
-        if (existing == null)
-            throw new InvalidOperationException("Induction not found for this driver.");
-
-        existing.SetStatus(record.Status);
-        existing.SetCompletedOnUtc(record.CompletedOnUtc);
-        existing.SetExpiresOnUtc(record.ExpiresOnUtc);
-        existing.SetNotes(record.Notes);
-        // evidence too if you want
-        // existing.SetEvidence(record.EvidenceFilePath);
-
-        await _db.SaveChangesAsync();
-    }
     public async Task<Dictionary<Guid, int>> CountExpiringSoonByDriverAsync(Guid ownerUserId, int withinDays)
     {
-        if (ownerUserId == Guid.Empty) return new Dictionary<Guid, int>();
+        if (ownerUserId == Guid.Empty)
+            return new Dictionary<Guid, int>();
 
         var utcNow = DateTime.UtcNow;
         var cutoff = utcNow.AddDays(withinDays);
@@ -128,9 +154,13 @@ public class DriverInductionRepository : IDriverInductionRepository
             .Select(g => new { DriverId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.DriverId, x => x.Count);
     }
+
+    // NOTE: This method is not present in the interface you posted earlier.
+    // Add it to IDriverInductionRepository or remove it from this class.
     public async Task<Dictionary<Guid, int>> CountExpiredByDriverAsync(Guid ownerUserId)
     {
-        if (ownerUserId == Guid.Empty) return new Dictionary<Guid, int>();
+        if (ownerUserId == Guid.Empty)
+            return new Dictionary<Guid, int>();
 
         var utcNow = DateTime.UtcNow;
 
@@ -144,4 +174,5 @@ public class DriverInductionRepository : IDriverInductionRepository
             .ToDictionaryAsync(x => x.DriverId, x => x.Count);
     }
 
+    #endregion
 }

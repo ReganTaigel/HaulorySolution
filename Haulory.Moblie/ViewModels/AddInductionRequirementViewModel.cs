@@ -1,16 +1,25 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
-using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 [QueryProperty(nameof(WorkSiteId), "workSiteId")]
 public class AddInductionRequirementViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly ISessionService _session;
     private readonly IWorkSiteRepository _sites;
     private readonly IInductionRequirementRepository _reqs;
+
+    #endregion
+
+    #region State
 
     private bool _isSaving;
     private string _workSiteId = string.Empty;
@@ -18,7 +27,11 @@ public class AddInductionRequirementViewModel : BaseViewModel
     private string _workSiteName = string.Empty;
     private string _title = string.Empty;
     private string _validForDaysText = string.Empty;
-    private string _ppeRequired = string.Empty; // e.g. "Hi-vis, Hard hat, Steel caps"
+    private string _ppeRequired = string.Empty;
+
+    #endregion
+
+    #region Bindable Properties
 
     public string WorkSiteId
     {
@@ -27,6 +40,8 @@ public class AddInductionRequirementViewModel : BaseViewModel
         {
             _workSiteId = value;
             OnPropertyChanged();
+
+            // Fire-and-forget load, safe because it handles exceptions internally
             _ = LoadSiteAsync();
         }
     }
@@ -34,26 +49,48 @@ public class AddInductionRequirementViewModel : BaseViewModel
     public string WorkSiteName
     {
         get => _workSiteName;
-        set { _workSiteName = value; OnPropertyChanged(); }
+        set
+        {
+            _workSiteName = value;
+            OnPropertyChanged();
+        }
     }
 
     public string Title
     {
         get => _title;
-        set { _title = value; OnPropertyChanged(); Refresh(); }
+        set
+        {
+            _title = value;
+            OnPropertyChanged();
+            Refresh();
+        }
     }
 
-    // keep as text to avoid numeric input pain
+    // Kept as text to avoid numeric input UX pain
     public string ValidForDaysText
     {
         get => _validForDaysText;
-        set { _validForDaysText = value; OnPropertyChanged(); Refresh(); }
+        set
+        {
+            _validForDaysText = value;
+            OnPropertyChanged();
+            Refresh();
+        }
     }
+
+    // Optional PPE list (e.g. "Hi-vis, Hard hat, Steel caps")
     public string PpeRequired
     {
         get => _ppeRequired;
-        set { _ppeRequired = value; OnPropertyChanged(); Refresh(); }
+        set
+        {
+            _ppeRequired = value;
+            OnPropertyChanged();
+            Refresh();
+        }
     }
+
     public bool CanSave
     {
         get
@@ -74,8 +111,16 @@ public class AddInductionRequirementViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region Commands
+
     public ICommand SaveCommand { get; }
     public ICommand CancelCommand { get; }
+
+    #endregion
+
+    #region Constructor
 
     public AddInductionRequirementViewModel(
         ISessionService session,
@@ -90,24 +135,31 @@ public class AddInductionRequirementViewModel : BaseViewModel
         CancelCommand = new Command(async () => await Shell.Current.GoToAsync(".."));
     }
 
+    #endregion
+
+    #region Data Loading
+
     private async Task LoadSiteAsync()
     {
         try
         {
+            // Ensure session is restored
             if (!_session.IsAuthenticated)
                 await _session.RestoreAsync();
 
             var ownerId = _session.CurrentAccountId ?? Guid.Empty;
-            if (ownerId == Guid.Empty) return;
+            if (ownerId == Guid.Empty)
+                return;
 
-            if (!Guid.TryParse(WorkSiteId, out var siteId)) return;
+            if (!Guid.TryParse(WorkSiteId, out var siteId))
+                return;
 
             var site = await _sites.GetByIdAsync(ownerId, siteId);
             WorkSiteName = site?.Name ?? string.Empty;
         }
         catch
         {
-            // keep silent; page can still work without the name
+            // Keep silent; page can still work without the name
         }
         finally
         {
@@ -115,15 +167,21 @@ public class AddInductionRequirementViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region Save Flow
+
     private async Task SaveAsync()
     {
-        if (!CanSave) return;
+        if (!CanSave)
+            return;
 
         try
         {
             _isSaving = true;
             Refresh();
 
+            // Ensure session is restored
             if (!_session.IsAuthenticated)
                 await _session.RestoreAsync();
 
@@ -165,9 +223,15 @@ public class AddInductionRequirementViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region UI Helpers
+
     private void Refresh()
     {
         OnPropertyChanged(nameof(CanSave));
         (SaveCommand as Command)?.ChangeCanExecute();
     }
+
+    #endregion
 }

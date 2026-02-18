@@ -1,15 +1,25 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
-using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class EditDriverViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly IDriverRepository _repo;
     private readonly ISessionService _session;
     private readonly IUserAccountRepository _users;
+
+    #endregion
+
+    #region State
 
     private Driver? _driver;
     private bool _isSaving;
@@ -17,7 +27,20 @@ public class EditDriverViewModel : BaseViewModel
     private string _driverId = string.Empty;
     private bool _isLoaded;
 
-    public EditDriverViewModel(IDriverRepository repo, ISessionService sessionService, IUserAccountRepository users)
+    #endregion
+
+    #region Commands
+
+    public ICommand SaveCommand { get; }
+
+    #endregion
+
+    #region Constructor
+
+    public EditDriverViewModel(
+        IDriverRepository repo,
+        ISessionService sessionService,
+        IUserAccountRepository users)
     {
         _repo = repo;
         _session = sessionService;
@@ -26,86 +49,267 @@ public class EditDriverViewModel : BaseViewModel
         SaveCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
     }
 
-    public ICommand SaveCommand { get; }
+    #endregion
+
+    #region Initialization
 
     public async Task InitializeAsync(string driverId)
     {
         _driverId = driverId;
         _isLoaded = false;
+
         await LoadAsync();
     }
 
-    // -------------------------
-    // Editable fields (existing)
-    // -------------------------
+    #endregion
+
+    #region Editable Fields - Identity
+
     private string _firstName = string.Empty;
-    public string FirstName { get => _firstName; set { _firstName = value; OnPropertyChanged(); Refresh(); } }
+    public string FirstName
+    {
+        get => _firstName;
+        set
+        {
+            _firstName = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _lastName = string.Empty;
-    public string LastName { get => _lastName; set { _lastName = value; OnPropertyChanged(); Refresh(); } }
+    public string LastName
+    {
+        get => _lastName;
+        set
+        {
+            _lastName = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _email = string.Empty;
-    public string Email { get => _email; set { _email = value; OnPropertyChanged(); Refresh(); } }
+    public string Email
+    {
+        get => _email;
+        set
+        {
+            _email = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _licenceNumber = string.Empty;
-    public string LicenceNumber { get => _licenceNumber; set { _licenceNumber = value; OnPropertyChanged(); Refresh(); } }
+    public string LicenceNumber
+    {
+        get => _licenceNumber;
+        set
+        {
+            _licenceNumber = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
-    // -------------------------
-    // NEW: Contact + licence + address
-    // -------------------------
+    #endregion
+
+    #region Editable Fields - Contact + Licence + Address
+
     private string _phoneNumber = string.Empty;
-    public string PhoneNumber { get => _phoneNumber; set { _phoneNumber = value; OnPropertyChanged(); Refresh(); } }
+    public string PhoneNumber
+    {
+        get => _phoneNumber;
+        set
+        {
+            _phoneNumber = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
-    // DatePickers need a value; we’ll default to Today, but on load we set to existing DOB/expiry when available.
+    // DatePickers require a value; defaults to Today and is replaced on load when available
     private DateTime _dateOfBirthLocal = DateTime.Today;
-    public DateTime DateOfBirthLocal { get => _dateOfBirthLocal; set { _dateOfBirthLocal = value; OnPropertyChanged(); } }
+    public DateTime DateOfBirthLocal
+    {
+        get => _dateOfBirthLocal;
+        set
+        {
+            _dateOfBirthLocal = value;
+            OnPropertyChanged();
+        }
+    }
 
     private DateTime _licenceExpiryLocal = DateTime.Today;
-    public DateTime LicenceExpiryLocal { get => _licenceExpiryLocal; set { _licenceExpiryLocal = value; OnPropertyChanged(); } }
+    public DateTime LicenceExpiryLocal
+    {
+        get => _licenceExpiryLocal;
+        set
+        {
+            _licenceExpiryLocal = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _line1 = string.Empty;
-    public string Line1 { get => _line1; set { _line1 = value; OnPropertyChanged(); } }
+    public string Line1
+    {
+        get => _line1;
+        set
+        {
+            _line1 = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _line2 = string.Empty;
-    public string Line2 { get => _line2; set { _line2 = value; OnPropertyChanged(); } }
+    public string Line2
+    {
+        get => _line2;
+        set
+        {
+            _line2 = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _suburb = string.Empty;
-    public string Suburb { get => _suburb; set { _suburb = value; OnPropertyChanged(); } }
+    public string Suburb
+    {
+        get => _suburb;
+        set
+        {
+            _suburb = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _city = string.Empty;
-    public string City { get => _city; set { _city = value; OnPropertyChanged(); } }
+    public string City
+    {
+        get => _city;
+        set
+        {
+            _city = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _region = string.Empty;
-    public string Region { get => _region; set { _region = value; OnPropertyChanged(); } }
+    public string Region
+    {
+        get => _region;
+        set
+        {
+            _region = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _postcode = string.Empty;
-    public string Postcode { get => _postcode; set { _postcode = value; OnPropertyChanged(); } }
+    public string Postcode
+    {
+        get => _postcode;
+        set
+        {
+            _postcode = value;
+            OnPropertyChanged();
+        }
+    }
 
     private string _country = string.Empty;
-    public string Country { get => _country; set { _country = value; OnPropertyChanged(); } }
+    public string Country
+    {
+        get => _country;
+        set
+        {
+            _country = value;
+            OnPropertyChanged();
+        }
+    }
 
-    // -------------------------
-    // Emergency Contact
-    // -------------------------
+    #endregion
+
+    #region Editable Fields - Emergency Contact
+
     private string _ecFirstName = string.Empty;
-    public string EmergencyFirstName { get => _ecFirstName; set { _ecFirstName = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencyFirstName
+    {
+        get => _ecFirstName;
+        set
+        {
+            _ecFirstName = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _ecLastName = string.Empty;
-    public string EmergencyLastName { get => _ecLastName; set { _ecLastName = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencyLastName
+    {
+        get => _ecLastName;
+        set
+        {
+            _ecLastName = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _ecRelationship = string.Empty;
-    public string EmergencyRelationship { get => _ecRelationship; set { _ecRelationship = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencyRelationship
+    {
+        get => _ecRelationship;
+        set
+        {
+            _ecRelationship = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _ecEmail = string.Empty;
-    public string EmergencyEmail { get => _ecEmail; set { _ecEmail = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencyEmail
+    {
+        get => _ecEmail;
+        set
+        {
+            _ecEmail = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _ecPhone = string.Empty;
-    public string EmergencyPhoneNumber { get => _ecPhone; set { _ecPhone = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencyPhoneNumber
+    {
+        get => _ecPhone;
+        set
+        {
+            _ecPhone = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
     private string _ecPhone2 = string.Empty;
-    public string EmergencySecondaryPhoneNumber { get => _ecPhone2; set { _ecPhone2 = value; OnPropertyChanged(); Refresh(); } }
+    public string EmergencySecondaryPhoneNumber
+    {
+        get => _ecPhone2;
+        set
+        {
+            _ecPhone2 = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
-    // Save should be possible even if Emergency Contact isn't complete
+    #endregion
+
+    #region Validation
+
+    // Save should be possible even if emergency contact isn't complete
     public bool CanSave
     {
         get
@@ -123,9 +327,14 @@ public class EditDriverViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region Load
+
     private async Task LoadAsync()
     {
-        if (_isLoaded) return;
+        if (_isLoaded)
+            return;
 
         if (!Guid.TryParse(_driverId, out var id))
             return;
@@ -142,13 +351,13 @@ public class EditDriverViewModel : BaseViewModel
         if (_driver == null)
             return;
 
-        // Populate UI fields (existing)
+        // Populate identity fields
         FirstName = _driver.FirstName ?? string.Empty;
         LastName = _driver.LastName ?? string.Empty;
         Email = _driver.Email ?? string.Empty;
         LicenceNumber = _driver.LicenceNumber ?? string.Empty;
 
-        // Populate NEW fields
+        // Populate contact/licence fields
         PhoneNumber = _driver.PhoneNumber ?? string.Empty;
 
         if (_driver.DateOfBirthUtc.HasValue)
@@ -157,6 +366,7 @@ public class EditDriverViewModel : BaseViewModel
         if (_driver.LicenceExpiresOnUtc.HasValue)
             LicenceExpiryLocal = _driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
 
+        // Populate address fields
         Line1 = _driver.Line1 ?? string.Empty;
         Line2 = _driver.Line2 ?? string.Empty;
         Suburb = _driver.Suburb ?? string.Empty;
@@ -165,7 +375,7 @@ public class EditDriverViewModel : BaseViewModel
         Postcode = _driver.Postcode ?? string.Empty;
         Country = _driver.Country ?? string.Empty;
 
-        // Emergency contact
+        // Populate emergency contact
         var ec = _driver.EmergencyContact ?? new EmergencyContact();
         EmergencyFirstName = ec.FirstName ?? string.Empty;
         EmergencyLastName = ec.LastName ?? string.Empty;
@@ -178,21 +388,28 @@ public class EditDriverViewModel : BaseViewModel
         Refresh();
     }
 
+    #endregion
+
+    #region Save
+
     private async Task ExecuteSaveAsync()
     {
-        if (_driver == null) return;
-        if (!CanSave) return;
+        if (_driver == null)
+            return;
+
+        if (!CanSave)
+            return;
 
         try
         {
             _isSaving = true;
             Refresh();
 
-            // update driver (existing)
+            // Update identity fields
             _driver.UpdateIdentity(FirstName, LastName, Email);
             _driver.UpdateLicenceNumber(string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber);
 
-            // update NEW fields
+            // Update contact/licence fields
             _driver.UpdatePhone(string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber);
 
             var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
@@ -201,6 +418,7 @@ public class EditDriverViewModel : BaseViewModel
             var licExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
             _driver.UpdateLicenceExpiryUtc(licExpUtc);
 
+            // Update address
             _driver.UpdateAddress(
                 string.IsNullOrWhiteSpace(Line1) ? null : Line1,
                 string.IsNullOrWhiteSpace(Line2) ? null : Line2,
@@ -211,7 +429,7 @@ public class EditDriverViewModel : BaseViewModel
                 string.IsNullOrWhiteSpace(Country) ? null : Country
             );
 
-            // emergency contact (unchanged)
+            // Update emergency contact
             var ec = new EmergencyContact(
                 EmergencyFirstName,
                 EmergencyLastName,
@@ -220,6 +438,7 @@ public class EditDriverViewModel : BaseViewModel
                 EmergencyPhoneNumber,
                 string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber) ? null : EmergencySecondaryPhoneNumber
             );
+
             _driver.UpdateEmergencyContact(ec);
 
             await _repo.SaveAsync(_driver);
@@ -249,9 +468,15 @@ public class EditDriverViewModel : BaseViewModel
         }
     }
 
+    #endregion
+
+    #region UI Helpers
+
     private void Refresh()
     {
         OnPropertyChanged(nameof(CanSave));
         (SaveCommand as Command)?.ChangeCanExecute();
     }
+
+    #endregion
 }

@@ -2,19 +2,42 @@
 
 namespace Haulory.Domain.Entities;
 
+#region Entity: User Account
+
 public class UserAccount
 {
+    #region Identity
+
     public Guid Id { get; private set; } = Guid.NewGuid();
 
     public string FirstName { get; private set; } = string.Empty;
     public string LastName { get; private set; } = string.Empty;
     public string Email { get; private set; } = string.Empty;
 
-    // NEW: Contact + profile
+    #endregion
+
+    #region Authentication
+
+    // Stored hashed password
+    public string PasswordHash { get; private set; } = string.Empty;
+
+    #endregion
+
+    #region Roles / Hierarchy
+
+    // Main or Sub user
+    public UserRole Role { get; private set; } = UserRole.Main;
+
+    // If Sub, links to main account
+    public Guid? ParentMainUserId { get; private set; }
+
+    #endregion
+
+    #region Profile
+
     public string? PhoneNumber { get; private set; }
     public DateTime? DateOfBirthUtc { get; private set; }
 
-    // NEW: Address (stored directly on UserAccount)
     public string? Line1 { get; private set; }
     public string? Line2 { get; private set; }
 
@@ -25,41 +48,50 @@ public class UserAccount
     public string? Postcode { get; private set; }
     public string? Country { get; private set; }
 
-    // NEW: Licence expiry (optional)
     public DateTime? LicenceExpiresOnUtc { get; private set; }
 
-    // Auth
-    public string PasswordHash { get; private set; } = string.Empty;
+    #endregion
 
-    // Roles / hierarchy
-    public UserRole Role { get; private set; } = UserRole.Main;
-    public Guid? ParentMainUserId { get; private set; }
+    #region Constructors
 
-    public UserAccount() { } // EF
+    // Required by EF Core
+    private UserAccount() { }
 
+    // Creates a MAIN account
     public UserAccount(string firstName, string lastName, string email, string passwordHash)
     {
         FirstName = firstName.Trim();
         LastName = lastName.Trim();
         Email = email.Trim().ToLowerInvariant();
         PasswordHash = passwordHash;
+
         Role = UserRole.Main;
         ParentMainUserId = null;
     }
 
-    public static UserAccount CreateSubUser(Guid parentMainUserId, string firstName, string lastName, string email, string passwordHash)
+    // Factory method for creating a SUB account
+    public static UserAccount CreateSubUser(
+        Guid parentMainUserId,
+        string firstName,
+        string lastName,
+        string email,
+        string passwordHash)
     {
-        if (parentMainUserId == Guid.Empty) throw new ArgumentException("ParentMainUserId required.");
+        if (parentMainUserId == Guid.Empty)
+            throw new ArgumentException("ParentMainUserId required.");
 
         var u = new UserAccount(firstName, lastName, email, passwordHash);
+
         u.Role = UserRole.Sub;
         u.ParentMainUserId = parentMainUserId;
+
         return u;
     }
 
-    // -------------------------
-    // Identity
-    // -------------------------
+    #endregion
+
+    #region Identity Updates
+
     public void UpdateIdentity(string firstName, string lastName, string email)
     {
         FirstName = firstName.Trim();
@@ -67,11 +99,15 @@ public class UserAccount
         Email = email.Trim().ToLowerInvariant();
     }
 
-    public void SetPasswordHash(string passwordHash) => PasswordHash = passwordHash;
+    public void SetPasswordHash(string passwordHash)
+    {
+        PasswordHash = passwordHash;
+    }
 
-    // -------------------------
-    // NEW: Profile updates
-    // -------------------------
+    #endregion
+
+    #region Profile Updates
+
     public void UpdatePhone(string? phone)
     {
         PhoneNumber = Clean(phone);
@@ -109,6 +145,14 @@ public class UserAccount
         Country = Clean(country);
     }
 
+    #endregion
+
+    #region Helpers
+
     private static string? Clean(string? s) =>
         string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    #endregion
 }
+
+#endregion

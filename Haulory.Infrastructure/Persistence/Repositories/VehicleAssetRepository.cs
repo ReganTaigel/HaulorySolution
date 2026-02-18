@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,12 +7,22 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class VehicleAssetRepository : IVehicleAssetRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
+
+    #endregion
+
+    #region Constructor
 
     public VehicleAssetRepository(HauloryDbContext db)
     {
         _db = db;
     }
+
+    #endregion
+
+    #region Commands
 
     public async Task AddAsync(VehicleAsset asset)
     {
@@ -27,7 +38,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         {
             var normalized = Normalize(incoming);
 
-            // 1️⃣ Match by Id
+            // 1) Match by Id
             var existingById = await _db.VehicleAssets
                 .FirstOrDefaultAsync(a => a.Id == normalized.Id && normalized.Id != Guid.Empty);
 
@@ -37,7 +48,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
                 continue;
             }
 
-            // 2️⃣ Match by VehicleSetId + UnitNumber
+            // 2) Match by VehicleSetId + UnitNumber
             if (normalized.VehicleSetId != Guid.Empty && normalized.UnitNumber > 0)
             {
                 var existingBySlot = await _db.VehicleAssets
@@ -52,25 +63,11 @@ public class VehicleAssetRepository : IVehicleAssetRepository
                 }
             }
 
-            // 3️⃣ New
+            // 3) New
             await _db.VehicleAssets.AddAsync(normalized);
         }
 
         await _db.SaveChangesAsync();
-    }
-
-    public async Task<IReadOnlyList<VehicleAsset>> GetAllAsync()
-    {
-        return await _db.VehicleAssets
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<VehicleAsset?> GetByIdAsync(Guid id)
-    {
-        return await _db.VehicleAssets
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == id);
     }
 
     public async Task UpdateAsync(VehicleAsset asset)
@@ -95,21 +92,48 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         await _db.SaveChangesAsync();
     }
 
+    #endregion
+
+    #region Queries
+
+    public async Task<IReadOnlyList<VehicleAsset>> GetAllAsync()
+    {
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<VehicleAsset?> GetByIdAsync(Guid id)
+    {
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    #endregion
+
+    #region Normalization
+
     private static VehicleAsset Normalize(VehicleAsset a)
     {
+        // Normalize strings
         a.Rego = (a.Rego ?? string.Empty).Trim().ToUpperInvariant();
         a.Make = (a.Make ?? string.Empty).Trim();
         a.Model = (a.Model ?? string.Empty).Trim();
 
+        // Ensure ids exist
         if (a.VehicleSetId == Guid.Empty)
             a.VehicleSetId = Guid.NewGuid();
 
         if (a.Id == Guid.Empty)
             a.Id = Guid.NewGuid();
 
+        // Ensure created timestamp exists
         if (a.CreatedUtc == default)
             a.CreatedUtc = DateTime.UtcNow;
 
         return a;
     }
+
+    #endregion
 }

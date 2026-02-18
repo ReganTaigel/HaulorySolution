@@ -1,4 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Haulory.Application.Features.Jobs;
 using Haulory.Application.Interfaces.Repositories;
@@ -6,92 +9,129 @@ using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Views;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class NewJobViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly CreateJobHandler _handler;
     private readonly IDriverRepository _driverRepo;
     private readonly IVehicleAssetRepository _vehicleRepo;
     private readonly ISessionService _session;
 
+    #endregion
+
+    #region Picker Sources
+
     public IReadOnlyList<RateType> RateTypes { get; } =
         Enum.GetValues(typeof(RateType)).Cast<RateType>().ToList();
 
-    // Job fields
+    public ObservableCollection<Driver> Drivers { get; } = new();
+    public ObservableCollection<VehicleAsset> Vehicles { get; } = new();
+
+    #endregion
+
+    #region State
+
+    private Driver? _selectedDriver;
+    private VehicleAsset? _selectedVehicle;
+
+    private RateType _rateType;
+    private decimal _quantity = 1m;
+    private decimal _rateValue;
+
+    #endregion
+
+    #region Job Fields
+
     public string PickupCompany { get; set; } = string.Empty;
     public string PickupAddress { get; set; } = string.Empty;
+
     public string DeliveryCompany { get; set; } = string.Empty;
     public string DeliveryAddress { get; set; } = string.Empty;
+
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
 
-    // Picker sources
-    public ObservableCollection<Driver> Drivers { get; } = new();
-    private Driver? _selectedDriver;
+    #endregion
+
+    #region Selected Items
+
     public Driver? SelectedDriver
     {
         get => _selectedDriver;
         set
         {
-            if (_selectedDriver == value) return;
+            if (_selectedDriver == value)
+                return;
+
             _selectedDriver = value;
             OnPropertyChanged();
         }
     }
 
-    public ObservableCollection<VehicleAsset> Vehicles { get; } = new();
-    private VehicleAsset? _selectedVehicle;
     public VehicleAsset? SelectedVehicle
     {
         get => _selectedVehicle;
         set
         {
-            if (_selectedVehicle == value) return;
+            if (_selectedVehicle == value)
+                return;
+
             _selectedVehicle = value;
             OnPropertyChanged();
         }
     }
 
-    // Billing
-    private RateType _rateType;
+    #endregion
+
+    #region Billing
+
     public RateType RateType
     {
         get => _rateType;
         set
         {
-            if (_rateType == value) return;
+            if (_rateType == value)
+                return;
+
             _rateType = value;
+
             OnPropertyChanged();
             OnPropertyChanged(nameof(QuantityLabel));
             OnPropertyChanged(nameof(Total));
 
+            // For fixed fee / percentage, quantity is ignored so force 1
             if (_rateType is RateType.FixedFee or RateType.Percentage)
                 Quantity = 1m;
         }
     }
 
-    private decimal _quantity = 1m;
     public decimal Quantity
     {
         get => _quantity;
         set
         {
-            if (_quantity == value) return;
+            if (_quantity == value)
+                return;
+
             _quantity = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
         }
     }
 
-    private decimal _rateValue;
     public decimal RateValue
     {
         get => _rateValue;
         set
         {
-            if (_rateValue == value) return;
+            if (_rateValue == value)
+                return;
+
             _rateValue = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
@@ -113,13 +153,20 @@ public class NewJobViewModel : BaseViewModel
     public decimal Total => RateType switch
     {
         RateType.FixedFee => RateValue,
-        RateType.Percentage => 0m, // later: apply to base
+        RateType.Percentage => 0m, // later: apply to base amount
         _ => RateValue * Quantity
     };
 
-    // Commands
+    #endregion
+
+    #region Commands
+
     public ICommand SaveJobCommand { get; }
     public ICommand CancelCommand { get; }
+
+    #endregion
+
+    #region Constructor
 
     public NewJobViewModel(
         CreateJobHandler handler,
@@ -133,10 +180,18 @@ public class NewJobViewModel : BaseViewModel
         _session = session;
 
         SaveJobCommand = new Command(async () => await SaveAsync());
-        CancelCommand = new Command(async () => await Shell.Current.GoToAsync(nameof(DashboardPage)));
 
+        // Returns user to dashboard
+        CancelCommand = new Command(async () =>
+            await Shell.Current.GoToAsync(nameof(DashboardPage)));
+
+        // Default rate type
         RateType = RateType.PerLoad;
     }
+
+    #endregion
+
+    #region Load
 
     // Call this from Page.OnAppearing
     public async Task LoadAsync()
@@ -148,6 +203,7 @@ public class NewJobViewModel : BaseViewModel
         // Drivers (owned by account)
         Drivers.Clear();
         var drivers = await _driverRepo.GetAllByOwnerUserIdAsync(ownerUserId);
+
         foreach (var d in drivers.OrderBy(d => d.LastName).ThenBy(d => d.FirstName))
             Drivers.Add(d);
 
@@ -157,19 +213,23 @@ public class NewJobViewModel : BaseViewModel
 
         var vehicles = allAssets
             .Where(a => a.OwnerUserId == ownerUserId)
-            .Where(a => a.Kind == AssetKind.PowerUnit) // better than UnitNumber == 1
+            .Where(a => a.Kind == AssetKind.PowerUnit)
             .OrderBy(a => a.Rego);
 
         foreach (var v in vehicles)
             Vehicles.Add(v);
 
-        // Optional: auto select if there is only one option
+        // Auto-select if there's only one choice
         if (Drivers.Count == 1 && SelectedDriver == null)
             SelectedDriver = Drivers[0];
 
         if (Vehicles.Count == 1 && SelectedVehicle == null)
             SelectedVehicle = Vehicles[0];
     }
+
+    #endregion
+
+    #region Save
 
     private async Task SaveAsync()
     {
@@ -194,4 +254,6 @@ public class NewJobViewModel : BaseViewModel
 
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
     }
+
+    #endregion
 }

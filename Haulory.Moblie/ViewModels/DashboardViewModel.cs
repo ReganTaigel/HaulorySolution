@@ -1,31 +1,41 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Views;
-using System.Windows.Input;
+using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class DashboardViewModel : BaseViewModel
 {
-    #region Fields
+    #region Dependencies
 
     private readonly ISessionService _sessionService;
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
-    
+
+    #endregion
+
+    #region State
+
     private int _completedTodayCount;
     private decimal _revenueToday;
 
     private string _currentJobSummary = "No active jobs yet";
     private string _latestCompletedSummary = "No completed jobs yet";
-    private string _referenceNumber = "";
-    private string _pickupCompany = "";
-    private string _deliveryCompany = "";
-    private string _deliveryAddress = "";
-    private string _loadDescription = "";
+
+    private string _referenceNumber = string.Empty;
+    private string _pickupCompany = string.Empty;
+    private string _deliveryCompany = string.Empty;
+    private string _deliveryAddress = string.Empty;
+    private string _loadDescription = string.Empty;
+
     #endregion
 
-    #region Properties
+    #region Bindable Properties
 
     public string CurrentJobSummary
     {
@@ -36,35 +46,58 @@ public class DashboardViewModel : BaseViewModel
             OnPropertyChanged();
         }
     }
+
     public string ReferenceNumber
     {
         get => _referenceNumber;
-        private set { _referenceNumber = value; OnPropertyChanged(); }
+        private set
+        {
+            _referenceNumber = value;
+            OnPropertyChanged();
+        }
     }
 
     public string PickupCompany
     {
         get => _pickupCompany;
-        private set { _pickupCompany = value; OnPropertyChanged(); }
+        private set
+        {
+            _pickupCompany = value;
+            OnPropertyChanged();
+        }
     }
 
     public string DeliveryCompany
     {
         get => _deliveryCompany;
-        private set { _deliveryCompany = value; OnPropertyChanged(); }
+        private set
+        {
+            _deliveryCompany = value;
+            OnPropertyChanged();
+        }
     }
 
     public string DeliveryAddress
     {
         get => _deliveryAddress;
-        private set { _deliveryAddress = value; OnPropertyChanged(); }
+        private set
+        {
+            _deliveryAddress = value;
+            OnPropertyChanged();
+        }
     }
 
     public string LoadDescription
     {
         get => _loadDescription;
-        private set { _loadDescription = value; OnPropertyChanged(); }
+        private set
+        {
+            _loadDescription = value;
+            OnPropertyChanged();
+        }
     }
+
+    // True when a job is currently being shown
     public bool HasActiveJob => !string.IsNullOrWhiteSpace(ReferenceNumber);
 
     public int CompletedTodayCount
@@ -149,17 +182,32 @@ public class DashboardViewModel : BaseViewModel
     {
         var jobs = await _jobRepository.GetAllAsync();
 
+        // Jobs are already ordered by SortOrder in repository, but keep this safe
         var nextJob = jobs
             .OrderBy(j => j.SortOrder)
             .FirstOrDefault();
 
         if (nextJob == null)
         {
-
             CurrentJobSummary = "No active jobs yet";
-            OnPropertyChanged(nameof(CurrentJobSummary));
+
+            // Clear fields that drive HasActiveJob
+            ReferenceNumber = string.Empty;
+            PickupCompany = string.Empty;
+            DeliveryCompany = string.Empty;
+            DeliveryAddress = string.Empty;
+            LoadDescription = string.Empty;
+
+            OnPropertyChanged(nameof(HasActiveJob));
             return;
         }
+
+        // Keep job details available for the UI if needed
+        ReferenceNumber = nextJob.ReferenceNumber ?? string.Empty;
+        PickupCompany = nextJob.PickupCompany ?? string.Empty;
+        DeliveryCompany = nextJob.DeliveryCompany ?? string.Empty;
+        DeliveryAddress = nextJob.DeliveryAddress ?? string.Empty;
+        LoadDescription = nextJob.LoadDescription ?? string.Empty;
 
         CurrentJobSummary =
             $"{nextJob.ReferenceNumber}\n" +
@@ -167,14 +215,14 @@ public class DashboardViewModel : BaseViewModel
             $"{nextJob.DeliveryAddress}\n" +
             $"{nextJob.LoadDescription}";
 
-        OnPropertyChanged(nameof(CurrentJobSummary));
+        OnPropertyChanged(nameof(HasActiveJob));
     }
 
     public async Task LoadCompletedReportSummaryAsync()
     {
         var receipts = await _deliveryReceiptRepository.GetAllAsync();
 
-        // Use LOCAL "today" so NZ users don’t miss late-night/early-morning deliveries
+        // Use local "today" so NZ users don’t miss late-night/early-morning deliveries
         var todayLocal = DateTime.Now.Date;
 
         var todayReceipts = receipts
@@ -193,7 +241,7 @@ public class DashboardViewModel : BaseViewModel
 
     #endregion
 
-    #region Private Methods
+    #region Private Helpers
 
     private static DateTime ToLocalDate(DateTime deliveredAtUtc)
     {

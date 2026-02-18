@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Interfaces.Repositories;
+﻿using System;
+using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,9 +7,22 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class WorkSiteRepository : IWorkSiteRepository
 {
+    #region Dependencies
+
     private readonly HauloryDbContext _db;
 
-    public WorkSiteRepository(HauloryDbContext db) => _db = db;
+    #endregion
+
+    #region Constructor
+
+    public WorkSiteRepository(HauloryDbContext db)
+    {
+        _db = db;
+    }
+
+    #endregion
+
+    #region Commands
 
     public async Task AddAsync(WorkSite site)
     {
@@ -16,9 +30,14 @@ public class WorkSiteRepository : IWorkSiteRepository
         await _db.SaveChangesAsync();
     }
 
+    #endregion
+
+    #region Queries
+
     public async Task<IReadOnlyList<WorkSite>> GetAllByOwnerAsync(Guid ownerUserId)
     {
-        if (ownerUserId == Guid.Empty) return Array.Empty<WorkSite>();
+        if (ownerUserId == Guid.Empty)
+            return Array.Empty<WorkSite>();
 
         return await _db.WorkSites
             .AsNoTracking()
@@ -29,10 +48,15 @@ public class WorkSiteRepository : IWorkSiteRepository
 
     public async Task<WorkSite?> GetByIdAsync(Guid ownerUserId, Guid workSiteId)
     {
-        if (ownerUserId == Guid.Empty || workSiteId == Guid.Empty) return null;
+        if (ownerUserId == Guid.Empty || workSiteId == Guid.Empty)
+            return null;
 
         return await _db.WorkSites
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.OwnerUserId == ownerUserId && x.Id == workSiteId);
+            .FirstOrDefaultAsync(x =>
+                x.OwnerUserId == ownerUserId &&
+                x.Id == workSiteId);
     }
+
+    #endregion
 }

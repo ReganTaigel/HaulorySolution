@@ -1,10 +1,15 @@
-﻿using Haulory.Domain.Enums;
+﻿using System;
+using Haulory.Domain.Enums;
 
 namespace Haulory.Domain.Entities;
 
+#region Entity: Vehicle Asset
+
 public class VehicleAsset
 {
-    
+    #region Identity / Ownership
+
+    // Tenant boundary
     public Guid OwnerUserId { get; set; }
 
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -12,11 +17,15 @@ public class VehicleAsset
     // Links assets created in one wizard run
     public Guid VehicleSetId { get; set; } = Guid.NewGuid();
 
-    // SLOT POSITION
+    // Slot position:
     // 1 = Power unit
     // 2 = Trailer
     // 3 = Trailer 2 (B-Train)
     public int UnitNumber { get; set; }
+
+    #endregion
+
+    #region Classification
 
     public AssetKind Kind { get; set; }
 
@@ -32,13 +41,14 @@ public class VehicleAsset
     // Persist Class 4 subtype (Truck vs Tractor)
     public Class4PowerUnitType? Class4UnitType { get; set; }
 
-    // ------------------------
-    // RUC (Road User Charges) fields
+    #endregion
+
+    #region RUC (Road User Charges)
+
     // Applies to:
     // - Powered vehicle if FuelType is Diesel/Electric
     // - Heavy trailers (Class 3 and Class 5)
-    // Stored PER ASSET (so Unit 1 / Unit 2 / Unit 3 each has its own RUC record)
-    // ------------------------
+    // Stored per asset (Unit 1 / Unit 2 / Unit 3 each has its own RUC record)
 
     // Odometer reading when the latest RUC distance was purchased
     public int? RucOdometerAtPurchaseKm { get; set; }
@@ -57,9 +67,10 @@ public class VehicleAsset
     public int? RucLicenceStartKm { get; set; }   // start odometer on licence (e.g. 1000)
     public int? RucLicenceEndKm { get; set; }     // end odometer on licence (e.g. 2000)
 
-    // ------------------------
-    // Shared
-    // ------------------------
+    #endregion
+
+    #region Core Vehicle Details
+
     public int Year { get; set; }
 
     public string Rego { get; set; } = string.Empty;
@@ -71,14 +82,14 @@ public class VehicleAsset
     public ComplianceCertificateType CertificateType { get; set; } = ComplianceCertificateType.Wof;
     public DateTime? CertificateExpiry { get; set; }
 
-    // Odo only for powered + heavy trailers
+    // Odometer applies to powered vehicles + heavy trailers
     public int? OdometerKm { get; set; }
 
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
-    // ------------------------
-    // Display helpers
-    // ------------------------
+    #endregion
+
+    #region Display Helpers
 
     public string KindDisplay => Kind == AssetKind.PowerUnit ? "Vehicle" : "Trailer";
 
@@ -118,7 +129,7 @@ public class VehicleAsset
     // Backwards-compat alias
     public string UnitDisplay => UnitRoleDisplay;
 
-    // Trailer / config naming  (KEEPING YOUR EDITS EXACTLY)
+    // Trailer / config naming (KEEPING YOUR EDITS EXACTLY)
     public string ConfigurationDisplay => Configuration switch
     {
         // Light Trailer configs
@@ -162,6 +173,7 @@ public class VehicleAsset
             ? (Class4UnitType == Enums.Class4PowerUnitType.Tractor ? "Tractor Unit" : "Truck")
             : string.Empty;
 
+    // Prefix used by UI headers and cards
     public string TitlePrefix
     {
         get
@@ -169,12 +181,14 @@ public class VehicleAsset
             if (Kind == AssetKind.PowerUnit)
             {
                 var subtype = PowerUnitSubtypeDisplay;
+
                 return string.IsNullOrWhiteSpace(subtype)
                     ? UnitRoleDisplay
                     : $"{UnitRoleDisplay} • {subtype}";
             }
 
             var config = ConfigurationDisplay;
+
             return string.IsNullOrWhiteSpace(config)
                 ? UnitRoleDisplay
                 : $"{UnitRoleDisplay} • {config}";
@@ -185,9 +199,9 @@ public class VehicleAsset
     public string RegoExpiryDisplay => RegoExpiry?.ToString("dd/MM/yyyy") ?? "—";
     public string CertificateExpiryDisplay => CertificateExpiry?.ToString("dd/MM/yyyy") ?? "—";
 
-    // ------------------------
-    // COMPLIANCE: REGO + CERT STATUS (bullet auto disappears)
-    // ------------------------
+    #endregion
+
+    #region Compliance: Rego + Certificate Status
 
     public bool IsRegoExpired =>
         RegoExpiry != null && RegoExpiry.Value.Date < DateTime.Today;
@@ -195,14 +209,14 @@ public class VehicleAsset
     public bool IsRegoDueSoon =>
         RegoExpiry != null && RegoExpiry.Value.Date <= DateTime.Today.AddDays(30);
 
-    // returns: "", "EXPIRED", or "DUE SOON"
+    // Returns: "", "EXPIRED", or "DUE SOON"
     public string RegoStatusDisplay =>
         RegoExpiry == null ? string.Empty :
         IsRegoExpired ? "EXPIRED" :
         IsRegoDueSoon ? "DUE SOON" :
         string.Empty;
 
-    // returns: "", " • EXPIRED", or " • DUE SOON"
+    // Returns: "", " • EXPIRED", or " • DUE SOON"
     public string RegoStatusInlineDisplay =>
         string.IsNullOrWhiteSpace(RegoStatusDisplay) ? string.Empty : $" • {RegoStatusDisplay}";
 
@@ -213,20 +227,20 @@ public class VehicleAsset
     public bool IsCertDueSoon =>
         CertificateExpiry != null && CertificateExpiry.Value.Date <= DateTime.Today.AddDays(30);
 
-    // returns: "", "EXPIRED", or "DUE SOON"
+    // Returns: "", "EXPIRED", or "DUE SOON"
     public string CertStatusDisplay =>
         CertificateExpiry == null ? string.Empty :
         IsCertExpired ? "EXPIRED" :
         IsCertDueSoon ? "DUE SOON" :
         string.Empty;
 
-    // returns: "", " • EXPIRED", or " • DUE SOON"
+    // Returns: "", " • EXPIRED", or " • DUE SOON"
     public string CertStatusInlineDisplay =>
         string.IsNullOrWhiteSpace(CertStatusDisplay) ? string.Empty : $" • {CertStatusDisplay}";
 
-    // ------------------------
-    // RUC display helpers
-    // ------------------------
+    #endregion
+
+    #region RUC Display Helpers
 
     // RUC applies to:
     // - Power unit where fuel is Diesel/Electric
@@ -249,7 +263,7 @@ public class VehicleAsset
         }
     }
 
-    // Display for purchase metadata (analytics)
+    // Purchase metadata (analytics)
     public string RucPurchasedDateDisplay =>
         RucPurchasedDate?.ToString("dd/MM/yyyy") ?? "—";
 
@@ -278,4 +292,8 @@ public class VehicleAsset
 
     // YES/NO string for UI
     public string IsRucOverdueYesNo => IsRucOverdue ? "YES" : "NO";
+
+    #endregion
 }
+
+#endregion
