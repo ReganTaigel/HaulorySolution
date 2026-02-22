@@ -33,6 +33,12 @@ public class DashboardViewModel : BaseViewModel
     private string _deliveryAddress = string.Empty;
     private string _loadDescription = string.Empty;
 
+    // Prevents concurrent loads (e.g. navigation refresh + user refresh overlap)
+    private bool _isLoading;
+
+    // Tracks whether we've attached Shell navigation hooks (avoid double subscription)
+    private bool _isSubscribedToShell;
+
     #endregion
 
     #region Bindable Properties
@@ -166,6 +172,10 @@ public class DashboardViewModel : BaseViewModel
             await Shell.Current.GoToAsync(nameof(ReportsPage)));
 
         LogoutCommand = new Command(async () => await LogoutAsync());
+
+        // Refresh the dashboard automatically whenever navigation returns to it.
+        // This ensures quick stats update immediately after completing a job (no restart needed).
+        EnsureShellNavigationRefreshHook();
     }
 
     #endregion
@@ -174,8 +184,20 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadAsync()
     {
-        await LoadCurrentJobAsync();
-        await LoadCompletedReportSummaryAsync();
+        if (_isLoading)
+            return;
+
+        _isLoading = true;
+
+        try
+        {
+            await LoadCurrentJobAsync();
+            await LoadCompletedReportSummaryAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     public async Task LoadCurrentJobAsync()
@@ -242,6 +264,31 @@ public class DashboardViewModel : BaseViewModel
     #endregion
 
     #region Private Helpers
+
+    private void EnsureShellNavigationRefreshHook()
+    {
+        if (_isSubscribedToShell)
+            return;
+
+        // In case the VM is created before Shell.Current is available (rare), this will no-op safely.
+        if (Shell.Current == null)
+            return;
+
+        Shell.Current.Navigated += OnShellNavigated;
+        _isSubscribedToShell = true;
+    }
+
+    private async void OnShellNavigated(object? sender, ShellNavigatedEventArgs e)
+    {
+        // Only refresh when the dashboard is the navigation target.
+        // This keeps refresh cheap and avoids unnecessary reloads on every navigation.
+        var target = e.Current?.Location.OriginalString ?? string.Empty;
+
+        if (!target.Contains("DashboardPage", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        await LoadAsync();
+    }
 
     private static DateTime ToLocalDate(DateTime deliveredAtUtc)
     {

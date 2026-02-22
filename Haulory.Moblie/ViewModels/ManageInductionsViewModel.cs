@@ -173,7 +173,6 @@ public class ManageInductionsViewModel : BaseViewModel
 
     #region Edit Induction
 
-    [Obsolete]
     private async Task EditAsync(DriverInductionListItemDto item)
     {
         if (SelectedDriver == null)
@@ -271,7 +270,6 @@ public class ManageInductionsViewModel : BaseViewModel
 
     #region Add Induction (Create Missing Rows)
 
-    [Obsolete]
     private async Task AddInductionAsync()
     {
         if (SelectedDriver == null)

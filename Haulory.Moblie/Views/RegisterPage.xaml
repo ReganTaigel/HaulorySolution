@@ -13,125 +13,152 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout
-            Padding="24"
-            Spacing="24"
-            VerticalOptions="Center">
+        <VerticalStackLayout Padding="24"
+                             Spacing="18"
+                             VerticalOptions="Center">
 
-            <!-- App Title -->
+            <!-- Header -->
             <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
-                <Label
-                    Text="Create account"
-                    FontSize="28"
-                    FontAttributes="Bold"
-                    TextColor="{AppThemeBinding Light=#1F2937, Dark=White}" />
+                <Label Text="Create account"
+                       FontSize="30"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
 
-                <Label
-                    Text="Set up your Haulory profile"
-                    FontSize="14"
-                    TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                <Label Text="Set up your Haulory profile"
+                       FontSize="14"
+                       Opacity="0.75"
+                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
             </VerticalStackLayout>
 
             <!-- Register Card -->
-            <Border
-                StrokeShape="RoundRectangle 16"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
-                Padding="20">
+            <Border StrokeShape="RoundRectangle 20"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B1220}"
+                    Padding="18">
 
-                <VerticalStackLayout Spacing="16">
+                <VerticalStackLayout Spacing="14">
 
-                    <!-- First Name -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="First name"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                    <Label Text="Your details"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
 
-                        <Entry
-                            Placeholder="John"
-                            Text="{Binding FirstName}"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
-                    </VerticalStackLayout>
+                    <!-- Names -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
 
-                    <!-- Last Name -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="Last name"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Text="First name"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                        <Entry
-                            Placeholder="Doe"
-                            Text="{Binding LastName}"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
-                    </VerticalStackLayout>
+                            <Border StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                    Padding="12,8">
+                                <Entry Placeholder="First name"
+                                       Text="{Binding FirstName}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Last name"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                            <Border StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                    Padding="12,8">
+                                <Entry Placeholder="Last name"
+                                       Text="{Binding LastName}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                    </Grid>
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="Email"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="Email"
+                               FontSize="12"
+                               Opacity="0.7"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                        <Entry
-                            Placeholder="you@example.com"
-                            Text="{Binding Email}"
-                            Keyboard="Email"
-                            ClearButtonVisibility="WhileEditing"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                Padding="12,8">
+                            <Entry Placeholder="Email address"
+                                   Text="{Binding Email}"
+                                   Keyboard="Email"
+                                   ClearButtonVisibility="WhileEditing"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="Password"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="Password"
+                               FontSize="12"
+                               Opacity="0.7"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                        <Entry
-                            Placeholder="Password"
-                            Text="{Binding Password}"
-                            IsPassword="True"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                Padding="12,8">
+                            <Entry Placeholder="Password"
+                                   Text="{Binding Password}"
+                                   IsPassword="True"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent" />
+                        </Border>
 
-                        <Entry
-                            Placeholder="Confirm Password"
-                            Text="{Binding ConfirmPassword}" 
-                            IsPassword="True"                 
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
-                        <Label
-                            Text="{Binding PasswordsMatchMessage}"
-                            TextColor="{Binding PasswordsMatchColor}"
-                            FontSize="12"
-                            HeightRequest="48"
-                            IsVisible="{Binding ConfirmPassword, Converter={StaticResource StringNotEmptyConverter}}" />
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                Padding="12,8">
+                            <Entry Placeholder="Confirm password"
+                                   Text="{Binding ConfirmPassword}"
+                                   IsPassword="True"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent" />
+                        </Border>
 
+                        <!-- Match message -->
+                        <Label Text="{Binding PasswordsMatchMessage}"
+                               TextColor="{Binding PasswordsMatchColor}"
+                               FontSize="12"
+                               Opacity="0.9"
+                               Margin="2,2,0,0"
+                               IsVisible="{Binding ConfirmPassword, Converter={StaticResource StringNotEmptyConverter}}" />
                     </VerticalStackLayout>
 
                     <!-- Register Button -->
-                    <Button
-                        Text="Create account"
-                        Command="{Binding RegisterCommand}"
-                        HeightRequest="48"
-                        CornerRadius="12"
-                        FontAttributes="Bold"
-                        BackgroundColor="#2563EB"
-                        TextColor="White" />
+                    <Button Text="Create account"
+                            Command="{Binding RegisterCommand}"
+                            HeightRequest="48"
+                            CornerRadius="14"
+                            FontAttributes="Bold"
+                            BackgroundColor="{AppThemeBinding Light=#2563EB, Dark=#3B82F6}"
+                            TextColor="White" />
 
                 </VerticalStackLayout>
             </Border>
 
             <!-- Footer -->
-            <Label
-                Text="By creating an account you agree to our terms"
-                FontSize="12"
-                HorizontalOptions="Center"
-                TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+            <Label Text="By creating an account you agree to our terms"
+                   FontSize="12"
+                   HorizontalOptions="Center"
+                   Opacity="0.7"
+                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
         </VerticalStackLayout>
     </ScrollView>

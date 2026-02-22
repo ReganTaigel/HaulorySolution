@@ -24,12 +24,10 @@ public class CreateDriverHandler
 
     #region Public API
 
-    /// <summary>
-    /// Creates a sub-driver for an owner user (UserId is null, OwnerUserId is required),
-    /// persists it, then ensures default induction/compliance records exist.
-    /// </summary>
-    /// <param name="command">Input data for driver creation.</param>
-    /// <returns>The created driver, or null if validation fails.</returns>
+    // Creates a sub-driver for an owner user (UserId is null, OwnerUserId is required),
+    // persists it, then ensures default induction/compliance records exist.
+    // <param name="command">Input data for driver creation.</param>
+    // <returns>The created driver, or null if validation fails.</returns>
     public async Task<Driver?> HandleAsync(CreateDriverCommand command)
     {
         // Basic required identifier
@@ -37,8 +35,8 @@ public class CreateDriverHandler
             return null;
 
         // Normalize primary driver fields (keeps data consistent across storage & comparisons)
-        var firstName = command.FirstName?.Trim().ToUpper();
-        var lastName = command.LastName?.Trim().ToUpper();
+        var firstName = command.FirstName?.Trim();
+        var lastName = command.LastName?.Trim();
         var email = command.Email?.Trim().ToLowerInvariant();
 
         // Minimal validation (kept intentionally lightweight; caller can enforce stronger rules)
@@ -49,8 +47,8 @@ public class CreateDriverHandler
             return null;
 
         // Emergency contact is required (current business rule)
-        var ecFirst = command.EmergencyFirstName?.Trim().ToUpper();
-        var ecLast = command.EmergencyLastName?.Trim().ToUpper();
+        var ecFirst = command.EmergencyFirstName?.Trim();
+        var ecLast = command.EmergencyLastName?.Trim();
         var ecRel = command.EmergencyRelationship?.Trim();
         var ecEmail = command.EmergencyEmail?.Trim().ToLowerInvariant();
         var ecPhone = command.EmergencyPhoneNumber?.Trim();

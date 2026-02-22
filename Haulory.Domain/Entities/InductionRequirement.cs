@@ -32,7 +32,6 @@ public class InductionRequirement
 
     #region Constructors
 
-    // Required by EF Core
     private InductionRequirement() { }
 
     public InductionRequirement(
@@ -75,7 +74,6 @@ public class InductionRequirement
 
     #region Derived Properties
 
-    // Friendly UI display text
     public string ValidForDisplay =>
         ValidForDays.HasValue && ValidForDays.Value > 0
             ? $"Valid for: {ValidForDays.Value} days"

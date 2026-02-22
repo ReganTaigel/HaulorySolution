@@ -1,4 +1,5 @@
 ﻿using Haulory.Domain.Enums;
+using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
@@ -117,16 +118,17 @@ public class Job
 
         OwnerUserId = ownerUserId;
 
-        PickupCompany = pickupCompany;
-        PickupAddress = pickupAddress;
+        // Trim inputs for consistent storage/searching (do not title-case companies/addresses)
+        PickupCompany = pickupCompany?.Trim() ?? string.Empty;
+        PickupAddress = pickupAddress?.Trim() ?? string.Empty;
 
-        DeliveryCompany = deliveryCompany;
-        DeliveryAddress = deliveryAddress;
+        DeliveryCompany = deliveryCompany?.Trim() ?? string.Empty;
+        DeliveryAddress = deliveryAddress?.Trim() ?? string.Empty;
 
-        ReferenceNumber = referenceNumber;
-        LoadDescription = loadDescription;
+        ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
+        LoadDescription = loadDescription?.Trim() ?? string.Empty;
 
-        InvoiceNumber = invoiceNumber;
+        InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
         SetRate(rateType, rateValue, quantity);
 
@@ -185,8 +187,14 @@ public class Job
 
     public void MarkDelivered(string receiverName, string signatureJson)
     {
-        ReceiverName = receiverName?.Trim();
-        DeliverySignatureJson = signatureJson;
+        // Normalize receiver name for consistent display/auditing across the app
+        ReceiverName = NameFormatter.ToTitleCase(receiverName);
+
+        // Keep signature payload intact but avoid accidental leading/trailing whitespace
+        DeliverySignatureJson = string.IsNullOrWhiteSpace(signatureJson)
+            ? null
+            : signatureJson.Trim();
+
         DeliveredAtUtc = DateTime.UtcNow;
     }
 

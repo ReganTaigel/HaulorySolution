@@ -1,136 +1,229 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Mobile.Views.NewJobPage"
-    Title="New Job">
-
+    x:Class="Haulory.Mobile.Views.NewJobPage">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- Page header -->
+            <VerticalStackLayout Spacing="2">
+                <Label Text="New job"
+                       FontSize="24"
+                       FontAttributes="Bold" />
+                <Label Text="Enter pickup, delivery, assignment, and billing details"
+                       FontSize="13"
+                       Opacity="0.7" />
+            </VerticalStackLayout>
 
             <!-- PICKUP -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    Stroke="#E5E7EB">
-                <VerticalStackLayout Spacing="12">
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
+                <VerticalStackLayout Spacing="12">
                     <Label Text="Pickup"
-                           FontSize="18"
+                           FontSize="16"
                            FontAttributes="Bold" />
 
-                    <Entry Placeholder="Company name"
-                           Text="{Binding PickupCompany}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <VerticalStackLayout Spacing="10">
+                            <Entry Placeholder="Company name"
+                                   Text="{Binding PickupCompany}"
+                                   HeightRequest="44" />
 
-                    <Entry Placeholder="Pickup address"
-                           Text="{Binding PickupAddress}" />
-
+                            <Entry Placeholder="Pickup address"
+                                   Text="{Binding PickupAddress}"
+                                   HeightRequest="44" />
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
             <!-- DELIVERY -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    Stroke="#E5E7EB">
-                <VerticalStackLayout Spacing="12">
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
+                <VerticalStackLayout Spacing="12">
                     <Label Text="Delivery"
-                           FontSize="18"
+                           FontSize="16"
                            FontAttributes="Bold" />
 
-                    <Entry Placeholder="Company name"
-                           Text="{Binding DeliveryCompany}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <VerticalStackLayout Spacing="10">
+                            <Entry Placeholder="Company name"
+                                   Text="{Binding DeliveryCompany}"
+                                   HeightRequest="44" />
 
-                    <Entry Placeholder="Delivery address"
-                           Text="{Binding DeliveryAddress}" />
-
+                            <Entry Placeholder="Delivery address"
+                                   Text="{Binding DeliveryAddress}"
+                                   HeightRequest="44" />
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
             <!-- LOAD DETAILS -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    Stroke="#E5E7EB">
-                <VerticalStackLayout Spacing="12">
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
+                <VerticalStackLayout Spacing="12">
                     <Label Text="Load"
-                           FontSize="18"
-                           FontAttributes="Bold" />
-
-                    <Entry Placeholder="Reference number"
-                           Text="{Binding ReferenceNumber}" />
-
-                    <Editor Placeholder="Load description"
-                            AutoSize="TextChanges"
-                            Text="{Binding LoadDescription}" />
-
-                </VerticalStackLayout>
-            </Border>
-            
-            <!-- ASSIGNMENT -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    Stroke="#E5E7EB">
-                <VerticalStackLayout Spacing="12">
-
-                    <Label Text="Assignment"
-                            FontSize="18"
-                            FontAttributes="Bold" />
-
-                    <Picker Title="Driver"
-                            ItemsSource="{Binding Drivers}"
-                            ItemDisplayBinding="{Binding DisplayName}"
-                            SelectedItem="{Binding SelectedDriver}" />
-
-                    <Picker Title="Vehicle"
-                            ItemsSource="{Binding Vehicles}"
-                            ItemDisplayBinding="{Binding Rego}"
-                            SelectedItem="{Binding SelectedVehicle}" />
-
-                </VerticalStackLayout>
-            </Border>
-            
-            <!-- BILLING -->
-            <Border StrokeShape="RoundRectangle 16"
-                    Padding="16"
-                    Stroke="#E5E7EB">
-                <VerticalStackLayout Spacing="12">
-
-                    <Label Text="Billing"
-                           FontSize="18"
-                           FontAttributes="Bold" />
-
-                    <Picker Title="Rate type"
-                            ItemsSource="{Binding RateTypes}"
-                            SelectedItem="{Binding RateType}" />
-
-                    <Grid ColumnDefinitions="*,*"
-                          ColumnSpacing="12">
-
-                        <Entry Grid.Column="0"
-                               Placeholder="Rate"
-                               Keyboard="Numeric"
-                               Text="{Binding RateValue}" />
-
-                        <Entry Grid.Column="1"
-                               Placeholder="{Binding QuantityLabel}"
-                               Keyboard="Numeric"
-                               Text="{Binding Quantity}" />
-                    </Grid>
-
-                    <Label Text="{Binding Total, StringFormat='Total: {0:C}'}"
                            FontSize="16"
-                           FontAttributes="Bold"
-                           HorizontalOptions="Start" />
+                           FontAttributes="Bold" />
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <VerticalStackLayout Spacing="10">
+                            <Entry Placeholder="Reference number"
+                                   Text="{Binding ReferenceNumber}"
+                                   HeightRequest="44" />
+
+                            <Editor Placeholder="Load description"
+                                    AutoSize="TextChanges"
+                                    Text="{Binding LoadDescription}"
+                                    HeightRequest="110" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ASSIGNMENT -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Assignment"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Driver"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+                            <Picker Title="Select driver"
+                                    ItemsSource="{Binding Drivers}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    SelectedItem="{Binding SelectedDriver}" />
+
+                            <Label Text="Vehicle"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+                            <Picker Title="Select vehicle"
+                                    ItemsSource="{Binding Vehicles}"
+                                    ItemDisplayBinding="{Binding Rego}"
+                                    SelectedItem="{Binding SelectedVehicle}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Assignment can be changed later"
+                           FontSize="12"
+                           Opacity="0.6" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- BILLING -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Billing"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Label Text="Rate type"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+                            <Picker Title="Select rate type"
+                                    ItemsSource="{Binding RateTypes}"
+                                    SelectedItem="{Binding RateType}" />
+
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
+
+                                <Entry Grid.Column="0"
+                                       Placeholder="Rate"
+                                       Keyboard="Numeric"
+                                       Text="{Binding RateValue}"
+                                       HeightRequest="44" />
+
+                                <Entry Grid.Column="1"
+                                       Placeholder="{Binding QuantityLabel}"
+                                       Keyboard="Numeric"
+                                       Text="{Binding Quantity}"
+                                       HeightRequest="44" />
+                            </Grid>
+
+                            <!-- Total without currency formatting -->
+                            <Border StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                                    Padding="12">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <Label Text="Total"
+                                           FontSize="13"
+                                           Opacity="0.7"
+                                           VerticalTextAlignment="Center" />
+
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Total, StringFormat='{0:N2}'}"
+                                           FontSize="18"
+                                           FontAttributes="Bold"
+                                           VerticalTextAlignment="Center" />
+                                </Grid>
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
 
                 </VerticalStackLayout>
             </Border>
 
             <!-- SAVE -->
-            <Button Text="Save Job"
+            <Button Text="Save job"
                     Command="{Binding SaveJobCommand}"
                     HeightRequest="50"
                     CornerRadius="14"
-                    BackgroundColor="#2563EB"
+                    BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
                     TextColor="White" />
+
+            <BoxView HeightRequest="6" Opacity="0" />
 
         </VerticalStackLayout>
     </ScrollView>

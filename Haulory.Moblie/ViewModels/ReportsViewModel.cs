@@ -7,6 +7,7 @@ namespace Haulory.Mobile.ViewModels;
 
 // Reporting dashboard for Delivery Receipts.
 // Loads receipts and filters them by a selected LOCAL date (receipts are stored in UTC).
+[QueryProperty(nameof(FocusJobId), "jobId")]
 public class ReportsViewModel : BaseViewModel
 {
     #region Dependencies
@@ -17,27 +18,26 @@ public class ReportsViewModel : BaseViewModel
 
     #region State
 
-    // Prevents concurrent loads (e.g. user taps refresh repeatedly / date changes fast).
     private bool _isLoading;
 
     // Selected LOCAL date used for filtering (date-only semantics).
     private DateTime _selectedDate = DateTime.Today;
 
+    // Optional: used when navigated from a completion flow to focus the day automatically.
+    private Guid? _focusJobId;
+
     #endregion
 
     #region Collections
 
-    // Receipts shown in the report list after filtering by SelectedDate.
     public ObservableCollection<DeliveryReceipt> Receipts { get; } = new();
 
     #endregion
 
     #region Computed Stats
 
-    // Number of delivered receipts for the selected date.
     public int DeliveredCount => Receipts.Count;
 
-    // Total revenue across filtered receipts.
     public decimal TotalRevenue => Receipts.Sum(r => r.Total);
 
     #endregion
@@ -53,29 +53,64 @@ public class ReportsViewModel : BaseViewModel
     public ReportsViewModel(IDeliveryReceiptRepository receiptRepository)
     {
         _receiptRepository = receiptRepository;
-
-        // Manual refresh (pull-to-refresh / button).
         RefreshCommand = new Command(async () => await LoadAsync());
+    }
+
+    #endregion
+
+    #region Query Param (jobId)
+
+    // Receives "?jobId=..." from Shell navigation.
+    // When set, we auto-jump the report date to the receipt's LOCAL date and reload.
+    public string FocusJobId
+    {
+        get => _focusJobId?.ToString() ?? string.Empty;
+        set
+        {
+            if (!Guid.TryParse(value, out var id))
+                return;
+
+            _focusJobId = id;
+
+            // Safe fire-and-forget: LoadAsync has its own guard + try/finally.
+            _ = JumpToReceiptDateAndReloadAsync(id);
+        }
+    }
+
+    private async Task JumpToReceiptDateAndReloadAsync(Guid jobId)
+    {
+        // Pull receipts (later: repo method GetByJobIdAsync for scalability)
+        var all = await _receiptRepository.GetAllAsync();
+        var receipt = all.FirstOrDefault(r => r.JobId == jobId);
+        if (receipt == null)
+        {
+            // Fallback: just reload current date view
+            await LoadAsync();
+            return;
+        }
+
+        // Align the report day to the receipt's LOCAL date so it shows immediately
+        SelectedDate = ToLocalDate(receipt.DeliveredAtUtc);
+
+        // SelectedDate setter triggers LoadAsync already, but call anyway to guarantee
+        await LoadAsync();
     }
 
     #endregion
 
     #region Date Filter
 
-    // Filter date (LOCAL). When the date changes we reload the list automatically.
     public DateTime SelectedDate
     {
         get => _selectedDate;
         set
         {
-            // Date-only comparison avoids reload when time component differs.
-            if (_selectedDate.Date == value.Date) return;
+            if (_selectedDate.Date == value.Date)
+                return;
 
             _selectedDate = value.Date;
             OnPropertyChanged();
 
-            // Fire-and-forget refresh to keep UI responsive.
-            // (Note: any exceptions inside LoadAsync would surface on the sync context; consider try/catch if needed.)
             _ = LoadAsync();
         }
     }
@@ -84,7 +119,6 @@ public class ReportsViewModel : BaseViewModel
 
     #region Load
 
-    // Loads receipts, filters them by SelectedDate (local date), and updates computed stats.
     public async Task LoadAsync()
     {
         if (_isLoading) return;
@@ -94,11 +128,8 @@ public class ReportsViewModel : BaseViewModel
         {
             Receipts.Clear();
 
-            // NOTE: if this becomes large, consider adding a repository query for date range
-            // rather than pulling everything into memory.
             var all = await _receiptRepository.GetAllAsync();
 
-            // Filter by selected LOCAL date (DeliveredAtUtc stored in UTC)
             var filtered = all
                 .Where(r => ToLocalDate(r.DeliveredAtUtc) == SelectedDate.Date)
                 .OrderByDescending(r => r.DeliveredAtUtc);
@@ -106,7 +137,6 @@ public class ReportsViewModel : BaseViewModel
             foreach (var r in filtered)
                 Receipts.Add(r);
 
-            // Update summary cards / labels.
             OnPropertyChanged(nameof(DeliveredCount));
             OnPropertyChanged(nameof(TotalRevenue));
         }
@@ -120,8 +150,6 @@ public class ReportsViewModel : BaseViewModel
 
     #region Helpers
 
-    // Converts a stored UTC datetime into a LOCAL date for consistent "day" filtering.
-    // Handles cases where a DateTime might not be explicitly marked as UTC.
     private static DateTime ToLocalDate(DateTime utc)
     {
         var safeUtc = utc.Kind == DateTimeKind.Utc

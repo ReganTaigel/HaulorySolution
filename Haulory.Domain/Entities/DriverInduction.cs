@@ -1,17 +1,5 @@
 ﻿namespace Haulory.Domain.Entities;
 
-#region Enum: Compliance Status
-
-public enum ComplianceStatus
-{
-    NotStarted = 0,
-    InProgress = 1,
-    Completed = 2,
-    Expired = 3
-}
-
-#endregion
-
 #region Entity: Driver Induction
 
 public class DriverInduction
@@ -136,7 +124,6 @@ public class DriverInduction
 
     #region Manual Setters (Used Carefully)
 
-    // Direct state override (use cautiously in application layer)
     public void SetStatus(ComplianceStatus status) => Status = status;
 
     public void SetCompletedOnUtc(DateTime? completedOnUtc) =>
@@ -148,7 +135,6 @@ public class DriverInduction
     public void SetNotes(string? notes) =>
         Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
 
-    // Allows editing of issue date (useful for recalculating relative expiry)
     public void SetIssueDateUtc(DateTime issueDateUtc) =>
         IssueDateUtc = DateTime.SpecifyKind(issueDateUtc, DateTimeKind.Utc);
 

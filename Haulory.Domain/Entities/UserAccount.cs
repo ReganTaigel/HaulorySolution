@@ -1,4 +1,5 @@
 ﻿using Haulory.Domain.Enums;
+using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
@@ -60,9 +61,10 @@ public class UserAccount
     // Creates a MAIN account
     public UserAccount(string firstName, string lastName, string email, string passwordHash)
     {
-        FirstName = firstName.Trim();
-        LastName = lastName.Trim();
-        Email = email.Trim().ToLowerInvariant();
+        FirstName = NameFormatter.ToTitleCase(firstName) ?? string.Empty;
+        LastName = NameFormatter.ToTitleCase(lastName) ?? string.Empty;
+        Email = CleanEmail(email) ?? string.Empty;
+
         PasswordHash = passwordHash;
 
         Role = UserRole.Main;
@@ -94,9 +96,10 @@ public class UserAccount
 
     public void UpdateIdentity(string firstName, string lastName, string email)
     {
-        FirstName = firstName.Trim();
-        LastName = lastName.Trim();
-        Email = email.Trim().ToLowerInvariant();
+        // Keep formatting consistent with constructor
+        FirstName = NameFormatter.ToTitleCase(firstName) ?? string.Empty;
+        LastName = NameFormatter.ToTitleCase(lastName) ?? string.Empty;
+        Email = CleanEmail(email) ?? string.Empty;
     }
 
     public void SetPasswordHash(string passwordHash)
@@ -151,6 +154,13 @@ public class UserAccount
 
     private static string? Clean(string? s) =>
         string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    private static string? CleanEmail(string? email)
+    {
+        // Email should always be trimmed + lower for consistent login/search behavior
+        var cleaned = Clean(email);
+        return cleaned?.ToLowerInvariant();
+    }
 
     #endregion
 }

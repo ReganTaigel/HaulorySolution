@@ -8,99 +8,118 @@
     <ScrollView>
         <VerticalStackLayout
             Padding="24"
-            Spacing="24"
+            Spacing="18"
             VerticalOptions="Center">
 
-            <!-- App Title -->
+            <!-- Header -->
             <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
-                <Label
-                    Text="Haulory"
-                    FontSize="32"
-                    FontAttributes="Bold"
-                    TextColor="{AppThemeBinding Light=#1F2937, Dark=White}" />
+                <Label Text="Haulory"
+                       FontSize="34"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
 
-                <Label
-                    Text="Welcome back"
-                    FontSize="14"
-                    TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                <Label Text="Welcome back"
+                       FontSize="14"
+                       Opacity="0.75"
+                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
             </VerticalStackLayout>
 
             <!-- Login Card -->
-            <Border
-                StrokeShape="RoundRectangle 16"
-                BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}"
-                Padding="20">
+            <Border StrokeShape="RoundRectangle 20"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B1220}"
+                    Padding="18">
 
-                <VerticalStackLayout Spacing="16">
+                <VerticalStackLayout Spacing="14">
+
+                    <Label Text="Sign in"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="Email"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="Email"
+                               FontSize="12"
+                               Opacity="0.7"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                        <Entry
-                            Placeholder="you@example.com"
-                            Text="{Binding Email}"
-                            Keyboard="Email"
-                            ClearButtonVisibility="WhileEditing"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                Padding="12,8">
+
+                            <Entry Placeholder="Email address"
+                                   Text="{Binding Email}"
+                                   Keyboard="Email"
+                                   ClearButtonVisibility="WhileEditing"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="6">
-                        <Label
-                            Text="Password"
-                            FontSize="12"
-                            TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                        <Label Text="Password"
+                               FontSize="12"
+                               Opacity="0.7"
+                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                        <Entry
-                            Placeholder="********"
-                            Text="{Binding Password}"
-                            IsPassword="True"
-                            HeightRequest="48"
-                            BackgroundColor="Transparent" />
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                Padding="12,8">
+
+                            <Entry Placeholder="Password"
+                                   Text="{Binding Password}"
+                                   IsPassword="True"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent" />
+                        </Border>
                     </VerticalStackLayout>
 
                     <!-- Login Button -->
-                    <Button
-                        Text="Login"
-                        Command="{Binding LoginCommand}"
-                        HeightRequest="48"
-                        CornerRadius="12"
-                        FontAttributes="Bold"
-                        BackgroundColor="#2563EB"
-                        TextColor="White" />
+                    <Button Text="Login"
+                            Command="{Binding LoginCommand}"
+                            HeightRequest="48"
+                            CornerRadius="14"
+                            FontAttributes="Bold"
+                            BackgroundColor="{AppThemeBinding Light=#2563EB, Dark=#3B82F6}"
+                            TextColor="White" />
 
                 </VerticalStackLayout>
             </Border>
-            <!-- Create account link -->
-            <HorizontalStackLayout HorizontalOptions="Center" Spacing="4">
-                <Label
-                    Text="Need an account?"
-                    FontSize="12"
-                    TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
-                <Label
-                    Text="Create one"
-                    FontSize="12"
-                    FontAttributes="Bold"
-                    TextColor="#2563EB">
-                    
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
-                    </Label.GestureRecognizers>
-                </Label>
-            </HorizontalStackLayout>
+            <!-- Create account link -->
+            <Border StrokeThickness="0"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{AppThemeBinding Light=Transparent, Dark=Transparent}"
+                    Padding="6">
+
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
+                    <Label Text="Need an account"
+                           FontSize="12"
+                           Opacity="0.75"
+                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+
+                    <Label Text="Create one"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#2563EB, Dark=#60A5FA}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
+                        </Label.GestureRecognizers>
+                    </Label>
+                </HorizontalStackLayout>
+            </Border>
 
             <!-- Footer -->
-            <Label
-                Text="Secure transport and compliance management"
-                FontSize="12"
-                HorizontalOptions="Center"
-                TextColor="{AppThemeBinding Light=#9CA3AF, Dark=#6B7280}" />
+            <Label Text="Secure transport and compliance management"
+                   FontSize="12"
+                   HorizontalOptions="Center"
+                   Opacity="0.7"
+                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
 
         </VerticalStackLayout>
     </ScrollView>

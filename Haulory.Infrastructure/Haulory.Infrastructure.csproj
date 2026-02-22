@@ -32,4 +32,8 @@
 	  <ProjectReference Include="..\Haulory.Domain\Haulory.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Storage\" />
+	</ItemGroup>
+
 </Project>

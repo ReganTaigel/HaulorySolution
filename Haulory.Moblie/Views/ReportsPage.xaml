@@ -1,116 +1,183 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Mobile.Views.ReportsPage"
-    Title="Reports">
-
+    x:Class="Haulory.Mobile.Views.ReportsPage">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="14">
+        <VerticalStackLayout Padding="20" Spacing="14">
 
-            <!-- HEADER -->
-            <Label Text="Reports" FontSize="24" FontAttributes="Bold" />
+            <!-- Header -->
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Reports"
+                       FontSize="24"
+                       FontAttributes="Bold" />
+                <Label Text="Delivered jobs and totals for the selected date"
+                       FontSize="13"
+                       Opacity="0.7" />
+            </VerticalStackLayout>
 
-            <!-- STATS ROW (2 columns, no overlap) -->
+            <!-- Stats row -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
 
                 <Border Grid.Column="0"
                         StrokeThickness="1"
                         Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                        StrokeShape="RoundRectangle 14"
-                        Padding="12">
-                    <VerticalStackLayout>
-                        <Label Text="Delivered" FontSize="12" TextColor="Gray"/>
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Delivered"
+                               FontSize="12"
+                               Opacity="0.7" />
                         <Label Text="{Binding DeliveredCount}"
                                FontSize="22"
-                               FontAttributes="Bold"/>
+                               FontAttributes="Bold" />
+                        <Label Text="Completed deliveries"
+                               FontSize="12"
+                               Opacity="0.6" />
                     </VerticalStackLayout>
                 </Border>
 
                 <Border Grid.Column="1"
                         StrokeThickness="1"
                         Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                        StrokeShape="RoundRectangle 14"
-                        Padding="12">
-                    <VerticalStackLayout>
-                        <Label Text="Revenue" FontSize="12" TextColor="Gray"/>
-                        <Label Text="{Binding TotalRevenue, StringFormat='{}{0:C}'}"
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Revenue"
+                               FontSize="12"
+                               Opacity="0.7" />
+                        <Label Text="{Binding TotalRevenue, StringFormat='{0:N2}'}"
                                FontSize="22"
-                               FontAttributes="Bold"/>
+                               FontAttributes="Bold" />
+                        <Label Text="Total for date"
+                               FontSize="12"
+                               Opacity="0.6" />
                     </VerticalStackLayout>
                 </Border>
 
             </Grid>
-            <!-- DATE FILTER -->
+
+            <!-- Controls card -->
             <Border StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 14"
-                Padding="12">
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Report Date" FontSize="12" TextColor="Gray" />
+                <VerticalStackLayout Spacing="12">
 
-                    <DatePicker Date="{Binding SelectedDate}"
-                        Format="dd/MM/yyyy" />
+                    <Label Text="Report date"
+                           FontSize="12"
+                           Opacity="0.7" />
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <DatePicker Date="{Binding SelectedDate}" />
+                    </Border>
+
+                    <Button Text="Refresh"
+                            Command="{Binding RefreshCommand}"
+                            HeightRequest="46"
+                            CornerRadius="14"
+                            BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
+                            TextColor="White" />
+
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Refresh -->
-            <Button Text="Refresh"
-                    Command="{Binding RefreshCommand}"
-                    HeightRequest="44"
-                    CornerRadius="12"/>
-
-            <!-- RECEIPTS LIST -->
+            <!-- Receipts list -->
             <CollectionView ItemsSource="{Binding Receipts}"
-                            SelectionMode="None">
+                            SelectionMode="None"
+                            Margin="0,2,0,0">
 
                 <CollectionView.EmptyView>
-                    <Label Text="No delivery receipts yet"
-                           HorizontalOptions="Center"
-                           TextColor="Gray"
-                           Margin="0,24,0,0"/>
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         Spacing="6"
+                                         Margin="0,18,0,0">
+                        <Label Text="No delivery receipts yet"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               Opacity="0.85" />
+                        <Label Text="Complete a delivery to see receipts here"
+                               FontSize="12"
+                               Opacity="0.7"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
                 </CollectionView.EmptyView>
 
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
+
                         <Border StrokeThickness="1"
                                 Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}"
-                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                                StrokeShape="RoundRectangle 18"
                                 Padding="14"
                                 Margin="0,0,0,12">
 
-                            <VerticalStackLayout Spacing="6">
+                            <VerticalStackLayout Spacing="10">
 
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0"
-                                           Text="{Binding ReferenceNumber}"
-                                           FontSize="16"
-                                           FontAttributes="Bold"/>
-                                    <Label Grid.Column="1"
-                                           Text="{Binding Total, StringFormat='{}{0:C}'}"
-                                           FontSize="14"
-                                           FontAttributes="Bold"/>
+                                <!-- Top row -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                        <Label Text="{Binding ReferenceNumber}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding DeliveryCompany}"
+                                               FontSize="13"
+                                               Opacity="0.75"
+                                               LineBreakMode="TailTruncation" />
+                                    </VerticalStackLayout>
+
+                                    <Border Grid.Column="1"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                            Padding="10,6"
+                                            VerticalOptions="Start">
+                                        <Label Text="{Binding Total, StringFormat='{0:N2}'}"
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               HorizontalTextAlignment="Center" />
+                                    </Border>
                                 </Grid>
 
-                                <Label Text="{Binding DeliveryCompany}"
-                                       FontSize="13"
-                                       TextColor="Gray"/>
+                                <!-- Details -->
+                                <Border StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                        Padding="12">
 
-                                <Label Text="{Binding ReceiverName, StringFormat='Signed by: {0}'}"
-                                       FontSize="12"
-                                       TextColor="Gray"/>
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Text="{Binding ReceiverName, StringFormat='Signed by {0}'}"
+                                               FontSize="12"
+                                               Opacity="0.8"
+                                               LineBreakMode="TailTruncation" />
 
-                                <Label Text="{Binding DeliveredAtUtc, StringFormat='Delivered: {0:dd MMM yyyy HH:mm}'}"
-                                       FontSize="12"
-                                       TextColor="Gray"/>
+                                        <Label Text="{Binding DeliveredAtUtc, StringFormat='Delivered {0:dd MMM yyyy HH:mm}'}"
+                                               FontSize="12"
+                                               Opacity="0.75" />
+                                    </VerticalStackLayout>
+                                </Border>
+
                             </VerticalStackLayout>
 
                         </Border>
+
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
 
             </CollectionView>
+
+            <BoxView HeightRequest="6" Opacity="0" />
 
         </VerticalStackLayout>
     </ScrollView>

@@ -2,140 +2,245 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Mobile.Views.NewDriverPage"
-    Title="Add Driver">
-
+    x:Class="Haulory.Mobile.Views.NewDriverPage">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
     <ScrollView>
-        <VerticalStackLayout Spacing="14" Padding="20">
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- Page header -->
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Add driver"
+                       FontSize="24"
+                       FontAttributes="Bold" />
+                <Label Text="Create a driver profile and emergency contact"
+                       FontSize="13"
+                       Opacity="0.7" />
+            </VerticalStackLayout>
 
             <!-- DRIVER DETAILS -->
             <Border StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                    Padding="14">
-                <VerticalStackLayout Spacing="10">
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
-                    <Label Text="Driver Details"
-                           FontAttributes="Bold"
-                           FontSize="16"/>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Driver details"
+                           FontSize="16"
+                           FontAttributes="Bold" />
 
-                    <Entry Placeholder="First name"
-                           Text="{Binding FirstName}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <VerticalStackLayout Spacing="10">
 
-                    <Entry Placeholder="Last name"
-                           Text="{Binding LastName}" />
+                            <Entry Placeholder="First name"
+                                   Text="{Binding FirstName}"
+                                   HeightRequest="44" />
 
-                    <Entry Placeholder="Email"
-                           Keyboard="Email"
-                           Text="{Binding Email}" />
+                            <Entry Placeholder="Last name"
+                                   Text="{Binding LastName}"
+                                   HeightRequest="44" />
 
-                    <Entry Placeholder="Licence number (optional)"
-                           Text="{Binding LicenceNumber}" />
+                            <Entry Placeholder="Email"
+                                   Keyboard="Email"
+                                   Text="{Binding Email}"
+                                   HeightRequest="44" />
 
+                            <Entry Placeholder="Licence number (optional)"
+                                   Text="{Binding LicenceNumber}"
+                                   HeightRequest="44" />
+
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- CONTACT + LICENCE + ADDRESS -->
+            <!-- CONTACT AND LICENCE -->
             <Border StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                    Padding="14">
-                <VerticalStackLayout Spacing="10">
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
-                    <Label Text="Contact and Licence"
-                           FontAttributes="Bold"
-                           FontSize="16"/>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Contact and licence"
+                           FontSize="16"
+                           FontAttributes="Bold" />
 
-                    <Entry Placeholder="Phone number (optional)"
-                           Keyboard="Telephone"
-                           Text="{Binding PhoneNumber}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
 
-                    <Label Text="Date of birth (optional)"
+                        <VerticalStackLayout Spacing="12">
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Phone number"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                                <Entry Placeholder="Optional"
+                                       Keyboard="Telephone"
+                                       Text="{Binding PhoneNumber}"
+                                       HeightRequest="44" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <VerticalStackLayout Grid.Column="0" Spacing="6">
+                                    <Label Text="Date of birth"
+                                           FontSize="12"
+                                           Opacity="0.7" />
+                                    <DatePicker Date="{Binding DateOfBirthLocal}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1" Spacing="6">
+                                    <Label Text="Licence expiry"
+                                           FontSize="12"
+                                           Opacity="0.7" />
+                                    <DatePicker Date="{Binding LicenceExpiryLocal}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ADDRESS -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Address"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Label Text="Optional"
                            FontSize="12"
-                           Opacity="0.7" />
-                    <DatePicker Date="{Binding DateOfBirthLocal}" />
+                           Opacity="0.6" />
 
-                    <Label Text="Licence expiry (optional)"
-                           FontSize="12"
-                           Opacity="0.7" />
-                    <DatePicker Date="{Binding LicenceExpiryLocal}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
 
-                    <Label Text="Address (optional)"
-                           FontSize="12"
-                           Opacity="0.7" />
+                        <VerticalStackLayout Spacing="10">
 
-                    <Entry Placeholder="Address line 1"
-                           Text="{Binding Line1}" />
+                            <Entry Placeholder="Address line 1"
+                                   Text="{Binding Line1}"
+                                   HeightRequest="44" />
 
-                    <Entry Placeholder="Address line 2"
-                           Text="{Binding Line2}" />
+                            <Entry Placeholder="Address line 2"
+                                   Text="{Binding Line2}"
+                                   HeightRequest="44" />
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry Grid.Column="0"
-                               Placeholder="Suburb"
-                               Text="{Binding Suburb}" />
-                        <Entry Grid.Column="1"
-                               Placeholder="City"
-                               Text="{Binding City}" />
-                    </Grid>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <Entry Grid.Column="0"
+                                       Placeholder="Suburb"
+                                       Text="{Binding Suburb}"
+                                       HeightRequest="44" />
+                                <Entry Grid.Column="1"
+                                       Placeholder="City"
+                                       Text="{Binding City}"
+                                       HeightRequest="44" />
+                            </Grid>
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry Grid.Column="0"
-                               Placeholder="Region"
-                               Text="{Binding Region}" />
-                        <Entry Grid.Column="1"
-                               Placeholder="Postcode"
-                               Text="{Binding Postcode}" />
-                    </Grid>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <Entry Grid.Column="0"
+                                       Placeholder="Region"
+                                       Text="{Binding Region}"
+                                       HeightRequest="44" />
+                                <Entry Grid.Column="1"
+                                       Placeholder="Postcode"
+                                       Text="{Binding Postcode}"
+                                       HeightRequest="44" />
+                            </Grid>
 
-                    <Entry Placeholder="Country"
-                           Text="{Binding Country}" />
+                            <Entry Placeholder="Country"
+                                   Text="{Binding Country}"
+                                   HeightRequest="44" />
 
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
             <!-- EMERGENCY CONTACT -->
             <Border StrokeThickness="1"
                     Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
-                    Padding="14">
-                <VerticalStackLayout Spacing="10">
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
-                    <Label Text="Emergency Contact"
-                           FontAttributes="Bold"
-                           FontSize="16"/>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Emergency contact"
+                           FontSize="16"
+                           FontAttributes="Bold" />
 
-                    <Entry Placeholder="First name"
-                           Text="{Binding EmergencyFirstName}" />
+                    <Label Text="Required for compliance and safety"
+                           FontSize="12"
+                           Opacity="0.6" />
 
-                    <Entry Placeholder="Last name"
-                           Text="{Binding EmergencyLastName}" />
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
 
-                    <Entry Placeholder="Relationship"
-                           Text="{Binding EmergencyRelationship}" />
+                        <VerticalStackLayout Spacing="10">
 
-                    <Entry Placeholder="Email"
-                           Keyboard="Email"
-                           Text="{Binding EmergencyEmail}" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <Entry Grid.Column="0"
+                                       Placeholder="First name"
+                                       Text="{Binding EmergencyFirstName}"
+                                       HeightRequest="44" />
 
-                    <Entry Placeholder="Phone number"
-                           Keyboard="Telephone"
-                           Text="{Binding EmergencyPhoneNumber}" />
+                                <Entry Grid.Column="1"
+                                       Placeholder="Last name"
+                                       Text="{Binding EmergencyLastName}"
+                                       HeightRequest="44" />
+                            </Grid>
 
-                    <Entry Placeholder="Secondary phone number (optional)"
-                           Keyboard="Telephone"
-                           Text="{Binding EmergencySecondaryPhoneNumber}" />
+                            <Entry Placeholder="Relationship"
+                                   Text="{Binding EmergencyRelationship}"
+                                   HeightRequest="44" />
 
+                            <Entry Placeholder="Email"
+                                   Keyboard="Email"
+                                   Text="{Binding EmergencyEmail}"
+                                   HeightRequest="44" />
+
+                            <Entry Placeholder="Phone number"
+                                   Keyboard="Telephone"
+                                   Text="{Binding EmergencyPhoneNumber}"
+                                   HeightRequest="44" />
+
+                            <Entry Placeholder="Secondary phone number (optional)"
+                                   Keyboard="Telephone"
+                                   Text="{Binding EmergencySecondaryPhoneNumber}"
+                                   HeightRequest="44" />
+
+                        </VerticalStackLayout>
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
-            <Button Text="Save Driver"
+            <!-- SAVE -->
+            <Button Text="Save driver"
                     Command="{Binding SaveDriverCommand}"
                     IsEnabled="{Binding CanSave}"
-                    Margin="0,10,0,0"/>
+                    HeightRequest="50"
+                    CornerRadius="14"
+                    BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
+                    TextColor="White"
+                    Margin="0,4,0,8"/>
+
+            <BoxView HeightRequest="6" Opacity="0" />
 
         </VerticalStackLayout>
     </ScrollView>

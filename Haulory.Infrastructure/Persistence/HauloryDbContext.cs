@@ -125,9 +125,11 @@ public class HauloryDbContext : DbContext
             entity.Property(v => v.Make).IsRequired();
             entity.Property(v => v.Model).IsRequired();
             entity.Property(v => v.CreatedUtc).IsRequired();
+
+            // NEW: global subtype for power units
+            entity.Property(v => v.PowerUnitBodyType);
         });
 
-        // Ensure one asset per slot per vehicle set
         modelBuilder.Entity<VehicleAsset>()
             .HasIndex(v => new { v.VehicleSetId, v.UnitNumber })
             .IsUnique();
@@ -186,11 +188,6 @@ public class HauloryDbContext : DbContext
 
             // One receipt per job
             entity.HasIndex(r => r.JobId).IsUnique();
-
-            entity.HasOne<Job>()
-                  .WithMany()
-                  .HasForeignKey(r => r.JobId)
-                  .OnDelete(DeleteBehavior.Cascade);
 
             entity.Property(r => r.RateValue).HasColumnType("decimal(18,2)");
             entity.Property(r => r.Total).HasColumnType("decimal(18,2)");

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
@@ -8,20 +8,20 @@ public class EmergencyContact
 {
     #region Properties
 
-    [JsonInclude] public string? FirstName { get; private set; }
-    [JsonInclude] public string? LastName { get; private set; }
-    [JsonInclude] public string? Relationship { get; private set; }
+    public string? FirstName { get; private set; }
+    public string? LastName { get; private set; }
+    public string? Relationship { get; private set; }
 
-    [JsonInclude] public string? PhoneNumber { get; private set; }
-    [JsonInclude] public string? SecondaryPhoneNumber { get; private set; }
+    public string? PhoneNumber { get; private set; }
+    public string? SecondaryPhoneNumber { get; private set; }
 
-    [JsonInclude] public string? Email { get; private set; }
+    public string? Email { get; private set; }
 
     #endregion
 
     #region Constructors
 
-    // Required for EF / JSON deserialization
+    // Required for EF Core (owned entity materialization)
     public EmergencyContact() { }
 
     public EmergencyContact(
@@ -32,15 +32,16 @@ public class EmergencyContact
         string phoneNumber,
         string? secondaryPhoneNumber = null)
     {
-        FirstName = firstname.Trim();
-        LastName = lastname.Trim();
-        Relationship = relationship.Trim();
-        Email = email.Trim();
-        PhoneNumber = phoneNumber.Trim();
+        // Normalize identity fields for consistent display and auditing
+        FirstName = NameFormatter.ToTitleCase(firstname);
+        LastName = NameFormatter.ToTitleCase(lastname);
 
-        SecondaryPhoneNumber = string.IsNullOrWhiteSpace(secondaryPhoneNumber)
-            ? null
-            : secondaryPhoneNumber.Trim();
+        Relationship = Clean(relationship);
+
+        Email = CleanEmail(email);
+        PhoneNumber = Clean(phoneNumber);
+
+        SecondaryPhoneNumber = Clean(secondaryPhoneNumber);
     }
 
     #endregion
@@ -54,6 +55,19 @@ public class EmergencyContact
         !string.IsNullOrWhiteSpace(Relationship) &&
         !string.IsNullOrWhiteSpace(PhoneNumber) &&
         !string.IsNullOrWhiteSpace(Email);
+
+    #endregion
+
+    #region Helpers
+
+    private static string? Clean(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? CleanEmail(string? email)
+    {
+        var cleaned = Clean(email);
+        return cleaned?.ToLowerInvariant();
+    }
 
     #endregion
 }

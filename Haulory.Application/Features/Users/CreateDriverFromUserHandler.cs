@@ -1,5 +1,6 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Domain.Enums;
 
 namespace Haulory.Application.Features.Drivers;
 

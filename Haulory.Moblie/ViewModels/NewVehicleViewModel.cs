@@ -47,9 +47,8 @@ public class NewVehicleViewModel : BaseViewModel
     private VehicleOption<VehicleType>? _selectedVehicleType;
     private VehicleOption<VehicleConfiguration>? _selectedLightConfig;
     private VehicleOption<VehicleConfiguration>? _selectedHeavyConfig;
-    private VehicleOption<Class4PowerUnitType>? _selectedClass4UnitType;
+    private VehicleOption<PowerUnitBodyType>? _selectedPowerUnitBodyType;
     private VehicleOption<FuelType>? _selectedFuelType;
-
     #endregion
 
     #region Backing Fields - Rego
@@ -238,18 +237,18 @@ public class NewVehicleViewModel : BaseViewModel
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
         {
-            // Light Vehicles and Utility Vehicle
-            new(VehicleType.LightVehicle, "Light Vehicle"),
-            new(VehicleType.UtilityVehicle, "Utility Vehicle"),
+        // Light / commercial
+        new(VehicleType.LightVehicle, "Light Vehicle"),
+        new(VehicleType.LightCommercial, "Light Commercial Vehicle"),
 
-            // Light Vehicle Trailers
-            new(VehicleType.LightVehicleTrailer, "Light Vehicle Trailer"),
+        // Trucks
+        new(VehicleType.RigidTruckMedium, "Medium Rigid Truck"),
+        new(VehicleType.RigidTruckHeavy, "Heavy Rigid Truck"),
+        new(VehicleType.TractorUnit, "Tractor Unit"),
 
-            // Heavy Class Vehicles and Trailer
-            new(VehicleType.TruckClass2, "Truck (Class 2)"),
-            new(VehicleType.TrailerClass3, "Trailer (Class 3)"),
-            new(VehicleType.TruckClass4, "Truck (Class 4)"),
-            new(VehicleType.TrailerClass5, "Trailer (Class 5)")
+        // Trailers
+        new(VehicleType.TrailerLight, "Light Trailer"),
+        new(VehicleType.TrailerHeavy, "Heavy Trailer"),
         };
 
     // Light trailer configurations (only applicable for LightVehicleTrailer).
@@ -263,38 +262,37 @@ public class NewVehicleViewModel : BaseViewModel
 
     // Heavy trailer configurations (Class 5 trailer configurations; includes semi, A-frame, fifth wheel/B-train).
     public ObservableCollection<VehicleOption<VehicleConfiguration>> HeavyConfigurations { get; } =
-        new()
-        {
-            // Semi Trailer configs
-            new(VehicleConfiguration.SemiCurtainsider, "Semi Trailer (Curtains)"),
-            new(VehicleConfiguration.SemiFlatDeck, "Semi Trailer (Flat Deck)"),
-            new(VehicleConfiguration.SemiRefrigerator, "Semi Trailer (Refrigerated)"),
-            new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
-            new(VehicleConfiguration.SemiSkeleton,"Semi Trailer (Skeleton)"),
+       new()
+       {
+        // Semi trailers
+        new(VehicleConfiguration.SemiCurtainsider, "Semi Trailer (Curtains)"),
+        new(VehicleConfiguration.SemiFlatDeck, "Semi Trailer (Flat Deck)"),
+        new(VehicleConfiguration.SemiRefrigerated, "Semi Trailer (Refrigerated)"), // if you renamed to SemiRefrigerated, use that
+        new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
+        new(VehicleConfiguration.SemiSkeleton, "Semi Trailer (Skeleton)"),
 
-            // Rigid Trailers (A-Frame)
-            new(VehicleConfiguration.CurtainSiderTrailer, "Curtainsider Trailer(A-Frame)"),
-            new(VehicleConfiguration.FlatDeckTrailer , "Flat Deck (A-Frame)"),
-            new(VehicleConfiguration.RefrigeratorTrailer , "Refrigerated Trailer (A-Frame)"),
-            new(VehicleConfiguration.TankerTrailer , "Tanker Trailer (A-Frame)"),
+        // Drawbar / A-frame
+        new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider Trailer (A-Frame)"),
+        new(VehicleConfiguration.DrawbarFlatDeck, "Flat Deck (A-Frame)"),
+        new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated Trailer (A-Frame)"),
+        new(VehicleConfiguration.DrawbarTanker, "Tanker Trailer (A-Frame)"),
 
-            // B Train Trailers (Fifth Wheel)
-            new(VehicleConfiguration.BCurtainSider, "Curtainsider Trailer (Fifth Wheel)"),
-            new(VehicleConfiguration.BFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
-            new(VehicleConfiguration.BRefigerator, "Refigerator Trailers (Fifth Wheel)"),
-            new(VehicleConfiguration.BTanker, "Tanker Trialer (Fifth Wheel)"),
-        };
+        // B-double / B-train
+        new(VehicleConfiguration.BDblCurtainsider, "Curtainsider Trailer (Fifth Wheel)"),
+        new(VehicleConfiguration.BDblFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
+        new(VehicleConfiguration.BDblRefrigerated, "Refrigerated Trailers (Fifth Wheel)"),
+        new(VehicleConfiguration.BDblTanker, "Tanker Trailer (Fifth Wheel)"),
+       };
 
     // Class 4 power-unit subtypes.
-    public ObservableCollection<VehicleOption<Class4PowerUnitType>> Class4UnitTypes { get; } =
+    public ObservableCollection<VehicleOption<PowerUnitBodyType>> PowerUnitBodyTypes { get; } =
         new()
         {
-            // Rigid Trucks configs
-            new(Class4PowerUnitType.TruckCurtainsider, "Rigid Truck (Curtains)"),
-            new(Class4PowerUnitType.TruckFlatDeck, "Rigid Truck (Flat Deck)"),
-            new(Class4PowerUnitType.TruckRefrigerator, "Rigid Truck (Refrigerated)"),
-            new(Class4PowerUnitType.TruckTanker, "Rigid Truck (Tanker)"),
-            new(Class4PowerUnitType.Tractor, "Tractor"),
+        new(PowerUnitBodyType.Curtainsider, "Rigid Truck (Curtains)"),
+        new(PowerUnitBodyType.FlatDeck, "Rigid Truck (Flat Deck)"),
+        new(PowerUnitBodyType.Refrigerated, "Rigid Truck (Refrigerated)"),
+        new(PowerUnitBodyType.Tanker, "Rigid Truck (Tanker)"),
+        new(PowerUnitBodyType.Tractor, "Tractor"),
         };
 
     public ObservableCollection<VehicleOption<FuelType>> FuelTypes { get; } =
@@ -316,11 +314,10 @@ public class NewVehicleViewModel : BaseViewModel
         set
         {
             _selectedVehicleType = value;
-
             // Reset downstream selections whenever vehicle type changes.
             SelectedLightConfig = null;
             SelectedHeavyConfig = null;
-            SelectedClass4UnitType = null;
+            SelectedPowerUnitBodyType = null; 
             SelectedFuelType = null;
 
             // Clear all fields (we’ll use only the correct slots depending on selection)
@@ -352,12 +349,12 @@ public class NewVehicleViewModel : BaseViewModel
         }
     }
 
-    public VehicleOption<Class4PowerUnitType>? SelectedClass4UnitType
+    public VehicleOption<PowerUnitBodyType>? SelectedPowerUnitBodyType
     {
-        get => _selectedClass4UnitType;
+        get => _selectedPowerUnitBodyType;
         set
         {
-            _selectedClass4UnitType = value;
+            _selectedPowerUnitBodyType = value;
             OnPropertyChanged();
             RaiseAllVisibility();
         }
@@ -555,9 +552,9 @@ public class NewVehicleViewModel : BaseViewModel
         }
     }
 
-    public string Unit1MakeModelLabel => "Vehicle make, model & year";
-    public string Unit2MakeModelLabel => "Trailer make, model & year";
-    public string Unit3MakeModelLabel => "Trailer 2 make, model & year";
+    public string Unit1MakeModelLabel => "Unit 1 — make, model & year";
+    public string Unit2MakeModelLabel => "Unit 2 — make, model & year";
+    public string Unit3MakeModelLabel => "Unit 3 — make, model & year";
 
     #endregion
 
@@ -615,9 +612,8 @@ public class NewVehicleViewModel : BaseViewModel
         SelectedFuelType?.Value == FuelType.Diesel ||
         SelectedFuelType?.Value == FuelType.Electric;
 
-    public bool TrailerRequiresRuc =>
-        SelectedVehicleType?.Value == VehicleType.TrailerClass3 ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass5;
+    // NZ-specific rule (still supported): Heavy trailers require RUC
+    public bool TrailerRequiresRuc => IsHeavyTrailer;
 
     // How many RUC entries this wizard needs (mirrors unit slot rules).
     public int RucCount
@@ -647,9 +643,10 @@ public class NewVehicleViewModel : BaseViewModel
     public bool ShowUnit3Ruc => ShowRucStep && IsBTrain;
 
     // Labels
-    public string Unit1RucLabel => "Vehicle RUC";
-    public string Unit2RucLabel => "Trailer RUC";
-    public string Unit3RucLabel => "Trailer 2 RUC";
+    public string Unit1RucLabel => "Unit 1 distance-based road tax";
+    public string Unit2RucLabel => "Unit 2 distance-based road tax";
+    public string Unit3RucLabel => "Unit 3 distance-based road tax";
+
 
     // Basic validation for licence range.
     private bool IsValidRange(int? start, int? end) =>
@@ -779,8 +776,8 @@ public class NewVehicleViewModel : BaseViewModel
         SelectedFuelType == null
             ? string.Empty
             : RequiresRuc
-                ? "Road User Charges (RUC) apply to this vehicle."
-                : "No Road User Charges (RUC) required for this fuel type.";
+                ? "Distance-based road tax may apply for this fuel type in some regions."
+                : "No distance-based road tax is required for this fuel type in most regions.";
 
     #endregion
 
@@ -791,54 +788,57 @@ public class NewVehicleViewModel : BaseViewModel
     // Powered assets (need fuel + odo)
     public bool IsPoweredVehicle =>
         SelectedVehicleType?.Value == VehicleType.LightVehicle ||
-        SelectedVehicleType?.Value == VehicleType.UtilityVehicle ||
-        SelectedVehicleType?.Value == VehicleType.TruckClass2 ||
-        SelectedVehicleType?.Value == VehicleType.TruckClass4;
+        SelectedVehicleType?.Value == VehicleType.LightCommercial ||
+        SelectedVehicleType?.Value == VehicleType.RigidTruckMedium ||
+        SelectedVehicleType?.Value == VehicleType.RigidTruckHeavy ||
+        SelectedVehicleType?.Value == VehicleType.TractorUnit;
 
     public bool IsTrailerAsset =>
-        SelectedVehicleType?.Value == VehicleType.LightVehicleTrailer ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass3 ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass5;
+        SelectedVehicleType?.Value == VehicleType.TrailerLight ||
+        SelectedVehicleType?.Value == VehicleType.TrailerHeavy;
 
-    public bool IsLightTrailer => SelectedVehicleType?.Value == VehicleType.LightVehicleTrailer;
+
+    public bool IsLightTrailer => SelectedVehicleType?.Value == VehicleType.TrailerLight;
 
     public bool IsHeavyTrailer =>
-        SelectedVehicleType?.Value == VehicleType.TrailerClass3 ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass5;
+        SelectedVehicleType?.Value == VehicleType.TrailerHeavy;
 
+    // B-double/B-train is a CONFIG thing now, not “TrailerClass5”
     public bool IsBTrain =>
-        SelectedVehicleType?.Value == VehicleType.TrailerClass5
-        && (
-            SelectedHeavyConfig?.Value == VehicleConfiguration.BCurtainSider ||
-            SelectedHeavyConfig?.Value == VehicleConfiguration.BFlatDeck ||
-            SelectedHeavyConfig?.Value == VehicleConfiguration.BRefigerator ||
-            SelectedHeavyConfig?.Value == VehicleConfiguration.BTanker
+        IsHeavyTrailer &&
+        SelectedHeavyConfig != null &&
+        (
+            SelectedHeavyConfig.Value == VehicleConfiguration.BDblCurtainsider ||
+            SelectedHeavyConfig.Value == VehicleConfiguration.BDblFlatDeck ||
+            SelectedHeavyConfig.Value == VehicleConfiguration.BDblRefrigerated ||
+            SelectedHeavyConfig.Value == VehicleConfiguration.BDblTanker
         );
 
-    public bool ShowLightTrailerConfig => SelectedVehicleType?.Value == VehicleType.LightVehicleTrailer;
-
-    public bool ShowClass4UnitType => SelectedVehicleType?.Value == VehicleType.TruckClass4;
-
-    public bool ShowHeavyConfig => SelectedVehicleType?.Value == VehicleType.TrailerClass5;
+    public bool ShowLightTrailerConfig => IsLightTrailer;
+    // Power unit body type applies to rigid trucks; tractor unit doesn’t need it
+    public bool ShowPowerUnitBodyType =>
+        SelectedVehicleType?.Value == VehicleType.RigidTruckMedium ||
+        SelectedVehicleType?.Value == VehicleType.RigidTruckHeavy;
+    public bool ShowHeavyConfig => IsHeavyTrailer;
 
     // User must complete any configuration picker that applies before entering rego.
     public bool ReadyForRego =>
         HasVehicleType &&
         (!ShowLightTrailerConfig || SelectedLightConfig != null) &&
-        (!ShowClass4UnitType || SelectedClass4UnitType != null) &&
+        (!ShowPowerUnitBodyType || _selectedPowerUnitBodyType != null) &&
         (!ShowHeavyConfig || SelectedHeavyConfig != null);
 
     public bool IsHeavyVehicle =>
-        SelectedVehicleType?.Value == VehicleType.TruckClass2 ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass3 ||
-        SelectedVehicleType?.Value == VehicleType.TruckClass4 ||
-        SelectedVehicleType?.Value == VehicleType.TrailerClass5;
+        SelectedVehicleType?.Value == VehicleType.RigidTruckMedium ||
+        SelectedVehicleType?.Value == VehicleType.RigidTruckHeavy ||
+        SelectedVehicleType?.Value == VehicleType.TrailerHeavy;
 
     public ComplianceCertificateType RequiredCertificate =>
-        IsHeavyVehicle ? ComplianceCertificateType.Cof : ComplianceCertificateType.Wof;
+      IsHeavyVehicle ? ComplianceCertificateType.Cof : ComplianceCertificateType.Wof;
 
-    public string CertificateName => RequiredCertificate == ComplianceCertificateType.Cof ? "COF" : "WOF";
-    public string CertificatePluralName => RequiredCertificate == ComplianceCertificateType.Cof ? "COFs" : "WOFs";
+    // UI wording (global)
+    public string CertificateName => "Inspection";
+    public string CertificatePluralName => "Inspection / certification";
 
     // How many regos/certs this screen is collecting (by slot rule).
     public int RegoCount
@@ -913,14 +913,13 @@ public class NewVehicleViewModel : BaseViewModel
     public bool ShowUnit2Cert => ShowCertificateStep && IsTrailerAsset;
     public bool ShowUnit3Cert => ShowCertificateStep && IsBTrain;
 
-    public string Unit1Label => "Vehicle rego";
-    public string Unit2Label => "Trailer rego";
-    public string Unit3Label => "Trailer 2 rego";
+    public string Unit1Label => "Unit 1 registration";
+    public string Unit2Label => "Unit 2 registration";
+    public string Unit3Label => "Unit 3 registration";
 
-    public string Unit1CertLabel => $"{Unit1Label} {CertificateName} expiry";
-    public string Unit2CertLabel => $"{Unit2Label} {CertificateName} expiry";
-    public string Unit3CertLabel => $"{Unit3Label} {CertificateName} expiry";
-
+    public string Unit1CertLabel => "Unit 1 inspection/certification expiry";
+    public string Unit2CertLabel => "Unit 2 inspection/certification expiry";
+    public string Unit3CertLabel => "Unit 3 inspection/certification expiry";
     public bool CertificateComplete
     {
         get
@@ -960,9 +959,9 @@ public class NewVehicleViewModel : BaseViewModel
     public bool ShowTrailer1Odo => ShowOdometers && IsHeavyTrailer;
     public bool ShowTrailer2Odo => ShowOdometers && IsBTrain;
 
-    public string PowerUnitOdoLabel => "Odometer (km)";
-    public string Trailer1OdoLabel => "Trailer odometer (km)";
-    public string Trailer2OdoLabel => "Trailer 2 odometer (km)";
+    public string PowerUnitOdoLabel => "Odometer";
+    public string Trailer1OdoLabel => "Odometer (unit 2)";
+    public string Trailer2OdoLabel => "Odometer (unit 3)";
 
     // Notifies UI for all derived "flow" properties that depend on upstream fields.
     // This is the single place to keep the wizard UI consistent.
@@ -978,7 +977,7 @@ public class NewVehicleViewModel : BaseViewModel
 
         // Pickers / next-step sections
         OnPropertyChanged(nameof(ShowLightTrailerConfig));
-        OnPropertyChanged(nameof(ShowClass4UnitType));
+        OnPropertyChanged(nameof(ShowPowerUnitBodyType));
         OnPropertyChanged(nameof(ShowHeavyConfig));
         OnPropertyChanged(nameof(ReadyForRego));
 
@@ -1145,13 +1144,11 @@ public class NewVehicleViewModel : BaseViewModel
             UnitNumber = TRAILER_1_SLOT,
             Kind = AssetKind.Trailer,
             VehicleType = SelectedVehicleType.Value,
-
+            // Trailer configuration depends on whether this is light or heavy trailer.
             Configuration =
-                SelectedVehicleType.Value == VehicleType.TrailerClass5
-                    ? SelectedHeavyConfig?.Value
-                    : SelectedVehicleType.Value == VehicleType.LightVehicleTrailer
-                        ? SelectedLightConfig?.Value
-                        : null,
+                    IsHeavyTrailer ? SelectedHeavyConfig?.Value
+                    : IsLightTrailer ? SelectedLightConfig?.Value
+                    : null,
 
             Year = Unit2Year.Value,
             Rego = Unit2Rego.Trim(),

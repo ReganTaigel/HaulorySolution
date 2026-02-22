@@ -1,118 +1,182 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Mobile.Views.DeliverySignaturePage"
-    Title="Delivery Signature">
+    x:Class="Haulory.Mobile.Views.DeliverySignaturePage">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+    <Grid RowDefinitions="*,Auto"
+          Padding="0"
+          RowSpacing="0">
 
-    <Grid RowDefinitions="*,Auto">
-
-        <!-- ========================= -->
-        <!-- SCROLLABLE JOB DETAILS -->
-        <!-- ========================= -->
+        <!-- SCROLLABLE DETAILS -->
         <ScrollView Grid.Row="0">
-            <VerticalStackLayout Padding="10" Spacing="16">
+            <VerticalStackLayout Padding="20" Spacing="14">
 
-                <!-- Job details -->
-                <Border
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="14">
+                <!-- Page header -->
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Delivery signature"
+                           FontSize="24"
+                           FontAttributes="Bold" />
+                    <Label Text="Confirm receiver and capture signature"
+                           FontSize="13"
+                           Opacity="0.7" />
+                </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Delivery Details"
-                               FontSize="18"
-                               FontAttributes="Bold"/>
-
-                        <Label Text="{Binding ReferenceNumber}"
-                               FontAttributes="Bold"
-                               FontSize="14"/>
-
-                        <Label Text="{Binding PickupCompany}"
-                               FontSize="13"
-                               TextColor="Gray"/>
-
-                        <Label Text="{Binding DeliveryCompany}"
-                               FontSize="13"
-                               TextColor="Gray"/>
-
-                        <Label Text="{Binding LoadDescription}"
-                               FontSize="13"
-                               TextColor="Gray"/>
-                    </VerticalStackLayout>
-                </Border>
-
-                <!-- Receiver -->
-                <Border
-                    StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="14">
+                <!-- Job details card -->
+                <Border StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                        Padding="16">
 
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="Receiver"
-                               FontSize="16"
-                               FontAttributes="Bold"/>
 
-                        <Entry Placeholder="Receiver full name"
-                               Text="{Binding ReceiverName}" />
+                        <Label Text="Delivery details"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+
+                        <Border StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                Padding="12">
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label Text="{Binding ReferenceNumber}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       LineBreakMode="TailTruncation" />
+
+                                <Label Text="{Binding PickupCompany}"
+                                       FontSize="13"
+                                       Opacity="0.75"
+                                       LineBreakMode="TailTruncation" />
+
+                                <Label Text="{Binding DeliveryCompany}"
+                                       FontSize="13"
+                                       Opacity="0.75"
+                                       LineBreakMode="TailTruncation" />
+
+                                <Label Text="{Binding LoadDescription}"
+                                       FontSize="13"
+                                       Opacity="0.75"
+                                       LineBreakMode="WordWrap"
+                                       MaxLines="3" />
+
+                            </VerticalStackLayout>
+                        </Border>
+
                     </VerticalStackLayout>
                 </Border>
+
+                <!-- Receiver card -->
+                <Border StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        StrokeShape="RoundRectangle 18"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                        Padding="16">
+
+                    <VerticalStackLayout Spacing="12">
+
+                        <Label Text="Receiver"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+
+                        <Label Text="Full name as shown on the delivery"
+                               FontSize="12"
+                               Opacity="0.6" />
+
+                        <Entry Placeholder="Receiver full name"
+                               Text="{Binding ReceiverName}"
+                               HeightRequest="44" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Breathing room so last card is not hidden behind panel -->
+                <BoxView HeightRequest="10" Opacity="0" />
 
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- ========================= -->
         <!-- FIXED SIGNATURE PANEL -->
-        <!-- ========================= -->
-        <Border
-            Grid.Row="1"
-            Padding="10"
-            Margin="10"
-            StrokeThickness="1"
-            StrokeShape="RoundRectangle 16"
-            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-            BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#1F2937'}">
+        <Border Grid.Row="1"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                StrokeShape="RoundRectangle 20"
+                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                Padding="14"
+                Margin="12,8,12,12">
 
             <Grid RowDefinitions="Auto,Auto,Auto,Auto"
-                RowSpacing="10">
+                  RowSpacing="10">
 
                 <!-- Title -->
-                <Label Grid.Row="0"
-                   Text="Signature"
-                   FontSize="16"
-                   FontAttributes="Bold"/>
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="Signature"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Sign in the area below"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
 
-                <!-- Signature Canvas -->
-                <GraphicsView x:Name="SignatureView"
-                    Grid.Row="1"
-                    HeightRequest="180"
-                    Drawable="{Binding SignatureDrawable}"
-                    StartInteraction="OnStartInteraction"
-                    DragInteraction="OnDragInteraction"
-                    EndInteraction="OnEndInteraction"/>
+                    <!-- Optional signature state text -->
+                    <Label Grid.Column="1"
+                           Text="{Binding StatusMessage}"
+                           FontSize="12"
+                           Opacity="0.7"
+                           VerticalTextAlignment="Center"
+                           LineBreakMode="TailTruncation"
+                           MaxLines="1" />
+                </Grid>
+
+                <!-- Signature surface -->
+                <Border Grid.Row="1"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#111827'}"
+                        Padding="10">
+
+                    <GraphicsView x:Name="SignatureView"
+                                  HeightRequest="180"
+                                  Drawable="{Binding SignatureDrawable}"
+                                  StartInteraction="OnStartInteraction"
+                                  DragInteraction="OnDragInteraction"
+                                  EndInteraction="OnEndInteraction" />
+                </Border>
 
                 <!-- Buttons -->
                 <Grid Grid.Row="2"
-                  ColumnDefinitions="*,*"
-                  ColumnSpacing="10">
+                      ColumnDefinitions="*,*"
+                      ColumnSpacing="12">
 
-                    <Button
-                        Grid.Column="0"
-                        Text="Clear"
-                        Command="{Binding ClearSignatureCommand}" />
+                    <Button Grid.Column="0"
+                            Text="Clear"
+                            HeightRequest="46"
+                            CornerRadius="14"
+                            BackgroundColor="{AppThemeBinding Light='#F3F4F6', Dark='#111827'}"
+                            TextColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"
+                            Command="{Binding ClearSignatureCommand}" />
 
-                    <Button
-                        Grid.Column="1"
-                        Text="Save Delivery"
-                        Command="{Binding SaveCommand}" />
+                    <Button Grid.Column="1"
+                            Text="Save delivery"
+                            HeightRequest="46"
+                            CornerRadius="14"
+                            BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
+                            TextColor="White"
+                            Command="{Binding SaveCommand}" />
                 </Grid>
 
-                <!-- Status -->
+                <!-- Secondary status line (optional, keeps layout stable) -->
                 <Label Grid.Row="3"
-                   Text="{Binding StatusMessage}"
-                   FontSize="12"
-                   TextColor="Gray"/>
+                       Text="{Binding StatusMessage}"
+                       FontSize="12"
+                       Opacity="0.6"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="2" />
             </Grid>
         </Border>
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Haulory.Domain.Enums;
 
 namespace Haulory.Domain.Entities;
@@ -38,8 +39,9 @@ public class VehicleAsset
     // Persisted configuration (trailers, and optional future use)
     public VehicleConfiguration? Configuration { get; set; }
 
-    // Persist Class 4 subtype (Truck vs Tractor)
-    public Class4PowerUnitType? Class4UnitType { get; set; }
+    // Persist power unit body / subtype
+    // (Global naming; avoids NZ-specific "Class 4" wording)
+    public PowerUnitBodyType? PowerUnitBodyType { get; set; }
 
     #endregion
 
@@ -49,6 +51,10 @@ public class VehicleAsset
     // - Powered vehicle if FuelType is Diesel/Electric
     // - Heavy trailers (Class 3 and Class 5)
     // Stored per asset (Unit 1 / Unit 2 / Unit 3 each has its own RUC record)
+    //
+    // NOTE (Region-lock):
+    // RUC is NZ-specific. Keep for v1.0 validation, but later move into a
+    // CompliancePolicy/CountrySettings module so other countries can swap equivalents.
 
     // Odometer reading when the latest RUC distance was purchased
     public int? RucOdometerAtPurchaseKm { get; set; }
@@ -96,12 +102,12 @@ public class VehicleAsset
     public string VehicleTypeDisplay => VehicleType switch
     {
         Enums.VehicleType.LightVehicle => "Light Vehicle",
-        Enums.VehicleType.UtilityVehicle => "Utility Vehicle",
-        Enums.VehicleType.LightVehicleTrailer => "Light Vehicle Trailer",
-        Enums.VehicleType.TruckClass2 => "Truck (Class 2)",
-        Enums.VehicleType.TrailerClass3 => "Trailer (Class 3)",
-        Enums.VehicleType.TruckClass4 => "Truck (Class 4)",
-        Enums.VehicleType.TrailerClass5 => "Trailer (Class 5)",
+        Enums.VehicleType.LightCommercial => "Light Commercial Vehicle",
+        Enums.VehicleType.RigidTruckMedium => "Medium Rigid Truck",
+        Enums.VehicleType.RigidTruckHeavy => "Heavy Rigid Truck",
+        Enums.VehicleType.TractorUnit => "Tractor Unit",
+        Enums.VehicleType.TrailerLight => "Light Trailer",
+        Enums.VehicleType.TrailerHeavy => "Heavy Trailer",
         _ => VehicleType?.ToString() ?? string.Empty
     };
 
@@ -115,7 +121,9 @@ public class VehicleAsset
     };
 
     public string CertificateNameDisplay =>
-        CertificateType == ComplianceCertificateType.Cof ? "COF" : "WOF";
+        CertificateType == ComplianceCertificateType.Cof ? "COF" :
+        CertificateType == ComplianceCertificateType.Wof ? "WOF" :
+        string.Empty;
 
     // Unit slot labels (slot rules)
     public string UnitRoleDisplay => UnitNumber switch
@@ -136,41 +144,44 @@ public class VehicleAsset
         VehicleConfiguration.SingleAxle => "Single Axle Trailer",
         VehicleConfiguration.TandemAxle => "Tandem Axle Trailer",
 
-        // Simi Trailer configs
+        // Semi Trailer configs
         VehicleConfiguration.SemiCurtainsider => "Semi Trailer (Curtains)",
         VehicleConfiguration.SemiFlatDeck => "Semi Trailer (Flat Deck)",
-        VehicleConfiguration.SemiRefrigerator => "Semi Trailer (Refrigerated)",
+        VehicleConfiguration.SemiRefrigerated => "Semi Trailer (Refrigerated)",
         VehicleConfiguration.SemiTanker => "Semi Trailer (Tanker)",
         VehicleConfiguration.SemiSkeleton => "Semi Trailer (Skeleton)",
 
         // Rigid Trucks configs
-        VehicleConfiguration.RigidTruckCurtainsider => "Rigid Truck (Curtains)",
-        VehicleConfiguration.RigidTruckFlatDeck => "Rigid Truck (Flat Deck)",
-        VehicleConfiguration.RigidTruckRefrigerator => "Rigid Truck (Refrigerated)",
-        VehicleConfiguration.RigidTruckTanker => "Rigid Truck (Tanker)",
+        VehicleConfiguration.RigidCurtainsider => "Rigid Truck (Curtains)",
+        VehicleConfiguration.RigidFlatDeck => "Rigid Truck (Flat Deck)",
+        VehicleConfiguration.RigidRefrigerated => "Rigid Truck (Refrigerated)",
+        VehicleConfiguration.RigidTanker => "Rigid Truck (Tanker)",
 
-        // Rigid Trailers
-        VehicleConfiguration.CurtainSiderTrailer => "Curtainsider Trailer(A-Frame)",
-        VehicleConfiguration.FlatDeckTrailer => "Flat Deck (A-Frame)",
-        VehicleConfiguration.RefrigeratorTrailer => "Refrigerated Trailer (A-Frame)",
-        VehicleConfiguration.TankerTrailer => "Tanker Trailer (A-Frame)",
+        // Drawbar / A-frame / rigid trailers
+        VehicleConfiguration.DrawbarCurtainsider => "Curtainsider Trailer(A-Frame)",
+        VehicleConfiguration.DrawbarFlatDeck => "Flat Deck (A-Frame)",
+        VehicleConfiguration.DrawbarRefrigerated => "Refrigerated Trailer (A-Frame)",
+        VehicleConfiguration.DrawbarTanker => "Tanker Trailer (A-Frame)",
 
-        // B Train Trailers
-        VehicleConfiguration.BCurtainSider => "Curtainsider Trailer (Fifth Wheel)",
-        VehicleConfiguration.BFlatDeck => "Flat Deck Trailer (Fifth Wheel)",
-        VehicleConfiguration.BRefigerator => "Refigerator Trailers (Fifth Wheel)",
-        VehicleConfiguration.BTanker => "Tanker Trialer (Fifth Wheel)",
+        // B-double / B-train trailers
+        VehicleConfiguration.BDblCurtainsider => "Curtainsider Trailer (Fifth Wheel)",
+        VehicleConfiguration.BDblFlatDeck => "Flat Deck Trailer (Fifth Wheel)",
+        VehicleConfiguration.BDblRefrigerated => "Refigerator Trailers (Fifth Wheel)",
+        VehicleConfiguration.BDblTanker => "Tanker Trialer (Fifth Wheel)",
 
         // Tractor Units
-        VehicleConfiguration.TractorUint => "Tractor Unit",
+        VehicleConfiguration.TractorUnit => "Tractor Unit",
 
         _ => string.Empty
     };
-
-    // Class 4 power unit subtype display
+    // Power unit subtype display (body style only; tractor is represented by VehicleType)
     public string PowerUnitSubtypeDisplay =>
-        VehicleType == Enums.VehicleType.TruckClass4 && Class4UnitType != null
-            ? (Class4UnitType == Enums.Class4PowerUnitType.Tractor ? "Tractor Unit" : "Truck")
+        Kind == AssetKind.PowerUnit && PowerUnitBodyType != null
+            ? PowerUnitBodyType.Value switch
+            {
+                Enums.PowerUnitBodyType.Tractor => "Tractor Unit",
+                _ => "Truck"
+            }
             : string.Empty;
 
     // Prefix used by UI headers and cards
@@ -196,8 +207,11 @@ public class VehicleAsset
     }
 
     // Safe date strings for UI
-    public string RegoExpiryDisplay => RegoExpiry?.ToString("dd/MM/yyyy") ?? "—";
-    public string CertificateExpiryDisplay => CertificateExpiry?.ToString("dd/MM/yyyy") ?? "—";
+    //
+    // NOTE (Global readiness):
+    // Do not hardcode "dd/MM/yyyy" in Domain. Use current culture short date pattern.
+    public string RegoExpiryDisplay => FormatLocalDate(RegoExpiry) ?? "—";
+    public string CertificateExpiryDisplay => FormatLocalDate(CertificateExpiry) ?? "—";
 
     #endregion
 
@@ -244,17 +258,16 @@ public class VehicleAsset
 
     // RUC applies to:
     // - Power unit where fuel is Diesel/Electric
-    // - Heavy trailers: Trailer Class 3 and Trailer Class 5
+    // - Heavy trailers
     public bool IsRucApplicable
     {
         get
         {
             // Heavy trailers
-            if (VehicleType == Enums.VehicleType.TrailerClass3 ||
-                VehicleType == Enums.VehicleType.TrailerClass5)
+            if (VehicleType == Enums.VehicleType.TrailerHeavy)
                 return true;
 
-            // Powered vehicles (fuel-based)
+            // Powered vehicles requiring distance-based road tax
             if (Kind == AssetKind.PowerUnit &&
                 (FuelType == Enums.FuelType.Diesel || FuelType == Enums.FuelType.Electric))
                 return true;
@@ -265,7 +278,7 @@ public class VehicleAsset
 
     // Purchase metadata (analytics)
     public string RucPurchasedDateDisplay =>
-        RucPurchasedDate?.ToString("dd/MM/yyyy") ?? "—";
+        FormatLocalDate(RucPurchasedDate) ?? "—";
 
     public string RucDistancePurchasedDisplay =>
         RucDistancePurchasedKm == null ? "—" : $"{RucDistancePurchasedKm.Value:N0} km";
@@ -292,6 +305,18 @@ public class VehicleAsset
 
     // YES/NO string for UI
     public string IsRucOverdueYesNo => IsRucOverdue ? "YES" : "NO";
+
+    #endregion
+
+    #region Helpers
+
+    private static string? FormatLocalDate(DateTime? date)
+    {
+        if (date == null) return null;
+
+        // Use the device/user culture for date formatting (global-ready)
+        return date.Value.ToString("d", CultureInfo.CurrentCulture);
+    }
 
     #endregion
 }

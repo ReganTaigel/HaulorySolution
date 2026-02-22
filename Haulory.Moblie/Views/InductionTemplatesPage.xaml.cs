@@ -1,3 +1,5 @@
+using Haulory.Mobile.ViewModels;
+
 namespace Haulory.Mobile.Views;
 
 public partial class InductionTemplatesPage : ContentPage

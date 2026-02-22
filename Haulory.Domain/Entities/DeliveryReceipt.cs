@@ -1,4 +1,5 @@
 ﻿using Haulory.Domain.Enums;
+using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
@@ -82,23 +83,25 @@ public class DeliveryReceipt
     {
         JobId = jobId;
 
-        ReferenceNumber = referenceNumber;
-        InvoiceNumber = invoiceNumber;
+        ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
+        InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
-        PickupCompany = pickupCompany;
-        PickupAddress = pickupAddress;
-        DeliveryCompany = deliveryCompany;
-        DeliveryAddress = deliveryAddress;
-        LoadDescription = loadDescription;
+        PickupCompany = pickupCompany?.Trim() ?? string.Empty;
+        PickupAddress = pickupAddress?.Trim() ?? string.Empty;
+        DeliveryCompany = deliveryCompany?.Trim() ?? string.Empty;
+        DeliveryAddress = deliveryAddress?.Trim() ?? string.Empty;
+        LoadDescription = loadDescription?.Trim() ?? string.Empty;
 
         RateType = rateType;
         RateValue = rateValue;
         Quantity = quantity;
         Total = total;
 
-        ReceiverName = receiverName;
+        // Normalize receiver name for consistent display and auditing
+        ReceiverName = NameFormatter.ToTitleCase(receiverName) ?? string.Empty;
+
         DeliveredAtUtc = deliveredAtUtc;
-        SignatureJson = signatureJson;
+        SignatureJson = signatureJson?.Trim() ?? string.Empty;
     }
 
     #endregion

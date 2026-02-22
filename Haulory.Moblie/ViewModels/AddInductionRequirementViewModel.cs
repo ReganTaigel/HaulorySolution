@@ -1,10 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
+using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
+using System;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
@@ -210,7 +211,7 @@ public class AddInductionRequirementViewModel : BaseViewModel
             await _reqs.AddAsync(req);
 
             await Shell.Current.DisplayAlertAsync("Saved", "Requirement created.", "OK");
-            await Shell.Current.GoToAsync("..");
+            await Shell.Current.GoToAsync(nameof(InductionTemplatesPage));
         }
         catch (Exception ex)
         {

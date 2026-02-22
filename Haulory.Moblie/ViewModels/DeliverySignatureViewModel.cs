@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
+using Haulory.Domain.Entities;
+using Haulory.Mobile.Views;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 
 namespace Haulory.Mobile.ViewModels;
 
@@ -20,6 +21,10 @@ public class DeliverySignatureViewModel : BaseViewModel
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
     private readonly IUnitOfWork _uow;
+
+    // Optional: tiny event hook so Dashboard/Reports can refresh instantly.
+    // If you don't have this yet, keep it null. (We can add it next as a small interface.)
+    private readonly IAppEventBus? _events;
 
     #endregion
 
@@ -100,13 +105,13 @@ public class DeliverySignatureViewModel : BaseViewModel
         get => _jobId.ToString();
         set
         {
-            if (Guid.TryParse(value, out var id))
-            {
-                _jobId = id;
+            if (!Guid.TryParse(value, out var id))
+                return;
 
-                // Fire-and-forget load, safe because LoadJobAsync updates StatusMessage
-                _ = LoadJobAsync();
-            }
+            _jobId = id;
+
+            // Load safely (don't swallow exceptions silently)
+            _ = LoadJobSafeAsync();
         }
     }
 
@@ -117,11 +122,13 @@ public class DeliverySignatureViewModel : BaseViewModel
     public DeliverySignatureViewModel(
         IJobRepository jobRepository,
         IDeliveryReceiptRepository deliveryReceiptRepository,
-        IUnitOfWork uow)
+        IUnitOfWork uow,
+        IAppEventBus? events = null)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
         _uow = uow;
+        _events = events;
 
         SignatureDrawable = new SignatureDrawable(_strokes);
 
@@ -134,33 +141,53 @@ public class DeliverySignatureViewModel : BaseViewModel
             StatusMessage = "Signature cleared.";
         });
 
-        SaveCommand = new Command(async () => await SaveAsync());
+        SaveCommand = new Command(async () => await SaveAsync(), () => !_isSaving);
     }
 
     #endregion
 
     #region Load
 
+    private async Task LoadJobSafeAsync()
+    {
+        try
+        {
+            await LoadJobAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Load failed: {ex.Message}";
+        }
+    }
+
     private async Task LoadJobAsync()
     {
+        StatusMessage = "Loading job...";
+
         _job = await _jobRepository.GetByIdAsync(_jobId);
 
         if (_job == null)
         {
             StatusMessage = "Job not found.";
+            RaiseJobPropertiesChanged();
             return;
         }
 
+        RaiseJobPropertiesChanged();
+
+        StatusMessage = _job.IsDelivered
+            ? "This job has already been delivered."
+            : "Sign and save delivery.";
+    }
+
+    private void RaiseJobPropertiesChanged()
+    {
         OnPropertyChanged(nameof(ReferenceNumber));
         OnPropertyChanged(nameof(PickupCompany));
         OnPropertyChanged(nameof(DeliveryCompany));
         OnPropertyChanged(nameof(DeliveryAddress));
         OnPropertyChanged(nameof(LoadDescription));
         OnPropertyChanged(nameof(IsDelivered));
-
-        StatusMessage = _job.IsDelivered
-            ? "This job has already been delivered."
-            : "Sign and save delivery.";
     }
 
     #endregion
@@ -197,6 +224,7 @@ public class DeliverySignatureViewModel : BaseViewModel
             return;
 
         _isSaving = true;
+        ((Command)SaveCommand).ChangeCanExecute();
 
         try
         {
@@ -261,20 +289,29 @@ public class DeliverySignatureViewModel : BaseViewModel
                 await _jobRepository.DeleteAsync(_job.Id);
             });
 
+            // Notify app state (optional; used to refresh Dashboard quick stats / reports lists)
+            if (_events != null)
+                await _events.PublishAsync(new JobCompletedEvent(_job.Id));
+
             await Shell.Current.DisplayAlertAsync("Saved", "Delivery signed and saved.", "OK");
-            await Shell.Current.GoToAsync("..");
+
+            // ✅ Deterministic navigation to Reports with context
+            await Shell.Current.GoToAsync($"{nameof(ReportsPage)}?jobId={_job.Id}");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
         }
         finally
         {
             _isSaving = false;
+            ((Command)SaveCommand).ChangeCanExecute();
         }
     }
 
-    private bool HasSignature()
-    {
+    private bool HasSignature() =>
         // Require at least one stroke with enough points to be a real signature
-        return _strokes.Any(s => s.Count > 2);
-    }
+        _strokes.Any(s => s.Count > 2);
 
     private string BuildSignatureJson()
     {
@@ -291,6 +328,19 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 }
+
+#region Events (tiny, optional)
+
+public record JobCompletedEvent(Guid JobId);
+
+public interface IAppEventBus
+{
+    Task PublishAsync<T>(T message);
+    void Subscribe<T>(object subscriber, Action<T> handler);
+    void Unsubscribe(object subscriber);
+}
+
+#endregion
 
 #region Signature JSON Models
 

@@ -3,149 +3,280 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.DashboardPage"
     Shell.NavBarIsVisible="False">
-
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
     <ScrollView>
-        <VerticalStackLayout Padding="24" Spacing="20">
+        <VerticalStackLayout Padding="20" Spacing="14">
 
             <!-- HEADER -->
-            <VerticalStackLayout Spacing="4">
-                <Label
-                    Text="Haulory"
-                    FontSize="28"
-                    FontAttributes="Bold" />
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Haulory"
+                       FontSize="30"
+                       FontAttributes="Bold" />
 
-                <Label
-                    Text="Business overview"
-                    FontSize="14"
-                    TextColor="Gray" />
+                <Label Text="Business overview"
+                       FontSize="13"
+                       Opacity="0.7" />
             </VerticalStackLayout>
 
-            <!-- JOBS -->
-            <Border
-                StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 16"
-                Padding="16">
+            <!-- HERO SUMMARY -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
 
-                <VerticalStackLayout Spacing="12">
-                    <Label
-                        Text="Jobs"
-                        FontSize="18"
-                        FontAttributes="Bold" />
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Today at a glance"
+                           FontSize="16"
+                           FontAttributes="Bold" />
 
-                    <Label
-                        Text="{Binding CurrentJobSummary}"
-                        FontSize="14"
-                        TextColor="Gray" />
+                    <Label Text="{Binding CurrentJobSummary}"
+                           FontSize="13"
+                           Opacity="0.75"
+                           LineBreakMode="WordWrap" />
 
-                    <Button
-                        Text="Manage Jobs"
-                        Command="{Binding GoToJobsCommand}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- VEHICLES -->
-            <Border
-                StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 16"
-                Padding="16">
-
-                <VerticalStackLayout Spacing="12">
-                    <Label
-                        Text="Vehicles"
-                        FontSize="18"
-                        FontAttributes="Bold" />
-
-                    <Button
-                        Text="Manage Vehicles"
-                        Command="{Binding GoToVehiclesCommand}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- DRIVERS -->
-            <Border
-                StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 16"
-                Padding="16">
-
-                <VerticalStackLayout Spacing="12">
-                    <Label
-                        Text="Drivers"
-                        FontSize="18"
-                        FontAttributes="Bold" />
-
-                    <Button
-                        Text="Manage Drivers"
-                        Command="{Binding GoToDriversCommand}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- REPORTS (UPDATED) -->
-            <Border
-                StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                StrokeShape="RoundRectangle 16"
-                Padding="16">
-
-                <VerticalStackLayout Spacing="12">
-                    <Label
-                        Text="Reports"
-                        FontSize="18"
-                        FontAttributes="Bold" />
-
-                    <!-- Quick stats row -->
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-                        <Border
-                            Grid.Column="0"
-                            StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    <!-- Delivered count as a large metric -->
+                    <Border StrokeThickness="0"
                             StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
                             Padding="12">
 
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <VerticalStackLayout Spacing="2">
-                                <Label Text="Delivered (Today)" FontSize="12" TextColor="Gray"/>
-                                <Label Text="{Binding CompletedTodayCount}" FontSize="22" FontAttributes="Bold"/>
+                                <Label Text="Delivered"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                                <Label Text="Jobs completed today"
+                                       FontSize="12"
+                                       Opacity="0.6" />
                             </VerticalStackLayout>
-                        </Border>
 
-                        <Border
-                            Grid.Column="1"
-                            StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="12">
-
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="Revenue (Today)" FontSize="12" TextColor="Gray"/>
-                                <Label Text="{Binding RevenueToday, StringFormat='{}{0:C}'}"
-                                       FontSize="22"
-                                       FontAttributes="Bold"/>
-                            </VerticalStackLayout>
-                        </Border>
-                    </Grid>
-
-                    <!-- Latest completed job summary -->
-                    <Label
-                        Text="{Binding LatestCompletedSummary}"
-                        FontSize="13"
-                        TextColor="Gray" />
-
-                    <Button
-                        Text="View Reports"
-                        Command="{Binding GoToReportsCommand}" />
+                            <Label Grid.Column="1"
+                                   Text="{Binding CompletedTodayCount}"
+                                   FontSize="26"
+                                   FontAttributes="Bold"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
                 </VerticalStackLayout>
+            </Border>
+
+            <!-- STATS (STACKED FOR MOBILE) -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Quick stats"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <!-- Revenue -->
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Revenue today"
+                                       FontSize="12"
+                                       Opacity="0.7" />
+                                <Label Text="Track earnings and trends"
+                                       FontSize="12"
+                                       Opacity="0.6" />
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="1"
+                                   Text="{Binding RevenueToday, StringFormat='{0:N2}'}"
+                                   FontSize="22"
+                                   FontAttributes="Bold"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Latest completed -->
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Latest completed"
+                                   FontSize="12"
+                                   Opacity="0.7" />
+                            <Label Text="{Binding LatestCompletedSummary}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   LineBreakMode="TailTruncation"
+                                   MaxLines="2" />
+                            <Label Text="Open Reports for details"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        </VerticalStackLayout>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToReportsCommand}" />
+                        </Border.GestureRecognizers>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ACTIONS -->
+            <Label Text="Manage"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   Margin="2,4,0,0" />
+
+            <!-- Jobs -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Jobs"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Create, allocate, and track deliveries"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="1"
+                            Text="Open"
+                            Command="{Binding GoToJobsCommand}"
+                            CornerRadius="14"
+                            HeightRequest="44"
+                            Padding="16,0" />
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToJobsCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Vehicles -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Vehicles"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Manage units, configurations, and assets"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="1"
+                            Text="Open"
+                            Command="{Binding GoToVehiclesCommand}"
+                            CornerRadius="14"
+                            HeightRequest="44"
+                            Padding="16,0" />
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToVehiclesCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Drivers -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Drivers"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Profiles, licences, compliance, and contacts"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="1"
+                            Text="Open"
+                            Command="{Binding GoToDriversCommand}"
+                            CornerRadius="14"
+                            HeightRequest="44"
+                            Padding="16,0" />
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToDriversCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
+
+            <!-- Reports -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="14">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Reports"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Revenue, delivered jobs, and performance"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="1"
+                            Text="Open"
+                            Command="{Binding GoToReportsCommand}"
+                            CornerRadius="14"
+                            HeightRequest="44"
+                            Padding="16,0" />
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding GoToReportsCommand}" />
+                </Border.GestureRecognizers>
             </Border>
 
             <!-- LOGOUT -->
-            <Button
-                Text="Logout"
-                Command="{Binding LogoutCommand}"
-                BackgroundColor="#DC2626"
-                TextColor="White"
-                CornerRadius="14"
-                HeightRequest="48"/>
+            <Border StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FEF2F2', Dark='#2B0B0B'}"
+                    Padding="12"
+                    Margin="0,6,0,10">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Logout"
+                               FontSize="16"
+                               FontAttributes="Bold" />
+                        <Label Text="Sign out of Haulory on this device"
+                               FontSize="12"
+                               Opacity="0.7" />
+                    </VerticalStackLayout>
+
+                    <Button Grid.Column="1"
+                            Text="Sign out"
+                            Command="{Binding LogoutCommand}"
+                            BackgroundColor="#DC2626"
+                            TextColor="White"
+                            CornerRadius="14"
+                            HeightRequest="44"
+                            Padding="16,0" />
+                </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding LogoutCommand}" />
+                </Border.GestureRecognizers>
+            </Border>
 
         </VerticalStackLayout>
     </ScrollView>

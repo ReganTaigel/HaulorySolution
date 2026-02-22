@@ -1,5 +1,5 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
@@ -74,9 +74,10 @@ public class Driver
         OwnerUserId = ownerUserId;
         UserId = userId;
 
-        FirstName = firstName.Trim();
-        LastName = lastName.Trim();
-        Email = email.Trim().ToLowerInvariant();
+        // Normalize identity fields for consistent display + searching
+        FirstName = NameFormatter.ToTitleCase(firstName);
+        LastName = NameFormatter.ToTitleCase(lastName);
+        Email = CleanEmail(email);
     }
 
     #endregion
@@ -85,9 +86,10 @@ public class Driver
 
     public void UpdateIdentity(string firstName, string lastName, string email)
     {
-        FirstName = firstName.Trim();
-        LastName = lastName.Trim();
-        Email = email.Trim().ToLowerInvariant();
+        // Keep formatting consistent with constructor
+        FirstName = NameFormatter.ToTitleCase(firstName);
+        LastName = NameFormatter.ToTitleCase(lastName);
+        Email = CleanEmail(email);
     }
 
     public void UpdatePhone(string? phone)
@@ -220,6 +222,13 @@ public class Driver
 
     private static string? Clean(string? s) =>
         string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+
+    private static string? CleanEmail(string? email)
+    {
+        // Email should always be trimmed + lower for consistent login/search behavior
+        var cleaned = Clean(email);
+        return cleaned?.ToLowerInvariant();
+    }
 
     #endregion
 }
