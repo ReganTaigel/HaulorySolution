@@ -5,60 +5,53 @@ namespace Haulory.Application.Features.Jobs;
 
 public class CreateJobHandler
 {
-    #region Dependencies
-
     private readonly IJobRepository _jobRepository;
-
-    #endregion
-
-    #region Constructor
 
     public CreateJobHandler(IJobRepository jobRepository)
     {
         _jobRepository = jobRepository;
     }
 
-    #endregion
-
-    #region Public API
-
-
-    // Creates and persists a new Job.
-    // Responsibilities:
-    // - Determine next sort order (for list ordering)
-    // - Create Job aggregate
-    // - Persist via repository
- 
     public async Task HandleAsync(CreateJobCommand command)
     {
-        // Determine ordering position for the new job (UI + reporting)
-        var nextOrder = await _jobRepository.GetNextSortOrderAsync();
+        // If your repo is owner-scoped (recommended), use this:
+        var nextOrder = await _jobRepository.GetNextSortOrderAsync(command.OwnerUserId);
 
-        // Create a short invoice number token (8 chars).
-        // Note: This is not guaranteed unique; repository/database should enforce uniqueness if required.
+        // If your repo is NOT owner-scoped yet, use this instead:
+        // var nextOrder = await _jobRepository.GetNextSortOrderAsync();
+
+        // Invoice number token (8 chars) — keep as-is for now
         var invoiceNumber = Guid.NewGuid().ToString("N")[..8];
 
-        // Create the Job aggregate. Allocation (driver/vehicle) is optional at creation time.
         var job = new Job(
-            command.OwnerUserId,
-            command.PickupCompany,
-            command.PickupAddress,
-            command.DeliveryCompany,
-            command.DeliveryAddress,
-            command.ReferenceNumber,
-            command.LoadDescription,
+            jobId: command.JobId,
+            ownerUserId: command.OwnerUserId,
+
+            clientCompanyName: command.ClientCompanyName,
+            clientContactName: command.ClientContactName,
+            clientEmail: command.ClientEmail,
+            clientAddressLine1: command.ClientAddressLine1,
+            clientCity: command.ClientCity,
+            clientCountry: command.ClientCountry,
+
+            pickupCompany: command.PickupCompany,
+            pickupAddress: command.PickupAddress,
+            deliveryCompany: command.DeliveryCompany,
+            deliveryAddress: command.DeliveryAddress,
+
+            referenceNumber: command.ReferenceNumber,
+            loadDescription: command.LoadDescription,
             invoiceNumber: invoiceNumber,
-            command.RateType,
-            command.RateValue,
-            command.Quantity,
-            nextOrder,
+
+            rateType: command.RateType,
+            rateValue: command.RateValue,
+            quantity: command.Quantity,
+
+            sortOrder: nextOrder,
             driverId: command.DriverId,
             vehicleAssetId: command.VehicleAssetId
         );
 
-        // Persist the new job
         await _jobRepository.AddAsync(job);
     }
-
-    #endregion
 }

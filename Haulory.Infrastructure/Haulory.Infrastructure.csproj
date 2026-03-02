@@ -17,6 +17,15 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <AndroidResource Remove="Storage\**" />
+	  <Compile Remove="Storage\**" />
+	  <EmbeddedResource Remove="Storage\**" />
+	  <MauiCss Remove="Storage\**" />
+	  <MauiXaml Remove="Storage\**" />
+	  <None Remove="Storage\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
 		  <PrivateAssets>all</PrivateAssets>
@@ -24,16 +33,13 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
 	  <ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
 	  <ProjectReference Include="..\Haulory.Domain\Haulory.Domain.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Storage\" />
 	</ItemGroup>
 
 </Project>

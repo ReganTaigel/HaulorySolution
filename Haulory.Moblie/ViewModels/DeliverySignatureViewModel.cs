@@ -20,10 +20,9 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly ISessionService _session;
     private readonly IUnitOfWork _uow;
 
-    // Optional: tiny event hook so Dashboard/Reports can refresh instantly.
-    // If you don't have this yet, keep it null. (We can add it next as a small interface.)
     private readonly IAppEventBus? _events;
 
     #endregion
@@ -59,9 +58,7 @@ public class DeliverySignatureViewModel : BaseViewModel
         get => _receiverName;
         set
         {
-            if (_receiverName == value)
-                return;
-
+            if (_receiverName == value) return;
             _receiverName = value;
             OnPropertyChanged();
         }
@@ -72,9 +69,7 @@ public class DeliverySignatureViewModel : BaseViewModel
         get => _statusMessage;
         set
         {
-            if (_statusMessage == value)
-                return;
-
+            if (_statusMessage == value) return;
             _statusMessage = value;
             OnPropertyChanged();
         }
@@ -109,8 +104,6 @@ public class DeliverySignatureViewModel : BaseViewModel
                 return;
 
             _jobId = id;
-
-            // Load safely (don't swallow exceptions silently)
             _ = LoadJobSafeAsync();
         }
     }
@@ -122,11 +115,13 @@ public class DeliverySignatureViewModel : BaseViewModel
     public DeliverySignatureViewModel(
         IJobRepository jobRepository,
         IDeliveryReceiptRepository deliveryReceiptRepository,
+        ISessionService session,
         IUnitOfWork uow,
         IAppEventBus? events = null)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
+        _session = session;
         _uow = uow;
         _events = events;
 
@@ -136,7 +131,6 @@ public class DeliverySignatureViewModel : BaseViewModel
         {
             _strokes.Clear();
             _currentStroke = null;
-
             SignatureDrawable.InvalidateRequested?.Invoke();
             StatusMessage = "Signature cleared.";
         });
@@ -164,7 +158,8 @@ public class DeliverySignatureViewModel : BaseViewModel
     {
         StatusMessage = "Loading job...";
 
-        _job = await _jobRepository.GetByIdAsync(_jobId);
+        // IMPORTANT: tracked entity so we can safely work with it in a transaction if needed
+        _job = await _jobRepository.GetByIdForUpdateAsync(_jobId);
 
         if (_job == null)
         {
@@ -198,7 +193,6 @@ public class DeliverySignatureViewModel : BaseViewModel
     {
         _currentStroke = new List<PointF> { point };
         _strokes.Add(_currentStroke);
-
         SignatureDrawable.InvalidateRequested?.Invoke();
     }
 
@@ -220,8 +214,7 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private async Task SaveAsync()
     {
-        if (_isSaving)
-            return;
+        if (_isSaving) return;
 
         _isSaving = true;
         ((Command)SaveCommand).ChangeCanExecute();
@@ -261,11 +254,32 @@ public class DeliverySignatureViewModel : BaseViewModel
                 return;
             }
 
+            var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+            if (ownerUserId == Guid.Empty)
+            {
+                await Shell.Current.DisplayAlertAsync("Not logged in", "Please log in again.", "OK");
+                return;
+            }
+
             var signatureJson = BuildSignatureJson();
             var deliveredAtUtc = DateTime.UtcNow;
 
+            // Mark delivered (optional if you still delete job, but OK)
+            _job.MarkDelivered(ReceiverName.Trim(), signatureJson);
+
             var receipt = new DeliveryReceipt(
+                ownerUserId: ownerUserId,
                 jobId: _job.Id,
+
+                // Client snapshot from Job (entered at job creation)
+                clientCompanyName: _job.ClientCompanyName,
+                clientContactName: _job.ClientContactName,
+                clientEmail: _job.ClientEmail,
+                clientAddressLine1: _job.ClientAddressLine1,
+                clientCity: _job.ClientCity,
+                clientCountry: _job.ClientCountry,
+
+                // existing receipt snapshot fields
                 referenceNumber: _job.ReferenceNumber,
                 invoiceNumber: _job.InvoiceNumber,
                 pickupCompany: _job.PickupCompany,
@@ -282,21 +296,21 @@ public class DeliverySignatureViewModel : BaseViewModel
                 signatureJson: signatureJson
             );
 
-            // Atomic: either both happen, or neither
             await _uow.ExecuteInTransactionAsync(async () =>
             {
                 await _deliveryReceiptRepository.AddAsync(receipt);
                 await _jobRepository.DeleteAsync(_job.Id);
             });
 
-            // Notify app state (optional; used to refresh Dashboard quick stats / reports lists)
             if (_events != null)
                 await _events.PublishAsync(new JobCompletedEvent(_job.Id));
 
-            await Shell.Current.DisplayAlertAsync("Saved", "Delivery signed and saved.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Saved",
+                "Delivery signed and moved to Reports.",
+                "OK");
 
-            // ✅ Deterministic navigation to Reports with context
-            await Shell.Current.GoToAsync($"{nameof(ReportsPage)}?jobId={_job.Id}");
+            await Shell.Current.GoToAsync(nameof(DashboardPage));
         }
         catch (Exception ex)
         {
@@ -308,10 +322,7 @@ public class DeliverySignatureViewModel : BaseViewModel
             ((Command)SaveCommand).ChangeCanExecute();
         }
     }
-
-    private bool HasSignature() =>
-        // Require at least one stroke with enough points to be a real signature
-        _strokes.Any(s => s.Count > 2);
+    private bool HasSignature() => _strokes.Any(s => s.Count > 2);
 
     private string BuildSignatureJson()
     {
@@ -355,7 +366,6 @@ public record SignatureData(List<SignatureStroke> Strokes);
 public class SignatureDrawable : IDrawable
 {
     private readonly List<List<PointF>> _strokes;
-
     public Action? InvalidateRequested;
 
     public SignatureDrawable(List<List<PointF>> strokes)
@@ -365,10 +375,7 @@ public class SignatureDrawable : IDrawable
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
-        // Transparent background; view decides surface
         canvas.FillColor = Colors.Transparent;
-
-        // Signature styling
         canvas.StrokeColor = Colors.Black;
         canvas.StrokeSize = 3;
 

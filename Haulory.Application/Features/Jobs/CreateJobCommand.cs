@@ -4,80 +4,39 @@ namespace Haulory.Application.Features.Jobs;
 
 #region Command: Create Job
 
-/// <summary>
-/// Command used to create a new transport job.
-/// 
-/// This represents the input data required to persist a Job aggregate.
-/// Validation and business rules are handled inside the corresponding handler.
-/// </summary>
 public record CreateJobCommand(
-
-#region Ownership
-
-
-    // The owner (customer/company user) creating the job.
-    // All jobs are scoped to this OwnerUserId.
-
+    // Ownership
     Guid OwnerUserId,
+    Guid JobId,
 
-#endregion
+    // Client (Bill To)
+    string ClientCompanyName,
+    string? ClientContactName,
+    string? ClientEmail,
+    string ClientAddressLine1,
+    string ClientCity,
+    string ClientCountry,
 
-#region Pickup Details
-
-
-    // Name of the pickup company.
-
+    // Pickup
     string PickupCompany,
-
-    // Physical pickup address.
-
     string PickupAddress,
 
-#endregion
-
-#region Delivery Details
-
-    // Name of the delivery company.
+    // Delivery
     string DeliveryCompany,
-
-    // Physical delivery address.
     string DeliveryAddress,
 
-#endregion
-
-#region Job Information
-    // Customer or freight reference number.
-    // Used for tracking and invoicing.
+    // Job
     string ReferenceNumber,
-
-    // Description of the load being transported.
     string LoadDescription,
 
-#endregion
-
-#region Pricing
-
-    // Defines how the job is charged (e.g., per hour, per load, per tonne).
+    // Pricing
     RateType RateType,
-
-    // Monetary rate value associated with the selected RateType.
     decimal RateValue,
-
-    // Quantity used in pricing calculation (e.g., hours, loads, tonnes).
     decimal Quantity,
 
-#endregion
-
-#region Allocation (Optional)
-
-    // Assigned driver (optional at creation time).
+    // Allocation (optional)
     Guid? DriverId,
-
-
-    // Assigned vehicle or asset (optional at creation time).
     Guid? VehicleAssetId
-
-#endregion
 );
 
 #endregion

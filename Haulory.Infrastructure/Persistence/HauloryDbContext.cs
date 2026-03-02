@@ -52,9 +52,12 @@ public class HauloryDbContext : DbContext
             entity.HasKey(x => x.Id);
 
             entity.HasIndex(x => x.Email).IsUnique();
-
             entity.Property(x => x.Email).IsRequired();
+
             entity.Property(x => x.PasswordHash).IsRequired();
+
+            // Optional: enforce business name for main users
+            entity.Property(x => x.BusinessName).HasMaxLength(200);
 
             entity.HasIndex(x => x.ParentMainUserId);
         });
@@ -143,14 +146,39 @@ public class HauloryDbContext : DbContext
     {
         modelBuilder.Entity<Job>(entity =>
         {
+            entity.HasKey(j => j.Id);
+
             entity.Property(j => j.OwnerUserId).IsRequired();
             entity.HasIndex(j => j.OwnerUserId);
 
+            // Ordering (recommended)
+            entity.Property(j => j.SortOrder).IsRequired();
+            entity.HasIndex(j => new { j.OwnerUserId, j.SortOrder });
+
+            // Client (Bill To)
+            entity.Property(j => j.ClientCompanyName).IsRequired().HasMaxLength(200);
+            entity.Property(j => j.ClientContactName).HasMaxLength(200);
+            entity.Property(j => j.ClientEmail).HasMaxLength(320);
+            entity.Property(j => j.ClientAddressLine1).IsRequired().HasMaxLength(250);
+            entity.Property(j => j.ClientCity).IsRequired().HasMaxLength(120);
+            entity.Property(j => j.ClientCountry).IsRequired().HasMaxLength(120);
+
+            // Money
             entity.Property(j => j.Quantity).HasColumnType("decimal(18,2)");
             entity.Property(j => j.RateValue).HasColumnType("decimal(18,2)");
-
             entity.Property(j => j.QuantityUnit).IsRequired();
 
+            // Invoice
+            entity.Property(j => j.InvoiceNumber).IsRequired().HasMaxLength(64);
+            entity.HasIndex(j => new { j.OwnerUserId, j.InvoiceNumber }).IsUnique();
+
+            // Signatures (can be large)
+            entity.Property(j => j.DeliverySignatureJson).IsRequired(false);
+            entity.Property(j => j.PickupSignatureJson).IsRequired(false);
+            entity.Property(j => j.ReceiverName).HasMaxLength(200);
+            entity.Property(j => j.PickupSignedByName).HasMaxLength(200);
+
+            // Assignment indices
             entity.HasIndex(j => j.DriverId);
             entity.HasIndex(j => j.VehicleAssetId);
 
@@ -170,9 +198,6 @@ public class HauloryDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(j => j.VehicleAssetId)
                   .OnDelete(DeleteBehavior.SetNull);
-
-            // Optional: if invoice numbers should be unique, uncomment:
-            // entity.HasIndex(j => j.InvoiceNumber).IsUnique();
         });
     }
 
@@ -186,14 +211,28 @@ public class HauloryDbContext : DbContext
         {
             entity.HasKey(r => r.Id);
 
-            // One receipt per job
-            entity.HasIndex(r => r.JobId).IsUnique();
+            entity.Property(r => r.OwnerUserId).IsRequired();
+            entity.HasIndex(r => r.OwnerUserId);
 
+            // ✅ One receipt per job PER OWNER
+            entity.HasIndex(r => new { r.OwnerUserId, r.JobId }).IsUnique();
+
+            // Money
             entity.Property(r => r.RateValue).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.Quantity).HasColumnType("decimal(18,2)");
             entity.Property(r => r.Total).HasColumnType("decimal(18,2)");
 
+            // Required POD/signature bits
             entity.Property(r => r.SignatureJson).IsRequired();
             entity.Property(r => r.ReceiverName).IsRequired();
+
+            // ✅ Client snapshot required fields
+            entity.Property(r => r.ClientCompanyName).IsRequired().HasMaxLength(200);
+            entity.Property(r => r.ClientContactName).HasMaxLength(200);
+            entity.Property(r => r.ClientEmail).HasMaxLength(320);
+            entity.Property(r => r.ClientAddressLine1).IsRequired().HasMaxLength(250);
+            entity.Property(r => r.ClientCity).IsRequired().HasMaxLength(120);
+            entity.Property(r => r.ClientCountry).IsRequired().HasMaxLength(120);
 
             entity.HasIndex(r => r.DeliveredAtUtc);
         });

@@ -5,6 +5,7 @@
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
@@ -17,6 +18,65 @@
                        FontSize="13"
                        Opacity="0.7" />
             </VerticalStackLayout>
+
+            <!-- CLIENT / BILL TO -->
+            <Border StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Client (Bill To)"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Border StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Entry Placeholder="Company name"
+                                   Text="{Binding ClientCompanyName}"
+                                   HeightRequest="44" />
+
+                            <Entry Placeholder="Contact name (optional)"
+                                   Text="{Binding ClientContactName}"
+                                   HeightRequest="44" />
+
+                            <Entry Placeholder="Email (optional)"
+                                   Keyboard="Email"
+                                   Text="{Binding ClientEmail}"
+                                   HeightRequest="44" />
+
+                            <Entry Placeholder="Address line 1"
+                                   Text="{Binding ClientAddressLine1}"
+                                   HeightRequest="44" />
+
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
+
+                                <Entry Grid.Column="0"
+                                       Placeholder="City"
+                                       Text="{Binding ClientCity}"
+                                       HeightRequest="44" />
+
+                                <Entry Grid.Column="1"
+                                       Placeholder="Country"
+                                       Text="{Binding ClientCountry}"
+                                       HeightRequest="44" />
+                            </Grid>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="This is who the invoice will be billed to"
+                           FontSize="12"
+                           Opacity="0.6" />
+                </VerticalStackLayout>
+            </Border>
 
             <!-- PICKUP -->
             <Border StrokeThickness="1"
@@ -190,7 +250,6 @@
                                        HeightRequest="44" />
                             </Grid>
 
-                            <!-- Total without currency formatting -->
                             <Border StrokeThickness="0"
                                     StrokeShape="RoundRectangle 14"
                                     BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"

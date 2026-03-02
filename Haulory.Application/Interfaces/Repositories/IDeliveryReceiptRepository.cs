@@ -2,28 +2,11 @@
 
 namespace Haulory.Application.Interfaces.Repositories;
 
-#region Interface: Delivery Receipt Repository
-
 public interface IDeliveryReceiptRepository
 {
-    #region Create
-
-    // Persists a new delivery receipt
     Task AddAsync(DeliveryReceipt receipt);
-
-    #endregion
-
-    #region Queries
-
-    // Retrieves all delivery receipts
-    // Typically used for admin, reporting, or auditing
-    Task<IReadOnlyList<DeliveryReceipt>> GetAllAsync();
-
-    // Retrieves delivery receipts linked to a specific Job
-    // Used when viewing job history or generating invoices
-    Task<IReadOnlyList<DeliveryReceipt>> GetByJobIdAsync(Guid jobId);
-
-    #endregion
+    Task<IReadOnlyList<DeliveryReceipt>> GetByOwnerAsync(Guid ownerUserId);
+    Task<IReadOnlyList<DeliveryReceipt>> GetByJobIdAsync(Guid ownerUserId, Guid jobId);
+    Task<DeliveryReceipt?> GetByIdAsync(Guid ownerUserId, Guid receiptId);
+    Task<IReadOnlyList<DeliveryReceipt>> GetByOwnerDeliveredBetweenUtcAsync(Guid ownerUserId, DateTime fromUtc, DateTime toUtc);
 }
-
-#endregion

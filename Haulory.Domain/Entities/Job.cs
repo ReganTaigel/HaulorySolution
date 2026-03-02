@@ -18,7 +18,7 @@ public class Job
     // MAIN owner (tenant boundary)
     public Guid OwnerUserId { get; private set; }
 
-    // Assigned to sub-user account (optional, later workflow)
+    // Assigned to sub-user account (optional)
     public Guid? AssignedToUserId { get; private set; }
 
     // Optional linkage to driver and vehicle assets
@@ -48,6 +48,17 @@ public class Job
 
     #endregion
 
+    #region Client (Bill To)
+
+    public string ClientCompanyName { get; private set; } = string.Empty;
+    public string? ClientContactName { get; private set; }
+    public string? ClientEmail { get; private set; }
+    public string ClientAddressLine1 { get; private set; } = string.Empty;
+    public string ClientCity { get; private set; } = string.Empty;
+    public string ClientCountry { get; private set; } = string.Empty;
+
+    #endregion
+
     #region Billing
 
     public string InvoiceNumber { get; private set; } = string.Empty;
@@ -68,8 +79,9 @@ public class Job
 
     #endregion
 
-    #region Delivery Confirmation / Signature
+    #region Signatures / Delivery Confirmation
 
+    // Delivery signature (POD)
     public string? ReceiverName { get; private set; }
     public DateTime? DeliveredAtUtc { get; private set; }
     public string? DeliverySignatureJson { get; private set; }
@@ -77,6 +89,11 @@ public class Job
     // Delivered only when we have both a timestamp and signature data
     public bool IsDelivered =>
         DeliveredAtUtc != null && !string.IsNullOrWhiteSpace(DeliverySignatureJson);
+
+    // Pickup signature (optional - safe to include now even if UI doesn’t use it yet)
+    public string? PickupSignatureJson { get; private set; }
+    public string? PickupSignedByName { get; private set; }
+    public DateTime? PickupSignedAtUtc { get; private set; }
 
     #endregion
 
@@ -98,42 +115,72 @@ public class Job
     private Job() { }
 
     public Job(
+        Guid jobId,
         Guid ownerUserId,
+
+        // Client (Bill To)
+        string clientCompanyName,
+        string? clientContactName,
+        string? clientEmail,
+        string clientAddressLine1,
+        string clientCity,
+        string clientCountry,
+
+        // Pickup / Delivery (operational)
         string pickupCompany,
         string pickupAddress,
         string deliveryCompany,
         string deliveryAddress,
+
+        // Job
         string referenceNumber,
         string loadDescription,
         string invoiceNumber,
+
+        // Pricing
         RateType rateType,
         decimal rateValue,
         decimal quantity,
+
+        // Ordering / Allocation
         int sortOrder,
         Guid? driverId = null,
         Guid? vehicleAssetId = null)
     {
+        if (jobId == Guid.Empty)
+            throw new ArgumentException("JobId required.", nameof(jobId));
+
         if (ownerUserId == Guid.Empty)
             throw new ArgumentException("OwnerUserId required.");
 
+        Id = jobId;
         OwnerUserId = ownerUserId;
 
-        // Trim inputs for consistent storage/searching (do not title-case companies/addresses)
+        // Client (Bill To)
+        ClientCompanyName = clientCompanyName?.Trim() ?? string.Empty;
+        ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
+        ClientEmail = string.IsNullOrWhiteSpace(clientEmail) ? null : clientEmail.Trim();
+        ClientAddressLine1 = clientAddressLine1?.Trim() ?? string.Empty;
+        ClientCity = clientCity?.Trim() ?? string.Empty;
+        ClientCountry = clientCountry?.Trim() ?? string.Empty;
+
+        // Pickup / Delivery
         PickupCompany = pickupCompany?.Trim() ?? string.Empty;
         PickupAddress = pickupAddress?.Trim() ?? string.Empty;
-
         DeliveryCompany = deliveryCompany?.Trim() ?? string.Empty;
         DeliveryAddress = deliveryAddress?.Trim() ?? string.Empty;
 
+        // Load
         ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
         LoadDescription = loadDescription?.Trim() ?? string.Empty;
 
+        // Invoice
         InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
-        SetRate(rateType, rateValue, quantity);
-
+        // Pricing
+        SetRateInternal(rateType, rateValue, quantity);
+         
         SortOrder = sortOrder;
-
         DriverId = driverId;
         VehicleAssetId = vehicleAssetId;
     }
@@ -142,12 +189,11 @@ public class Job
 
     #region Pricing Logic
 
-    public void SetRate(RateType rateType, decimal rateValue, decimal quantity)
+    private void SetRateInternal(RateType rateType, decimal rateValue, decimal quantity)
     {
         RateType = rateType;
         RateValue = rateValue;
 
-        // Map billing type to display unit used by UI and reporting
         QuantityUnit = rateType switch
         {
             RateType.PerLoad => QuantityUnit.Load,
@@ -158,11 +204,14 @@ public class Job
             _ => QuantityUnit.None
         };
 
-        // FixedFee & Percentage do not depend on "quantity"
         Quantity = (rateType == RateType.FixedFee || rateType == RateType.Percentage)
             ? 1m
             : quantity;
     }
+
+    // Keep public method if older code calls it
+    public void SetRate(RateType rateType, decimal rateValue, decimal quantity)
+        => SetRateInternal(rateType, rateValue, quantity);
 
     #endregion
 
@@ -187,10 +236,8 @@ public class Job
 
     public void MarkDelivered(string receiverName, string signatureJson)
     {
-        // Normalize receiver name for consistent display/auditing across the app
         ReceiverName = NameFormatter.ToTitleCase(receiverName);
 
-        // Keep signature payload intact but avoid accidental leading/trailing whitespace
         DeliverySignatureJson = string.IsNullOrWhiteSpace(signatureJson)
             ? null
             : signatureJson.Trim();

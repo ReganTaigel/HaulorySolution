@@ -1,5 +1,6 @@
 ﻿using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Jobs;
+using Haulory.Application.Features.Reports;
 using Haulory.Application.Features.Users;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
@@ -72,12 +73,21 @@ public static class MauiProgram
 
         builder.Services.AddTransient<CreateVehicleHandler>();
 
+        // Report handlers (these are application handlers, not repositories)
+        builder.Services.AddTransient<InvoiceReportHandler>();
+        builder.Services.AddTransient<PodReportHandler>();
+
+        // PDF generators (fixes: Unable to resolve IPdfInvoiceGenerator / IPdfPodGenerator)
+        builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
+        builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
+
         // Session can remain Singleton (does not depend on DbContext directly)
         builder.Services.AddSingleton<ISessionService, SessionService>();
 
         // Cross-cutting helpers
         builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
     }
 
     #endregion
@@ -125,6 +135,7 @@ public static class MauiProgram
         builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
         builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
         builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
+
     }
 
     #endregion

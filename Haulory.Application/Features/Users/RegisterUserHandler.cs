@@ -94,6 +94,8 @@ public class RegisterUserHandler
             )
         );
 
+
+
         #endregion
 
         return new(true, null);

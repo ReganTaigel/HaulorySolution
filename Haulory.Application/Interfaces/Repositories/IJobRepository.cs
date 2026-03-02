@@ -8,41 +8,48 @@ public interface IJobRepository
 {
     #region Create
 
-    // Adds a new job to storage
     Task AddAsync(Job job);
 
     #endregion
 
     #region Queries
 
-    // Retrieves all jobs (typically scoped by owner in implementation)
-    Task<IReadOnlyList<Job>> GetAllAsync();
+    // Active = NOT delivered yet (your "Active Deliveries" list)
+    Task<IReadOnlyList<Job>> GetActiveByOwnerAsync(Guid ownerUserId);
 
-    // Retrieves a specific job by Id
+    // Optional (but useful): active jobs assigned to a driver
+    Task<IReadOnlyList<Job>> GetActiveByDriverAsync(Guid ownerUserId, Guid driverId);
+
     Task<Job?> GetByIdAsync(Guid id);
+
+    // Tracked entity for mutation + save
+    Task<Job?> GetByIdForUpdateAsync(Guid id);
 
     #endregion
 
     #region Ordering
 
-    // Updates multiple jobs (used when reordering drag/drop lists)
-    Task UpdateAllAsync(IReadOnlyList<Job> jobs);
+    // Updates sort orders ONLY for this owner (no deletes)
+    Task UpdateAllAsync(Guid ownerUserId, IReadOnlyList<Job> jobs);
 
-    // Returns the next available sort order value
-    Task<int> GetNextSortOrderAsync();
+    Task<int> GetNextSortOrderAsync(Guid ownerUserId);
 
     #endregion
 
     #region Updates
 
-    // Updates a job (e.g., status, signature, delivery completion)
     Task UpdateAsync(Job job);
+
+    #endregion
+
+    #region Invoice
+
+    Task<bool> InvoiceNumberExistsAsync(Guid ownerUserId, string invoiceNumber);
 
     #endregion
 
     #region Lifecycle
 
-    // Deletes a job by Id
     Task DeleteAsync(Guid id);
 
     #endregion

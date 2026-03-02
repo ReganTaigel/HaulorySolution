@@ -6,55 +6,65 @@ namespace Haulory.Infrastructure.Persistence.Repositories;
 
 public class DeliveryReceiptRepository : IDeliveryReceiptRepository
 {
-    #region Dependencies
-
     private readonly HauloryDbContext _db;
-
-    #endregion
-
-    #region Constructor
 
     public DeliveryReceiptRepository(HauloryDbContext db)
     {
         _db = db;
     }
 
-    #endregion
-
-    #region Commands
-
     public async Task AddAsync(DeliveryReceipt receipt)
     {
-        // Match previous JSON behavior:
-        // Ignore duplicates for the same JobId (1 receipt per job)
+        // ✅ One receipt per job per owner
         var exists = await _db.DeliveryReceipts
-            .AnyAsync(r => r.JobId == receipt.JobId);
+            .AnyAsync(r => r.OwnerUserId == receipt.OwnerUserId && r.JobId == receipt.JobId);
 
-        if (exists)
-            return;
+        if (exists) return;
 
         _db.DeliveryReceipts.Add(receipt);
         await _db.SaveChangesAsync();
     }
 
-    #endregion
-
-    #region Queries
-
-    public async Task<IReadOnlyList<DeliveryReceipt>> GetAllAsync()
+    public async Task<IReadOnlyList<DeliveryReceipt>> GetByOwnerAsync(Guid ownerUserId)
     {
         return await _db.DeliveryReceipts
             .AsNoTracking()
+            .Where(r => r.OwnerUserId == ownerUserId)
+            .OrderByDescending(r => r.DeliveredAtUtc)
             .ToListAsync();
     }
 
-    public async Task<IReadOnlyList<DeliveryReceipt>> GetByJobIdAsync(Guid jobId)
+    public async Task<IReadOnlyList<DeliveryReceipt>> GetByJobIdAsync(Guid ownerUserId, Guid jobId)
     {
         return await _db.DeliveryReceipts
             .AsNoTracking()
-            .Where(r => r.JobId == jobId)
+            .Where(r => r.OwnerUserId == ownerUserId && r.JobId == jobId)
             .ToListAsync();
     }
 
-    #endregion
+    public async Task<DeliveryReceipt?> GetByIdAsync(Guid ownerUserId, Guid receiptId)
+    {
+        return await _db.DeliveryReceipts
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.OwnerUserId == ownerUserId && r.Id == receiptId);
+    }
+
+    public async Task<IReadOnlyList<DeliveryReceipt>> GetByOwnerDeliveredBetweenUtcAsync(
+        Guid ownerUserId,
+        DateTime fromUtc,
+        DateTime toUtc)
+    {
+        if (fromUtc.Kind != DateTimeKind.Utc)
+            fromUtc = DateTime.SpecifyKind(fromUtc, DateTimeKind.Utc);
+
+        if (toUtc.Kind != DateTimeKind.Utc)
+            toUtc = DateTime.SpecifyKind(toUtc, DateTimeKind.Utc);
+
+        return await _db.DeliveryReceipts
+            .AsNoTracking()
+            .Where(r => r.OwnerUserId == ownerUserId)
+            .Where(r => r.DeliveredAtUtc >= fromUtc && r.DeliveredAtUtc < toUtc)
+            .OrderByDescending(r => r.DeliveredAtUtc)
+            .ToListAsync();
+    }
 }

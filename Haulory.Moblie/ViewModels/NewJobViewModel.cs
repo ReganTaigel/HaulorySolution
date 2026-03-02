@@ -15,16 +15,10 @@ namespace Haulory.Mobile.ViewModels;
 
 public class NewJobViewModel : BaseViewModel
 {
-    #region Dependencies
-
     private readonly CreateJobHandler _handler;
     private readonly IDriverRepository _driverRepo;
     private readonly IVehicleAssetRepository _vehicleRepo;
     private readonly ISessionService _session;
-
-    #endregion
-
-    #region Picker Sources
 
     public IReadOnlyList<RateType> RateTypes { get; } =
         Enum.GetValues(typeof(RateType)).Cast<RateType>().ToList();
@@ -32,18 +26,12 @@ public class NewJobViewModel : BaseViewModel
     public ObservableCollection<Driver> Drivers { get; } = new();
     public ObservableCollection<VehicleAsset> Vehicles { get; } = new();
 
-    #endregion
-
-    #region State
-
     private Driver? _selectedDriver;
     private VehicleAsset? _selectedVehicle;
 
     private RateType _rateType;
     private decimal _quantity = 1m;
     private decimal _rateValue;
-
-    #endregion
 
     #region Job Fields
 
@@ -58,16 +46,23 @@ public class NewJobViewModel : BaseViewModel
 
     #endregion
 
-    #region Selected Items
+    #region Client (Bill To) Fields
+
+    public string ClientCompanyName { get; set; } = string.Empty;
+    public string? ClientContactName { get; set; }
+    public string? ClientEmail { get; set; }
+    public string ClientAddressLine1 { get; set; } = string.Empty;
+    public string ClientCity { get; set; } = string.Empty;
+    public string ClientCountry { get; set; } = "New Zealand"; // optional default
+
+    #endregion
 
     public Driver? SelectedDriver
     {
         get => _selectedDriver;
         set
         {
-            if (_selectedDriver == value)
-                return;
-
+            if (_selectedDriver == value) return;
             _selectedDriver = value;
             OnPropertyChanged();
         }
@@ -78,25 +73,18 @@ public class NewJobViewModel : BaseViewModel
         get => _selectedVehicle;
         set
         {
-            if (_selectedVehicle == value)
-                return;
-
+            if (_selectedVehicle == value) return;
             _selectedVehicle = value;
             OnPropertyChanged();
         }
     }
-
-    #endregion
-
-    #region Billing
 
     public RateType RateType
     {
         get => _rateType;
         set
         {
-            if (_rateType == value)
-                return;
+            if (_rateType == value) return;
 
             _rateType = value;
 
@@ -104,7 +92,6 @@ public class NewJobViewModel : BaseViewModel
             OnPropertyChanged(nameof(QuantityLabel));
             OnPropertyChanged(nameof(Total));
 
-            // For fixed fee / percentage, quantity is ignored so force 1
             if (_rateType is RateType.FixedFee or RateType.Percentage)
                 Quantity = 1m;
         }
@@ -115,9 +102,10 @@ public class NewJobViewModel : BaseViewModel
         get => _quantity;
         set
         {
-            if (_quantity == value)
-                return;
+            if (_rateType is RateType.FixedFee or RateType.Percentage)
+                value = 1m;
 
+            if (_quantity == value) return;
             _quantity = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
@@ -129,9 +117,7 @@ public class NewJobViewModel : BaseViewModel
         get => _rateValue;
         set
         {
-            if (_rateValue == value)
-                return;
-
+            if (_rateValue == value) return;
             _rateValue = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
@@ -153,20 +139,12 @@ public class NewJobViewModel : BaseViewModel
     public decimal Total => RateType switch
     {
         RateType.FixedFee => RateValue,
-        RateType.Percentage => 0m, // later: apply to base amount
+        RateType.Percentage => 0m,
         _ => RateValue * Quantity
     };
 
-    #endregion
-
-    #region Commands
-
     public ICommand SaveJobCommand { get; }
     public ICommand CancelCommand { get; }
-
-    #endregion
-
-    #region Constructor
 
     public NewJobViewModel(
         CreateJobHandler handler,
@@ -181,36 +159,25 @@ public class NewJobViewModel : BaseViewModel
 
         SaveJobCommand = new Command(async () => await SaveAsync());
 
-        // Returns user to dashboard
         CancelCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(DashboardPage)));
 
-        // Default rate type
         RateType = RateType.PerLoad;
     }
 
-    #endregion
-
-    #region Load
-
-    // Call this from Page.OnAppearing
     public async Task LoadAsync()
     {
         var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
-        // Drivers (owned by account)
         Drivers.Clear();
         var drivers = await _driverRepo.GetAllByOwnerUserIdAsync(ownerUserId);
-
         foreach (var d in drivers.OrderBy(d => d.LastName).ThenBy(d => d.FirstName))
             Drivers.Add(d);
 
-        // Vehicles (owned by account) - show power units only
         Vehicles.Clear();
         var allAssets = await _vehicleRepo.GetAllAsync();
-
         var vehicles = allAssets
             .Where(a => a.OwnerUserId == ownerUserId)
             .Where(a => a.Kind == AssetKind.PowerUnit)
@@ -219,7 +186,6 @@ public class NewJobViewModel : BaseViewModel
         foreach (var v in vehicles)
             Vehicles.Add(v);
 
-        // Auto-select if there's only one choice
         if (Drivers.Count == 1 && SelectedDriver == null)
             SelectedDriver = Drivers[0];
 
@@ -227,33 +193,49 @@ public class NewJobViewModel : BaseViewModel
             SelectedVehicle = Vehicles[0];
     }
 
-    #endregion
-
-    #region Save
-
     private async Task SaveAsync()
     {
         var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
+        // Minimal validation to avoid empty “bill-to”
+        if (string.IsNullOrWhiteSpace(ClientCompanyName))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Client company name is required.", "OK");
+            return;
+        }
+
+        var jobId = Guid.NewGuid();
+
         await _handler.HandleAsync(new CreateJobCommand(
-            ownerUserId,
-            PickupCompany,
-            PickupAddress,
-            DeliveryCompany,
-            DeliveryAddress,
-            ReferenceNumber,
-            LoadDescription,
-            RateType,
-            RateValue,
-            Quantity,
+            OwnerUserId: ownerUserId,
+            JobId: jobId,
+
+            ClientCompanyName: ClientCompanyName,
+            ClientContactName: ClientContactName,
+            ClientEmail: ClientEmail,
+            ClientAddressLine1: ClientAddressLine1,
+            ClientCity: ClientCity,
+            ClientCountry: ClientCountry,
+
+            PickupCompany: PickupCompany,
+            PickupAddress: PickupAddress,
+
+            DeliveryCompany: DeliveryCompany,
+            DeliveryAddress: DeliveryAddress,
+
+            ReferenceNumber: ReferenceNumber,
+            LoadDescription: LoadDescription,
+
+            RateType: RateType,
+            RateValue: RateValue,
+            Quantity: Quantity,
+
             DriverId: SelectedDriver?.Id,
             VehicleAssetId: SelectedVehicle?.Id
         ));
 
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
     }
-
-    #endregion
 }

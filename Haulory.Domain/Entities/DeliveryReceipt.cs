@@ -3,25 +3,17 @@ using Haulory.Domain.Helpers;
 
 namespace Haulory.Domain.Entities;
 
-#region Entity: Delivery Receipt
-
 public class DeliveryReceipt
 {
-    #region Identity
-
-    // Unique identifier for the receipt
     public Guid Id { get; private set; } = Guid.NewGuid();
 
-    // Associated Job Id
+    // Tenant boundary (owner)
+    public Guid OwnerUserId { get; private set; }
+
+    // One receipt per job (within owner)
     public Guid JobId { get; private set; }
 
-    #endregion
-
-    #region Job Snapshot Data
-
-    // Snapshot fields copied from Job at time of delivery
-    // Ensures historical accuracy even if Job changes later
-
+    // Snapshot fields (keep what you already have)
     public string ReferenceNumber { get; private set; } = string.Empty;
     public string InvoiceNumber { get; private set; } = string.Empty;
 
@@ -33,39 +25,40 @@ public class DeliveryReceipt
 
     public string LoadDescription { get; private set; } = string.Empty;
 
-    #endregion
-
-    #region Pricing
-
     public RateType RateType { get; private set; }
     public decimal RateValue { get; private set; }
     public decimal Quantity { get; private set; }
-
-    // Final calculated total stored at time of delivery
     public decimal Total { get; private set; }
 
-    #endregion
-
-    #region Delivery Confirmation
-
-    // Name of person who received the load
     public string ReceiverName { get; private set; } = string.Empty;
-
-    // Delivery timestamp (UTC)
     public DateTime DeliveredAtUtc { get; private set; }
-
-    // Serialized signature data (e.g., JSON from mobile app)
     public string SignatureJson { get; private set; } = string.Empty;
 
-    #endregion
-
-    #region Constructors
-
-    // Required by EF Core
+    // Client (Bill To) snapshot (copied from Job at delivery time)
+    public string ClientCompanyName { get; private set; } = string.Empty;
+    public string? ClientContactName { get; private set; }
+    public string? ClientEmail { get; private set; }
+    public string ClientAddressLine1 { get; private set; } = string.Empty;
+    public string ClientCity { get; private set; } = string.Empty;
+    public string ClientCountry { get; private set; } = string.Empty;
+    
+    // EF
     private DeliveryReceipt() { }
 
+    // Updated ctor includes ownerUserId
     public DeliveryReceipt(
+        Guid ownerUserId,
         Guid jobId,
+
+        // client snapshot
+        string clientCompanyName,
+        string? clientContactName,
+        string? clientEmail,
+        string clientAddressLine1,
+        string clientCity,
+        string clientCountry,
+
+        // existing fields...
         string referenceNumber,
         string invoiceNumber,
         string pickupCompany,
@@ -81,15 +74,28 @@ public class DeliveryReceipt
         DateTime deliveredAtUtc,
         string signatureJson)
     {
+        if (ownerUserId == Guid.Empty) throw new ArgumentException("OwnerUserId required.");
+        if (jobId == Guid.Empty) throw new ArgumentException("JobId required.");
+
+        OwnerUserId = ownerUserId;
         JobId = jobId;
+
+        ClientCompanyName = clientCompanyName?.Trim() ?? string.Empty;
+        ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
+        ClientEmail = string.IsNullOrWhiteSpace(clientEmail) ? null : clientEmail.Trim().ToLowerInvariant();
+        ClientAddressLine1 = clientAddressLine1?.Trim() ?? string.Empty;
+        ClientCity = clientCity?.Trim() ?? string.Empty;
+        ClientCountry = clientCountry?.Trim() ?? "New Zealand";
 
         ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
         InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
         PickupCompany = pickupCompany?.Trim() ?? string.Empty;
         PickupAddress = pickupAddress?.Trim() ?? string.Empty;
+
         DeliveryCompany = deliveryCompany?.Trim() ?? string.Empty;
         DeliveryAddress = deliveryAddress?.Trim() ?? string.Empty;
+
         LoadDescription = loadDescription?.Trim() ?? string.Empty;
 
         RateType = rateType;
@@ -97,14 +103,11 @@ public class DeliveryReceipt
         Quantity = quantity;
         Total = total;
 
-        // Normalize receiver name for consistent display and auditing
         ReceiverName = NameFormatter.ToTitleCase(receiverName) ?? string.Empty;
+        DeliveredAtUtc = deliveredAtUtc.Kind == DateTimeKind.Utc
+            ? deliveredAtUtc
+            : DateTime.SpecifyKind(deliveredAtUtc, DateTimeKind.Utc);
 
-        DeliveredAtUtc = deliveredAtUtc;
         SignatureJson = signatureJson?.Trim() ?? string.Empty;
     }
-
-    #endregion
 }
-
-#endregion
