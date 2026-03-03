@@ -2,57 +2,71 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="Haulory.Mobile.Views.NewDriverPage">
+    x:Class="Haulory.Mobile.Views.NewDriverPage"
+    BackgroundColor="{StaticResource BrandBackground}">
+
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
             <!-- Page header -->
             <VerticalStackLayout Spacing="2">
-                <Label Text="Add driver"
+                <Label Text="Add People"
                        FontSize="24"
-                       FontAttributes="Bold" />
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource BrandTitle}" />
                 <Label Text="Create a driver profile and emergency contact"
                        FontSize="13"
-                       Opacity="0.7" />
+                       TextColor="{StaticResource BrandInk}" />
             </VerticalStackLayout>
 
             <!-- DRIVER DETAILS -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
 
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Driver details"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
                         <VerticalStackLayout Spacing="10">
 
                             <Entry Placeholder="First name"
                                    Text="{Binding FirstName}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Last name"
                                    Text="{Binding LastName}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Email"
                                    Keyboard="Email"
                                    Text="{Binding Email}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Licence number (optional)"
                                    Text="{Binding LicenceNumber}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                         </VerticalStackLayout>
                     </Border>
@@ -61,19 +75,21 @@
 
             <!-- CONTACT AND LICENCE -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
 
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Contact and licence"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
 
                         <VerticalStackLayout Spacing="12">
@@ -81,26 +97,45 @@
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Phone number"
                                        FontSize="12"
-                                       Opacity="0.7" />
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
                                 <Entry Placeholder="Optional"
                                        Keyboard="Telephone"
                                        Text="{Binding PhoneNumber}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                                     <Label Text="Date of birth"
                                            FontSize="12"
-                                           Opacity="0.7" />
-                                    <DatePicker Date="{Binding DateOfBirthLocal}" />
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource BrandTitle}" />
+                                    <Border StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            StrokeShape="RoundRectangle 12"
+                                            BackgroundColor="{StaticResource BrandSurface}"
+                                            Padding="10,6">
+                                        <DatePicker Date="{Binding DateOfBirthLocal}"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                    </Border>
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="1" Spacing="6">
                                     <Label Text="Licence expiry"
                                            FontSize="12"
-                                           Opacity="0.7" />
-                                    <DatePicker Date="{Binding LicenceExpiryLocal}" />
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource BrandTitle}" />
+                                    <Border StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            StrokeShape="RoundRectangle 12"
+                                            BackgroundColor="{StaticResource BrandSurface}"
+                                            Padding="10,6">
+                                        <DatePicker Date="{Binding LicenceExpiryLocal}"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                    </Border>
                                 </VerticalStackLayout>
                             </Grid>
 
@@ -111,60 +146,76 @@
 
             <!-- ADDRESS -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
 
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Address"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <Label Text="Optional"
                            FontSize="12"
-                           Opacity="0.6" />
+                           TextColor="{StaticResource BrandInk}"/>
 
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
 
                         <VerticalStackLayout Spacing="10">
 
                             <Entry Placeholder="Address line 1"
                                    Text="{Binding Line1}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Address line 2"
                                    Text="{Binding Line2}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <Entry Grid.Column="0"
                                        Placeholder="Suburb"
                                        Text="{Binding Suburb}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                                 <Entry Grid.Column="1"
                                        Placeholder="City"
                                        Text="{Binding City}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </Grid>
 
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <Entry Grid.Column="0"
                                        Placeholder="Region"
                                        Text="{Binding Region}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                                 <Entry Grid.Column="1"
                                        Placeholder="Postcode"
                                        Text="{Binding Postcode}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </Grid>
 
                             <Entry Placeholder="Country"
                                    Text="{Binding Country}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                         </VerticalStackLayout>
                     </Border>
@@ -173,23 +224,25 @@
 
             <!-- EMERGENCY CONTACT -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
 
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Emergency contact"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <Label Text="Required for compliance and safety"
                            FontSize="12"
-                           Opacity="0.6" />
+                           TextColor="{StaticResource BrandInk}"/>
 
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
 
                         <VerticalStackLayout Spacing="10">
@@ -198,32 +251,44 @@
                                 <Entry Grid.Column="0"
                                        Placeholder="First name"
                                        Text="{Binding EmergencyFirstName}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
 
                                 <Entry Grid.Column="1"
                                        Placeholder="Last name"
                                        Text="{Binding EmergencyLastName}"
-                                       HeightRequest="44" />
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </Grid>
 
                             <Entry Placeholder="Relationship"
                                    Text="{Binding EmergencyRelationship}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Email"
                                    Keyboard="Email"
                                    Text="{Binding EmergencyEmail}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Phone number"
                                    Keyboard="Telephone"
                                    Text="{Binding EmergencyPhoneNumber}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Entry Placeholder="Secondary phone number (optional)"
                                    Keyboard="Telephone"
                                    Text="{Binding EmergencySecondaryPhoneNumber}"
-                                   HeightRequest="44" />
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                         </VerticalStackLayout>
                     </Border>
@@ -236,9 +301,9 @@
                     IsEnabled="{Binding CanSave}"
                     HeightRequest="50"
                     CornerRadius="14"
-                    BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
-                    TextColor="White"
-                    Margin="0,4,0,8"/>
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource White}"
+                    Margin="0,4,0,8" />
 
             <BoxView HeightRequest="6" Opacity="0" />
 

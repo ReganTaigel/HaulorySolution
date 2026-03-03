@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Haulory.Mobile.Views.VehicleCollectionPage">
+             x:Class="Haulory.Mobile.Views.VehicleCollectionPage"
+             BackgroundColor="{StaticResource BrandBackground}">
+
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <Grid RowDefinitions="Auto,*"
           Padding="20"
           RowSpacing="14">
@@ -16,10 +19,11 @@
                 <VerticalStackLayout Grid.Column="0" Spacing="2">
                     <Label Text="Vehicles"
                            FontSize="28"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
                     <Label Text="Keep your fleet compliant and ready"
                            FontSize="13"
-                           Opacity="0.7" />
+                           TextColor="{StaticResource BrandInk}" />
                 </VerticalStackLayout>
 
                 <Button Grid.Column="1"
@@ -28,24 +32,26 @@
                         HeightRequest="44"
                         Padding="16,0"
                         CornerRadius="14"
-                        BackgroundColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"
-                        TextColor="{AppThemeBinding Light='White', Dark='Black'}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}"
                         VerticalOptions="Center"/>
             </Grid>
 
             <!-- Optional guidance card -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14">
                 <VerticalStackLayout Spacing="2">
                     <Label Text="Tip"
                            FontSize="12"
-                           Opacity="0.7" />
+                           Opacity="0.85"
+                           TextColor="{StaticResource BrandInk}" />
                     <Label Text="Pull down to refresh compliance status"
                            FontSize="13"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -65,10 +71,11 @@
                         <Label Text="No vehicles saved yet"
                                FontAttributes="Bold"
                                FontSize="16"
+                               TextColor="{StaticResource BrandTitle}"
                                HorizontalTextAlignment="Center"/>
                         <Label Text="Tap Add to create your first vehicle"
                                FontSize="13"
-                               Opacity="0.7"
+                               TextColor="{StaticResource BrandInk}"
                                HorizontalTextAlignment="Center"/>
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
@@ -77,9 +84,9 @@
                     <DataTemplate>
 
                         <Border StrokeThickness="1"
-                                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                                Stroke="{StaticResource Gray300}"
                                 StrokeShape="RoundRectangle 18"
-                                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                                BackgroundColor="{StaticResource BrandSurface}"
                                 Padding="14"
                                 Margin="0,0,0,12">
 
@@ -89,6 +96,7 @@
                                 <VerticalStackLayout Spacing="4">
                                     <Label FontSize="16"
                                            FontAttributes="Bold"
+                                           TextColor="{StaticResource BrandTitle}"
                                            LineBreakMode="TailTruncation">
                                         <Label.FormattedText>
                                             <FormattedString>
@@ -101,30 +109,34 @@
                                         </Label.FormattedText>
                                     </Label>
 
-                                    <Border StrokeThickness="0"
+                                    <Border StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
                                             StrokeShape="RoundRectangle 12"
-                                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                            BackgroundColor="{StaticResource BrandTileFill}"
                                             Padding="10,6">
                                         <Label Text="{Binding VehicleTypeDisplay}"
                                                FontSize="12"
-                                               Opacity="0.75" />
+                                               TextColor="{StaticResource BrandInk}" />
                                     </Border>
                                 </VerticalStackLayout>
 
                                 <!-- Compliance section -->
-                                <Border StrokeThickness="0"
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
                                         StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
                                         Padding="12">
 
                                     <VerticalStackLayout Spacing="8">
 
                                         <Label Text="Compliance"
                                                FontSize="12"
-                                               Opacity="0.7" />
+                                               TextColor="{StaticResource BrandInk}" />
 
                                         <!-- Rego -->
-                                        <Label FontSize="13" Opacity="0.9" LineBreakMode="TailTruncation">
+                                        <Label FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}"
+                                               LineBreakMode="TailTruncation">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Rego: " />
@@ -139,7 +151,9 @@
                                         </Label>
 
                                         <!-- WOF / COF -->
-                                        <Label FontSize="13" Opacity="0.9" LineBreakMode="TailTruncation">
+                                        <Label FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}"
+                                               LineBreakMode="TailTruncation">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="{Binding CertificateNameDisplay}" />
@@ -155,18 +169,21 @@
                                 </Border>
 
                                 <!-- RUC section -->
-                                <Border StrokeThickness="0"
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
                                         StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
                                         Padding="12"
                                         IsVisible="{Binding IsRucApplicable}">
 
                                     <VerticalStackLayout Spacing="8">
                                         <Label Text="RUC"
                                                FontSize="12"
-                                               Opacity="0.7" />
+                                               TextColor="{StaticResource BrandInk}" />
 
-                                        <Label FontSize="13" Opacity="0.9" LineBreakMode="TailTruncation">
+                                        <Label FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}"
+                                               LineBreakMode="TailTruncation">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Licence: " />
@@ -177,7 +194,9 @@
                                             </Label.FormattedText>
                                         </Label>
 
-                                        <Label FontSize="13" Opacity="0.9" LineBreakMode="TailTruncation">
+                                        <Label FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}"
+                                               LineBreakMode="TailTruncation">
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Remaining: " />

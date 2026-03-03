@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.LoginPage"
-    BackgroundColor="{AppThemeBinding Light=#F5F6FA, Dark=#121212}"
+    BackgroundColor="{StaticResource BrandBackground}"
     Shell.NavBarIsVisible="False">
 
     <ScrollView>
@@ -16,19 +17,18 @@
                 <Label Text="Haulory"
                        FontSize="34"
                        FontAttributes="Bold"
-                       TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
+                       TextColor="{StaticResource BrandTitle}" />
 
                 <Label Text="Welcome back"
                        FontSize="14"
-                       Opacity="0.75"
-                       TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                       TextColor="{StaticResource BrandInk}" />
             </VerticalStackLayout>
 
             <!-- Login Card -->
             <Border StrokeShape="RoundRectangle 20"
                     StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light=#E5E7EB, Dark=#374151}"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#0B1220}"
+                    Stroke="{StaticResource Gray300}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="18">
 
                 <VerticalStackLayout Spacing="14">
@@ -36,18 +36,19 @@
                     <Label Text="Sign in"
                            FontSize="16"
                            FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=#111827, Dark=White}" />
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Email"
                                FontSize="12"
-                               Opacity="0.7"
-                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
 
-                        <Border StrokeThickness="0"
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
                                 StrokeShape="RoundRectangle 14"
-                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                BackgroundColor="{StaticResource BrandTileFill}"
                                 Padding="12,8">
 
                             <Entry Placeholder="Email address"
@@ -55,6 +56,8 @@
                                    Keyboard="Email"
                                    ClearButtonVisibility="WhileEditing"
                                    HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}"
                                    BackgroundColor="Transparent" />
                         </Border>
                     </VerticalStackLayout>
@@ -63,18 +66,21 @@
                     <VerticalStackLayout Spacing="6">
                         <Label Text="Password"
                                FontSize="12"
-                               Opacity="0.7"
-                               TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
 
-                        <Border StrokeThickness="0"
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
                                 StrokeShape="RoundRectangle 14"
-                                BackgroundColor="{AppThemeBinding Light=#F9FAFB, Dark=#111827}"
+                                BackgroundColor="{StaticResource BrandTileFill}"
                                 Padding="12,8">
 
                             <Entry Placeholder="Password"
                                    Text="{Binding Password}"
                                    IsPassword="True"
                                    HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}"
                                    BackgroundColor="Transparent" />
                         </Border>
                     </VerticalStackLayout>
@@ -85,41 +91,34 @@
                             HeightRequest="48"
                             CornerRadius="14"
                             FontAttributes="Bold"
-                            BackgroundColor="{AppThemeBinding Light=#2563EB, Dark=#3B82F6}"
-                            TextColor="White" />
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}" />
 
                 </VerticalStackLayout>
             </Border>
 
             <!-- Create account link -->
-            <Border StrokeThickness="0"
-                    StrokeShape="RoundRectangle 16"
-                    BackgroundColor="{AppThemeBinding Light=Transparent, Dark=Transparent}"
-                    Padding="6">
+            <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
 
-                <HorizontalStackLayout HorizontalOptions="Center" Spacing="6">
-                    <Label Text="Need an account"
-                           FontSize="12"
-                           Opacity="0.75"
-                           TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                <Label Text="Need an account"
+                       FontSize="12"
+                       TextColor="{StaticResource BrandInk}" />
 
-                    <Label Text="Create one"
-                           FontSize="12"
-                           FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light=#2563EB, Dark=#60A5FA}">
-                        <Label.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
-                        </Label.GestureRecognizers>
-                    </Label>
-                </HorizontalStackLayout>
-            </Border>
+                <Label Text="Create one"
+                       FontSize="12"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding GoToRegisterCommand}" />
+                    </Label.GestureRecognizers>
+                </Label>
+            </HorizontalStackLayout>
 
             <!-- Footer -->
             <Label Text="Secure transport and compliance management"
                    FontSize="12"
                    HorizontalOptions="Center"
-                   Opacity="0.7"
-                   TextColor="{AppThemeBinding Light=#6B7280, Dark=#9CA3AF}" />
+                   TextColor="{StaticResource BrandInk}" />
 
         </VerticalStackLayout>
     </ScrollView>

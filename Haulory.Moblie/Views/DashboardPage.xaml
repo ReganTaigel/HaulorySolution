@@ -2,10 +2,13 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.DashboardPage"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="{StaticResource BrandBackground}">
+
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
@@ -13,50 +16,53 @@
             <VerticalStackLayout Spacing="2">
                 <Label Text="Haulory"
                        FontSize="30"
-                       FontAttributes="Bold" />
-
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource BrandTitle}" />
                 <Label Text="Business overview"
                        FontSize="13"
-                       Opacity="0.7" />
+                       TextColor="{StaticResource BrandInk}" />
             </VerticalStackLayout>
 
             <!-- HERO SUMMARY -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
 
                 <VerticalStackLayout Spacing="10">
                     <Label Text="Today at a glance"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <Label Text="{Binding CurrentJobSummary}"
                            FontSize="13"
-                           Opacity="0.75"
+                           TextColor="{StaticResource BrandInk}"
                            LineBreakMode="WordWrap" />
 
                     <!-- Delivered count as a large metric -->
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <VerticalStackLayout Spacing="2">
                                 <Label Text="Delivered"
-                                       FontSize="12"
-                                       Opacity="0.7" />
+                                       FontSize="12"                             
+                                       TextColor="{StaticResource BrandInk}" />
                                 <Label Text="Jobs completed today"
-                                       FontSize="12"
-                                       Opacity="0.6" />
+                                       FontSize="12"                               
+                                       TextColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                             <Label Grid.Column="1"
                                    Text="{Binding CompletedTodayCount}"
                                    FontSize="26"
                                    FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}"
                                    VerticalTextAlignment="Center" />
                         </Grid>
                     </Border>
@@ -65,56 +71,61 @@
 
             <!-- STATS (STACKED FOR MOBILE) -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="16">
                 <VerticalStackLayout Spacing="12">
 
                     <Label Text="Quick stats"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <!-- Revenue -->
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <VerticalStackLayout Spacing="2">
                                 <Label Text="Revenue today"
                                        FontSize="12"
-                                       Opacity="0.7" />
+                                       TextColor="{StaticResource BrandInk}" />
                                 <Label Text="Track earnings and trends"
-                                       FontSize="12"
-                                       Opacity="0.6" />
+                                       FontSize="12"         
+                                       TextColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                             <Label Grid.Column="1"
                                    Text="{Binding RevenueToday, StringFormat='{0:N2}'}"
                                    FontSize="22"
                                    FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandAccent}"
                                    VerticalTextAlignment="Center" />
                         </Grid>
                     </Border>
 
                     <!-- Latest completed -->
-                    <Border StrokeThickness="0"
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
-                            BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                            BackgroundColor="{StaticResource BrandTileFill}"
                             Padding="12">
                         <VerticalStackLayout Spacing="4">
                             <Label Text="Latest completed"
                                    FontSize="12"
-                                   Opacity="0.7" />
+                                   TextColor="{StaticResource BrandInk}" />
                             <Label Text="{Binding LatestCompletedSummary}"
                                    FontSize="14"
                                    FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandTitle}"
                                    LineBreakMode="TailTruncation"
                                    MaxLines="2" />
                             <Label Text="Open Reports for details"
                                    FontSize="12"
-                                   Opacity="0.6" />
+                                   TextColor="{StaticResource Gray600}" />
                         </VerticalStackLayout>
 
                         <Border.GestureRecognizers>
@@ -129,27 +140,31 @@
             <Label Text="Manage"
                    FontSize="16"
                    FontAttributes="Bold"
-                   Margin="2,4,0,0" />
+                   Margin="2,4,0,0"
+                   TextColor="{StaticResource BrandTitle}" />
 
             <!-- Jobs -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Jobs"
                                FontSize="16"
-                               FontAttributes="Bold" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
                         <Label Text="Create, allocate, and track deliveries"
                                FontSize="12"
-                               Opacity="0.7" />
+                               TextColor="{StaticResource BrandInk}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
                             Text="Open"
                             Command="{Binding GoToJobsCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
                             Padding="16,0" />
@@ -162,23 +177,26 @@
 
             <!-- Vehicles -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Vehicles"
                                FontSize="16"
-                               FontAttributes="Bold" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
                         <Label Text="Manage units, configurations, and assets"
                                FontSize="12"
-                               Opacity="0.7" />
+                               TextColor="{StaticResource BrandInk}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
                             Text="Open"
                             Command="{Binding GoToVehiclesCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
                             Padding="16,0" />
@@ -191,23 +209,26 @@
 
             <!-- Drivers -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Drivers"
                                FontSize="16"
-                               FontAttributes="Bold" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
                         <Label Text="Profiles, licences, compliance, and contacts"
                                FontSize="12"
-                               Opacity="0.7" />
+                               TextColor="{StaticResource BrandInk}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
                             Text="Open"
                             Command="{Binding GoToDriversCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
                             Padding="16,0" />
@@ -220,23 +241,26 @@
 
             <!-- Reports -->
             <Border StrokeThickness="1"
-                    Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                    Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                    BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Reports"
                                FontSize="16"
-                               FontAttributes="Bold" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
                         <Label Text="Revenue, delivered jobs, and performance"
                                FontSize="12"
-                               Opacity="0.7" />
+                               TextColor="{StaticResource BrandInk}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
                             Text="Open"
                             Command="{Binding GoToReportsCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
                             Padding="16,0" />
@@ -248,26 +272,28 @@
             </Border>
 
             <!-- LOGOUT -->
-            <Border StrokeThickness="0"
+            <Border StrokeThickness="1"
+                    Stroke="{StaticResource BrandDanger}"
                     StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{AppThemeBinding Light='#FEF2F2', Dark='#2B0B0B'}"
+                    BackgroundColor="{StaticResource BrandDeep}"
                     Padding="12"
                     Margin="0,6,0,10">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="2">
                         <Label Text="Logout"
                                FontSize="16"
-                               FontAttributes="Bold" />
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource White}" />
                         <Label Text="Sign out of Haulory on this device"
                                FontSize="12"
-                               Opacity="0.7" />
+                               TextColor="{StaticResource Gray200}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"
                             Text="Sign out"
                             Command="{Binding LogoutCommand}"
-                            BackgroundColor="#DC2626"
-                            TextColor="White"
+                            BackgroundColor="{StaticResource BrandDanger}"
+                            TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
                             Padding="16,0" />

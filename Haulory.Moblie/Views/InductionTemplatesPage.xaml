@@ -2,29 +2,33 @@
 <ContentPage
     x:Class="Haulory.Mobile.Views.InductionTemplatesPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource BrandBackground}">
+
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <Grid Padding="20" RowDefinitions="Auto,Auto,*" RowSpacing="14">
 
         <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Spacing="2">
             <Label Text="Work site templates"
                    FontSize="24"
-                   FontAttributes="Bold" />
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource BrandTitle}" />
 
             <Label Text="Create work sites and define induction requirements"
                    FontSize="13"
-                   Opacity="0.7" />
+                   TextColor="{StaticResource BrandInk}" />
         </VerticalStackLayout>
 
         <!-- Selector and actions -->
         <Border Grid.Row="1"
                 StrokeThickness="1"
-                Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                Stroke="{StaticResource Gray300}"
                 StrokeShape="RoundRectangle 18"
-                BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                BackgroundColor="{StaticResource BrandSurface}"
                 Padding="16">
 
             <VerticalStackLayout Spacing="12">
@@ -32,16 +36,25 @@
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Work site"
                            FontSize="12"
-                           Opacity="0.7" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
-                    <Picker Title="Select work site"
-                            ItemsSource="{Binding WorkSites}"
-                            ItemDisplayBinding="{Binding Name}"
-                            SelectedItem="{Binding SelectedSite}" />
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{StaticResource BrandTileFill}"
+                            Padding="12,10">
+                        <Picker Title="Select work site"
+                                ItemsSource="{Binding WorkSites}"
+                                ItemDisplayBinding="{Binding Name}"
+                                SelectedItem="{Binding SelectedSite}"
+                                TitleColor="{StaticResource Gray600}"
+                                TextColor="{StaticResource BrandInk}" />
+                    </Border>
 
                     <Label Text="Select a site to view and manage its requirements"
                            FontSize="12"
-                           Opacity="0.6" />
+                           TextColor="{StaticResource BrandInk}"/>
                 </VerticalStackLayout>
 
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
@@ -50,16 +63,16 @@
                             Command="{Binding AddSiteCommand}"
                             HeightRequest="46"
                             CornerRadius="14"
-                            BackgroundColor="{AppThemeBinding Light='#F3F4F6', Dark='#111827'}"
-                            TextColor="{AppThemeBinding Light='#111827', Dark='#E5E7EB'}"/>
+                            BackgroundColor="{StaticResource Gray200}"
+                            TextColor="{StaticResource BrandInk}" />
 
                     <Button Grid.Column="1"
                             Text="Add requirement"
                             Command="{Binding AddRequirementCommand}"
                             HeightRequest="46"
                             CornerRadius="14"
-                            BackgroundColor="{AppThemeBinding Light='#2563EB', Dark='#3B82F6'}"
-                            TextColor="White"/>
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}" />
                 </Grid>
 
             </VerticalStackLayout>
@@ -74,9 +87,9 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            Stroke="{StaticResource Gray300}"
                             StrokeShape="RoundRectangle 18"
-                            BackgroundColor="{AppThemeBinding Light='#FFFFFF', Dark='#0B1220'}"
+                            BackgroundColor="{StaticResource BrandSurface}"
                             Padding="14"
                             Margin="0,0,0,12">
 
@@ -86,12 +99,14 @@
                             <Label Text="{Binding Title}"
                                    FontSize="16"
                                    FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandTitle}"
                                    LineBreakMode="TailTruncation" />
 
                             <!-- Details section -->
-                            <Border StrokeThickness="0"
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeShape="RoundRectangle 14"
-                                    BackgroundColor="{AppThemeBinding Light='#F9FAFB', Dark='#111827'}"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
                                     Padding="12">
 
                                 <VerticalStackLayout Spacing="6">
@@ -99,7 +114,7 @@
                                     <!-- PPE (hide if empty) -->
                                     <Label Text="{Binding PpeRequired, StringFormat='PPE required: {0}'}"
                                            FontSize="13"
-                                           Opacity="0.9"
+                                           TextColor="{StaticResource BrandInk}"
                                            LineBreakMode="WordWrap">
                                         <Label.Triggers>
                                             <DataTrigger TargetType="Label" Binding="{Binding PpeRequired}" Value="{x:Null}">
@@ -114,7 +129,8 @@
                                     <!-- Validity -->
                                     <Label Text="{Binding ValidForDisplay}"
                                            FontSize="13"
-                                           Opacity="0.9" />
+                                           TextColor="{StaticResource BrandInk}"
+                                           Opacity="0.92" />
 
                                 </VerticalStackLayout>
                             </Border>

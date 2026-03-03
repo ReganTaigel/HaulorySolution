@@ -2,10 +2,13 @@
 <ContentPage
     x:Class="Haulory.Mobile.Views.ManageInductionsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource BrandBackground}">
+
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
     </Shell.BackButtonBehavior>
+
     <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="12">
 
         <!-- Top row: Driver picker + actions -->
@@ -15,11 +18,19 @@
               RowDefinitions="Auto">
 
             <!-- Driver picker -->
-            <Picker Grid.Column="0"
-                    Title="Select Driver"
-                    ItemsSource="{Binding Drivers}"
-                    ItemDisplayBinding="{Binding DisplayName}"
-                    SelectedItem="{Binding SelectedDriver}" />
+            <Border Grid.Column="0"
+                    StrokeThickness="1"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{StaticResource BrandTileFill}"
+                    Padding="12,8">
+                <Picker Title="Select Driver"
+                        ItemsSource="{Binding Drivers}"
+                        ItemDisplayBinding="{Binding DisplayName}"
+                        SelectedItem="{Binding SelectedDriver}"
+                        TitleColor="{StaticResource Gray600}"
+                        TextColor="{StaticResource BrandInk}" />
+            </Border>
 
             <!-- Templates -->
             <Button Grid.Column="1"
@@ -27,6 +38,8 @@
                     Padding="14,0"
                     HeightRequest="44"
                     CornerRadius="12"
+                    BackgroundColor="{StaticResource Gray200}"
+                    TextColor="{StaticResource BrandInk}"
                     Command="{Binding GoToTemplatesCommand}" />
 
             <!-- Add Induction -->
@@ -35,6 +48,8 @@
                     Padding="14,0"
                     HeightRequest="44"
                     CornerRadius="12"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="{StaticResource White}"
                     Command="{Binding AddInductionCommand}" />
         </Grid>
 
@@ -42,7 +57,7 @@
         <Label Grid.Row="1"
                Text="Tap an item to update status, completion date and expiry (per driver)."
                FontSize="12"
-               Opacity="0.7" />
+               TextColor="{StaticResource BrandInk}" />
 
         <!-- Inductions list -->
         <CollectionView Grid.Row="2"
@@ -52,7 +67,8 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border StrokeThickness="1"
-                            Stroke="{AppThemeBinding Light='#E5E7EB', Dark='#374151'}"
+                            Stroke="{StaticResource Gray300}"
+                            BackgroundColor="{StaticResource BrandSurface}"
                             StrokeShape="RoundRectangle 12"
                             Padding="12"
                             Margin="0,0,0,10">
@@ -67,18 +83,20 @@
                                    Grid.Column="0"
                                    Text="{Binding WorkSiteName}"
                                    FontSize="12"
-                                   Opacity="0.7" />
+                                   TextColor="{StaticResource BrandInk}"/>
 
                             <!-- Status (top-right) -->
                             <Border Grid.Row="0"
                                     Grid.Column="1"
-                                    StrokeThickness="0"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeShape="RoundRectangle 10"
                                     Padding="10,4"
-                                    BackgroundColor="{AppThemeBinding Light='#F3F4F6', Dark='#111827'}">
+                                    BackgroundColor="{StaticResource BrandTileFill}">
                                 <Label Text="{Binding StatusDisplay}"
                                        FontSize="12"
-                                       FontAttributes="Bold" />
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandInk}" />
                             </Border>
 
                             <!-- Requirement title -->
@@ -88,6 +106,7 @@
                                    Text="{Binding RequirementTitle}"
                                    FontSize="16"
                                    FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandTitle}"
                                    LineBreakMode="TailTruncation" />
 
                             <!-- PPE (only if not empty) -->
@@ -96,7 +115,7 @@
                                    Grid.ColumnSpan="2"
                                    Text="{Binding PpeRequired, StringFormat='PPE: {0}'}"
                                    FontSize="13"
-                                   Opacity="0.85">
+                                   TextColor="{StaticResource BrandInk}">
                                 <Label.Triggers>
                                     <DataTrigger TargetType="Label" Binding="{Binding PpeRequired}" Value="">
                                         <Setter Property="IsVisible" Value="False" />
@@ -115,7 +134,7 @@
                                 <!-- CompletedOnUtc visible only if has value -->
                                 <Label Text="{Binding CompletedOnUtc, StringFormat='Completed: {0:yyyy-MM-dd}'}"
                                        FontSize="13"
-                                       Opacity="0.85">
+                                       TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding CompletedOnUtc}" Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
@@ -126,7 +145,7 @@
                                 <!-- ExpiresOnUtc visible only if has value -->
                                 <Label Text="{Binding ExpiresOnUtc, StringFormat='Due/Expires: {0:yyyy-MM-dd}'}"
                                        FontSize="13"
-                                       Opacity="0.85">
+                                       TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding ExpiresOnUtc}" Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
@@ -137,7 +156,7 @@
                                 <!-- DaysLeft visible only if has value -->
                                 <Label Text="{Binding DaysLeft, StringFormat='Days left: {0}'}"
                                        FontSize="13"
-                                       Opacity="0.85">
+                                       TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
                                         <DataTrigger TargetType="Label" Binding="{Binding DaysLeft}" Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
@@ -154,6 +173,8 @@
                                     Padding="14,0"
                                     HeightRequest="36"
                                     CornerRadius="10"
+                                    BackgroundColor="{StaticResource Gray200}"
+                                    TextColor="{StaticResource BrandInk}"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}"
                                     CommandParameter="{Binding}" />
                         </Grid>
