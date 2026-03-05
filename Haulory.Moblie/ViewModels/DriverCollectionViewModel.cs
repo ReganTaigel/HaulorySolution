@@ -44,8 +44,14 @@ public class DriverCollectionViewModel : BaseViewModel
         }
     }
 
+    // ✅ Main-only gate (recommended): only main account can add drivers
+    public bool IsMainUser =>
+        _sessionService.CurrentAccountId.HasValue &&
+        _sessionService.CurrentOwnerId.HasValue &&
+        _sessionService.CurrentAccountId.Value == _sessionService.CurrentOwnerId.Value;
+
     // Gate: only allow adding sub-drivers once main driver profile is complete
-    public bool ShowAddDriver => _isMainComplete;
+    public bool ShowAddDriver => _isMainComplete && IsMainUser;
 
     public ObservableCollection<DriverListItem> Drivers { get; } = new();
 
@@ -102,9 +108,10 @@ public class DriverCollectionViewModel : BaseViewModel
             if (!_sessionService.IsAuthenticated)
                 await _sessionService.RestoreAsync();
 
-            var ownerUserId = _sessionService.CurrentAccountId ?? Guid.Empty;
+            var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;     // ✅ tenant
+            var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;     // ✅ logged-in user
 
-            if (!_sessionService.IsAuthenticated || ownerUserId == Guid.Empty)
+            if (!_sessionService.IsAuthenticated || ownerUserId == Guid.Empty || accountId == Guid.Empty)
             {
                 _mainDriver = null;
                 _isMainComplete = false;
@@ -112,17 +119,17 @@ public class DriverCollectionViewModel : BaseViewModel
                 return;
             }
 
-            // Load all drivers for this owner
+            // ✅ Load all drivers for this tenant (owner)
             var drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
 
-            // Resolve main driver (driver linked to the main user account)
+            // ✅ Main driver = driver linked to the MAIN account (owner), not the current login
             var existingMain = drivers.FirstOrDefault(d =>
                 d.UserId.HasValue && d.UserId.Value == ownerUserId);
 
             // Create main driver if missing
             if (existingMain == null)
             {
-                var account = await _userAccountRepository.GetByIdAsync(ownerUserId);
+                var account = await _userAccountRepository.GetByIdAsync(ownerUserId); // ✅ main account
                 if (account == null)
                 {
                     _mainDriver = null;
@@ -148,14 +155,14 @@ public class DriverCollectionViewModel : BaseViewModel
             if (existingMain != null && drivers.All(d => d.Id != existingMain.Id))
                 drivers.Insert(0, existingMain);
 
-            // Get expiring induction counts (within 30 days)
+            // Get expiring induction counts (within 30 days) - tenant scoped
             var expiringSoon =
                 await _driverInductionRepository
                     .CountExpiringSoonByDriverAsync(ownerUserId, 30);
 
             // Populate UI collection
             foreach (var d in drivers
-                .OrderByDescending(d => d.UserId.HasValue)
+                .OrderByDescending(d => d.UserId.HasValue) // main first
                 .ThenBy(d => d.LastName ?? string.Empty)
                 .ThenBy(d => d.FirstName ?? string.Empty)
                 .ThenBy(d => d.Email ?? string.Empty))
@@ -191,6 +198,7 @@ public class DriverCollectionViewModel : BaseViewModel
     private void RaiseGate()
     {
         OnPropertyChanged(nameof(ShowAddDriver));
+        OnPropertyChanged(nameof(IsMainUser));
     }
 
     #endregion

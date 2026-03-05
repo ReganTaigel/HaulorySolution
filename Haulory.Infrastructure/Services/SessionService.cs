@@ -8,13 +8,17 @@ public class SessionService : ISessionService
 {
     #region Constants
 
-    private const string SessionKey = "haulory_current_account_id";
+    private const string AccountKey = "haulory_current_account_id";
+    private const string OwnerKey = "haulory_current_owner_id";
 
     #endregion
 
     #region Properties
 
     public Guid? CurrentAccountId { get; private set; }
+
+    // ✅ NEW: Tenant boundary
+    public Guid? CurrentOwnerId { get; private set; }
 
     // True if a user account is currently active
     public bool IsAuthenticated => CurrentAccountId.HasValue;
@@ -25,33 +29,49 @@ public class SessionService : ISessionService
 
     public async Task RestoreAsync()
     {
-        // Attempt to restore session from secure storage
-        var value = await SecureStorage.GetAsync(SessionKey);
+        var accountValue = await SecureStorage.GetAsync(AccountKey);
+        var ownerValue = await SecureStorage.GetAsync(OwnerKey);
 
-        if (Guid.TryParse(value, out var id))
-            CurrentAccountId = id;
+        if (Guid.TryParse(accountValue, out var accountId))
+            CurrentAccountId = accountId;
+
+        if (Guid.TryParse(ownerValue, out var ownerId))
+            CurrentOwnerId = ownerId;
+
+        // ✅ Back-compat: if older installs only have AccountKey, treat it as owner too
+        if (CurrentAccountId.HasValue && !CurrentOwnerId.HasValue)
+            CurrentOwnerId = CurrentAccountId;
     }
 
     public async Task SetAccountAsync(Guid accountId)
     {
-        // Persist current account id
+        // Main account login: owner == account
         CurrentAccountId = accountId;
+        CurrentOwnerId = accountId;
 
-        await SecureStorage.SetAsync(
-            SessionKey,
-            accountId.ToString());
+        await SecureStorage.SetAsync(AccountKey, accountId.ToString());
+        await SecureStorage.SetAsync(OwnerKey, accountId.ToString());
+    }
+
+    public async Task SetAccountAsync(Guid accountId, Guid ownerId)
+    {
+        CurrentAccountId = accountId;
+        CurrentOwnerId = ownerId;
+
+        await SecureStorage.SetAsync(AccountKey, accountId.ToString());
+        await SecureStorage.SetAsync(OwnerKey, ownerId.ToString());
     }
 
     public async Task ClearAsync()
     {
-        // Clear in-memory state
         CurrentAccountId = null;
+        CurrentOwnerId = null;
 
-        // Remove from secure storage
-        SecureStorage.Remove(SessionKey);
+        SecureStorage.Remove(AccountKey);
+        SecureStorage.Remove(OwnerKey);
 
         await Task.CompletedTask;
     }
 
     #endregion
-}
+} 

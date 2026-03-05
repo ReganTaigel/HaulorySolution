@@ -56,20 +56,29 @@ public class JobsCollectionViewModel : BaseViewModel
     {
         Jobs.Clear();
 
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
-        // ✅ NEW: owner-scoped active jobs (instead of GetAllAsync)
         var jobs = (await _jobRepository.GetActiveByOwnerAsync(ownerUserId))
             .OrderBy(j => j.SortOrder)
             .ToList();
 
-        // Collect IDs we need to resolve
-        var driverIds = jobs.Where(j => j.DriverId.HasValue).Select(j => j.DriverId!.Value).Distinct().ToList();
-        var vehicleIds = jobs.Where(j => j.VehicleAssetId.HasValue).Select(j => j.VehicleAssetId!.Value).Distinct().ToList();
+        var driverIds = jobs.Where(j => j.DriverId.HasValue)
+            .Select(j => j.DriverId!.Value)
+            .Distinct()
+            .ToList();
 
-        // Resolve drivers
+        var vehicleIds = jobs.Where(j => j.VehicleAssetId.HasValue)
+            .Select(j => j.VehicleAssetId!.Value)
+            .Distinct()
+            .ToList();
+        var trailerIds = jobs
+            .SelectMany(j => j.TrailerAssignments)
+            .Select(t => t.TrailerAssetId)
+            .Distinct()
+            .ToList();
+
         var driversById = new Dictionary<Guid, Driver>();
         foreach (var id in driverIds)
         {
@@ -77,15 +86,13 @@ public class JobsCollectionViewModel : BaseViewModel
             if (d != null) driversById[id] = d;
         }
 
-        // Resolve vehicles
-        var vehiclesById = new Dictionary<Guid, VehicleAsset>();
-        foreach (var id in vehicleIds)
+        var assetsById = new Dictionary<Guid, VehicleAsset>();
+        foreach (var id in vehicleIds.Concat(trailerIds).Distinct())
         {
-            var v = await _vehicleAssetRepository.GetByIdAsync(id);
-            if (v != null) vehiclesById[id] = v;
+            var a = await _vehicleAssetRepository.GetByIdAsync(id);
+            if (a != null) assetsById[id] = a;
         }
 
-        // Build UI list items
         foreach (var job in jobs)
         {
             var driverName = "—";
@@ -93,10 +100,12 @@ public class JobsCollectionViewModel : BaseViewModel
                 driverName = $"{d.FirstName} {d.LastName}".Trim();
 
             var truck = "—";
-            if (job.VehicleAssetId is Guid vid && vehiclesById.TryGetValue(vid, out var v) && v != null)
+            if (job.VehicleAssetId is Guid vid && assetsById.TryGetValue(vid, out var v) && v != null)
                 truck = $"{v.Make} {v.Model} • {v.Rego}".Trim();
 
-            Jobs.Add(new JobListItemViewModel(job, driverName, truck));
+
+            // If your JobListItemViewModel doesn’t have trailer yet, add a new ctor param/property
+            Jobs.Add(new JobListItemViewModel(job, driverName, truck /*, trailer */));
         }
     }
 
@@ -104,11 +113,10 @@ public class JobsCollectionViewModel : BaseViewModel
     {
         if (item?.Job == null) return;
 
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
-        // Optional safety: don’t reorder delivered jobs
         if (item.Job.IsDelivered)
             return;
 
@@ -119,19 +127,15 @@ public class JobsCollectionViewModel : BaseViewModel
         var newIndex = index + direction;
         if (newIndex < 0 || newIndex >= list.Count) return;
 
-        // Swap
         (list[index], list[newIndex]) = (list[newIndex], list[index]);
 
-        // Re-number sort orders sequentially on domain jobs
         for (int i = 0; i < list.Count; i++)
             list[i].Job.SetSortOrder(i + 1);
 
-        // ✅ NEW: UpdateAllAsync(ownerUserId, jobs)
         await _jobRepository.UpdateAllAsync(
             ownerUserId,
             list.Select(x => x.Job).ToList());
 
-        // Reload UI collection (preserves driver/truck display)
         Jobs.Clear();
         foreach (var x in list.OrderBy(x => x.Job.SortOrder))
             Jobs.Add(x);

@@ -47,8 +47,10 @@ public class CreateJobHandler
             vehicleAssetId: command.VehicleAssetId
         );
 
-        // persist trailer assignments (0..N)
-        job.SetTrailers(command.TrailerAssetIds);
+        // Two trailers max (join table)
+        job.SetTrailers(new Guid?[] { command.TrailerAssetId1, command.TrailerAssetId2 }
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value));
 
         await _jobRepository.AddAsync(job);
     }

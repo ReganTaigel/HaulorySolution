@@ -81,7 +81,7 @@ public class InductionTemplatesViewModel : BaseViewModel
     {
         await EnsureSessionAsync();
 
-        var ownerId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerId == Guid.Empty)
             return;
 
@@ -107,7 +107,7 @@ public class InductionTemplatesViewModel : BaseViewModel
     {
         await EnsureSessionAsync();
 
-        var ownerId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerId == Guid.Empty)
             return;
 

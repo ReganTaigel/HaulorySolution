@@ -1064,7 +1064,7 @@ public class NewVehicleViewModel : BaseViewModel
             throw new InvalidOperationException("Vehicle type is required.");
 
         // Active main account (OwnerUserId) for FK
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             throw new InvalidOperationException("No active account. Please log in again.");
 

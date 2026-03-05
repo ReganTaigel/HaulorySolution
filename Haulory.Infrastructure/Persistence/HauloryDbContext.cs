@@ -235,27 +235,26 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.TrailerAssetId).IsRequired();
             entity.Property(x => x.Position).IsRequired();
 
-            // One trailer per position per job
-            entity.HasIndex(x => new { x.JobId, x.Position }).IsUnique();
+            // Only one trailer per slot (1, 2) per job
+            entity.HasIndex(x => new { x.JobId, x.Position })
+                  .IsUnique();
 
-            // Prevent same trailer twice on same job
-            entity.HasIndex(x => new { x.JobId, x.TrailerAssetId }).IsUnique();
+            // Helpful indexes
+            entity.HasIndex(x => x.JobId);
+            entity.HasIndex(x => x.TrailerAssetId);
 
+            // Link back to Job using backing field
             entity.HasOne<Job>()
-                  .WithMany() // we'll map field-based below
+                  .WithMany("_trailerAssignments")
                   .HasForeignKey(x => x.JobId)
                   .OnDelete(DeleteBehavior.Cascade);
 
+            // Link to VehicleAsset (Trailer)
             entity.HasOne<VehicleAsset>()
                   .WithMany()
                   .HasForeignKey(x => x.TrailerAssetId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
-
-        // Field-backed navigation mapping for Job._trailerAssignments
-        modelBuilder.Entity<Job>()
-            .Navigation(nameof(Job.TrailerAssignments))
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
     #endregion
 
@@ -282,7 +281,7 @@ public class HauloryDbContext : DbContext
             entity.Property(j => j.ClientCity).IsRequired().HasMaxLength(120);
             entity.Property(j => j.ClientCountry).IsRequired().HasMaxLength(120);
 
-            // Job core fields (common ones you likely have)
+            // Job core fields
             entity.Property(j => j.ReferenceNumber).HasMaxLength(64);
             entity.Property(j => j.PickupCompany).HasMaxLength(200);
             entity.Property(j => j.PickupAddress).HasMaxLength(250);
@@ -299,7 +298,7 @@ public class HauloryDbContext : DbContext
             entity.Property(j => j.InvoiceNumber).IsRequired().HasMaxLength(64);
             entity.HasIndex(j => new { j.OwnerUserId, j.InvoiceNumber }).IsUnique();
 
-            // Signatures (can be large)
+            // Signatures
             entity.Property(j => j.DeliverySignatureJson).IsRequired(false);
             entity.Property(j => j.PickupSignatureJson).IsRequired(false);
             entity.Property(j => j.ReceiverName).HasMaxLength(200);
@@ -308,7 +307,6 @@ public class HauloryDbContext : DbContext
             // Assignment indices
             entity.HasIndex(j => j.DriverId);
             entity.HasIndex(j => j.VehicleAssetId);
-            entity.HasIndex(j => j.TrailerAssetId);
 
             // Ownership link
             entity.HasOne<UserAccount>()
@@ -327,15 +325,7 @@ public class HauloryDbContext : DbContext
                   .HasForeignKey(j => j.VehicleAssetId)
                   .OnDelete(DeleteBehavior.SetNull);
 
-            entity.HasOne<VehicleAsset>()
-                  .WithMany()
-                  .HasForeignKey(j => j.TrailerAssetId)
-                  .OnDelete(DeleteBehavior.SetNull);
-
-            entity.HasMany(typeof(JobTrailerAssignment), "_trailerAssignments")
-                  .WithOne()
-                  .HasForeignKey(nameof(JobTrailerAssignment.JobId))
-                  .OnDelete(DeleteBehavior.Cascade);
+    
         });
     }
 

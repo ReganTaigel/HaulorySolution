@@ -151,7 +151,7 @@ public class ReportsViewModel : BaseViewModel
         {
             Receipts.Clear();
 
-            var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerUserId == Guid.Empty)
                 return;
 
@@ -179,7 +179,7 @@ public class ReportsViewModel : BaseViewModel
 
     private async Task JumpToReceiptDateAndReloadAsync(Guid jobId)
     {
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
@@ -207,7 +207,7 @@ public class ReportsViewModel : BaseViewModel
     {
         try
         {
-            var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerUserId == Guid.Empty)
                 return;
 
@@ -242,7 +242,7 @@ public class ReportsViewModel : BaseViewModel
     {
         try
         {
-            var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerUserId == Guid.Empty)
                 return;
 

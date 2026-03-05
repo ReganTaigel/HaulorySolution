@@ -158,7 +158,7 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadCurrentJobAsync()
     {
-        var ownerUserId = _sessionService.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
         {
             ClearCurrentJobUi();
@@ -197,7 +197,7 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadCompletedReportSummaryAsync()
     {
-        var ownerUserId = _sessionService.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
         {
             CompletedTodayCount = 0;

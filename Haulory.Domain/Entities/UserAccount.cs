@@ -21,6 +21,10 @@ public class UserAccount
     public UserRole Role { get; private set; } = UserRole.Main;
     public Guid? ParentMainUserId { get; private set; }
 
+    // Helpers (tenant resolution)
+    public bool IsMainAccount => ParentMainUserId == null;
+    public Guid OwnerUserId => ParentMainUserId ?? Id;
+
     // Personal profile (existing)
     public string? PhoneNumber { get; private set; }
     public DateTime? DateOfBirthUtc { get; private set; }
@@ -124,7 +128,7 @@ public class UserAccount
         Country = Clean(country);
     }
 
-    // ✅ Business profile updates
+    // Business profile updates
     public void UpdateBusinessIdentity(string businessName, string? businessEmail, string? gstNumber, string? nzbn)
     {
         BusinessName = string.IsNullOrWhiteSpace(businessName) ? string.Empty : businessName.Trim();

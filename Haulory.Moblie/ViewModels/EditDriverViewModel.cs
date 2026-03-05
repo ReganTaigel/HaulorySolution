@@ -386,7 +386,7 @@ public class EditDriverViewModel : BaseViewModel
             return;
 
         // Must be logged in
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (!_session.IsAuthenticated || ownerUserId == Guid.Empty)
             return;
 
@@ -504,7 +504,7 @@ public class EditDriverViewModel : BaseViewModel
             await _repo.SaveAsync(_driver);
 
             // If this driver is the MAIN user's profile, sync UserAccount identity too
-            if (_driver.UserId.HasValue && (_session.CurrentAccountId == _driver.UserId.Value))
+            if (_driver.UserId.HasValue && (_session.CurrentOwnerId == _driver.UserId.Value))
             {
                 var account = await _users.GetByIdAsync(_driver.UserId.Value);
                 if (account != null)

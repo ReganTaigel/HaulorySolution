@@ -36,7 +36,8 @@ public record CreateJobCommand(
     // Allocation (optional)
     Guid? DriverId,
     Guid? VehicleAssetId,
-
+    Guid? TrailerAssetId1,
+    Guid? TrailerAssetId2,
     // 0..2 trailers (ordered)
     IReadOnlyList<Guid>? TrailerAssetIds
 );

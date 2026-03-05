@@ -96,7 +96,7 @@ public class AddWorkSiteTemplateViewModel : BaseViewModel
             if (!_session.IsAuthenticated)
                 await _session.RestoreAsync();
 
-            var ownerId = _session.CurrentAccountId ?? Guid.Empty;
+            var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerId == Guid.Empty)
             {
                 await Shell.Current.DisplayAlertAsync("Not logged in", "Please log in again.", "OK");

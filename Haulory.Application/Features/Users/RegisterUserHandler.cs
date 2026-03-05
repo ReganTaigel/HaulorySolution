@@ -57,7 +57,7 @@ public class RegisterUserHandler
             passwordHash: hash
         );
 
-        // ✅ Apply business profile
+        // Apply business profile
         user.UpdateBusinessIdentity(
             businessName: command.BusinessName,
             businessEmail: command.BusinessEmail,

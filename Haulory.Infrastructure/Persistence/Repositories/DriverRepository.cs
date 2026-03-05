@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,6 @@ public class DriverRepository : IDriverRepository
 
     #region Debug
 
-    // Optional dev helper (no file path anymore)
     public string DebugFilePath => "SQLite: haulory.db";
 
     #endregion
@@ -50,19 +51,26 @@ public class DriverRepository : IDriverRepository
             .ToListAsync();
     }
 
-    public async Task<Driver> GetByIdAsync(Guid id)
+    // ✅ now nullable, no throw
+    public async Task<Driver?> GetByIdAsync(Guid id)
     {
         if (id == Guid.Empty)
-            throw new ArgumentException("Driver Id cannot be empty.", nameof(id));
+            return null;
 
-        var driver = await _db.Drivers
+        return await _db.Drivers
             .AsNoTracking()
             .FirstOrDefaultAsync(d => d.Id == id);
+    }
 
-        if (driver == null)
-            throw new KeyNotFoundException($"Driver not found with Id: {id}");
+    // ✅ tenant-safe single fetch
+    public async Task<Driver?> GetByIdForOwnerAsync(Guid ownerUserId, Guid driverId)
+    {
+        if (ownerUserId == Guid.Empty || driverId == Guid.Empty)
+            return null;
 
-        return driver;
+        return await _db.Drivers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(d => d.OwnerUserId == ownerUserId && d.Id == driverId);
     }
 
     public async Task<Driver?> GetByUserIdAsync(Guid userId)
@@ -72,12 +80,9 @@ public class DriverRepository : IDriverRepository
 
         return await _db.Drivers
             .AsNoTracking()
-            .FirstOrDefaultAsync(d =>
-                d.UserId.HasValue &&
-                d.UserId.Value == userId);
+            .FirstOrDefaultAsync(d => d.UserId.HasValue && d.UserId.Value == userId);
     }
 
-    // ✅ NEW: main driver count (UserId != null)
     public async Task<int> CountMainDriversAsync(Guid ownerUserId)
     {
         if (ownerUserId == Guid.Empty)
@@ -85,12 +90,9 @@ public class DriverRepository : IDriverRepository
 
         return await _db.Drivers
             .AsNoTracking()
-            .CountAsync(d =>
-                d.OwnerUserId == ownerUserId &&
-                d.UserId.HasValue);
+            .CountAsync(d => d.OwnerUserId == ownerUserId && d.UserId.HasValue);
     }
 
-    // ✅ NEW: sub driver count (UserId == null)
     public async Task<int> CountSubDriversAsync(Guid ownerUserId)
     {
         if (ownerUserId == Guid.Empty)
@@ -98,9 +100,7 @@ public class DriverRepository : IDriverRepository
 
         return await _db.Drivers
             .AsNoTracking()
-            .CountAsync(d =>
-                d.OwnerUserId == ownerUserId &&
-                !d.UserId.HasValue);
+            .CountAsync(d => d.OwnerUserId == ownerUserId && !d.UserId.HasValue);
     }
 
     #endregion
@@ -124,13 +124,14 @@ public class DriverRepository : IDriverRepository
 
         if (target == null)
         {
-            // New driver
             _db.Drivers.Add(driver);
             await _db.SaveChangesAsync();
             return;
         }
 
-        // Update scalars explicitly (safe + predictable)
+        // ✅ OPTIONAL tenant safety check (recommended)
+        if (target.OwnerUserId != driver.OwnerUserId)
+            throw new InvalidOperationException("Tenant mismatch: cannot save driver for a different OwnerUserId.");
 
         // Identity fields
         if (!string.IsNullOrWhiteSpace(driver.FirstName) &&

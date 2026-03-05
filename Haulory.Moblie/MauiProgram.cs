@@ -67,7 +67,7 @@ public static class MauiProgram
         builder.Services.AddTransient<CreateJobHandler>();
         builder.Services.AddTransient<RegisterUserHandler>();
         builder.Services.AddTransient<LoginUserHandler>();
-
+        builder.Services.AddTransient<CreateSubUserHandler>();
         builder.Services.AddTransient<CreateDriverFromUserHandler>();
         builder.Services.AddTransient<CreateDriverHandler>();
 

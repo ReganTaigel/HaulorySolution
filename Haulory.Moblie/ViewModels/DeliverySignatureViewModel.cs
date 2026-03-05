@@ -254,7 +254,7 @@ public class DeliverySignatureViewModel : BaseViewModel
                 return;
             }
 
-            var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerUserId == Guid.Empty)
             {
                 await Shell.Current.DisplayAlertAsync("Not logged in", "Please log in again.", "OK");

@@ -6,8 +6,11 @@ public interface ISessionService
 {
     #region State
 
-    // Currently authenticated account Id (null if not logged in)
+    // Logged in user (driver / dispatcher / main)
     Guid? CurrentAccountId { get; }
+
+    // Tenant boundary (main account)
+    Guid? CurrentOwnerId { get; }
 
     // Indicates whether a user is authenticated
     bool IsAuthenticated { get; }
@@ -16,13 +19,14 @@ public interface ISessionService
 
     #region Lifecycle
 
-    // Restores session from persistent storage (e.g., secure storage)
     Task RestoreAsync();
 
-    // Sets the active account session
+    // MAIN account login
     Task SetAccountAsync(Guid accountId);
 
-    // Clears the current session (logout)
+    // SUB user login
+    Task SetAccountAsync(Guid accountId, Guid ownerId);
+
     Task ClearAsync();
 
     #endregion

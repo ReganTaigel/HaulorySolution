@@ -24,8 +24,8 @@ public class Job
     // Optional linkage to driver and vehicle assets
     public Guid? DriverId { get; private set; }
     public Guid? VehicleAssetId { get; private set; } // Power unit asset id
-    public Guid? TrailerAssetId { get; private set; }
 
+    // ✅ Trailer assignments (max 2) stored via join table
     public IReadOnlyCollection<JobTrailerAssignment> TrailerAssignments => _trailerAssignments;
     private readonly List<JobTrailerAssignment> _trailerAssignments = new();
 
@@ -146,11 +146,10 @@ public class Job
         decimal rateValue,
         decimal quantity,
 
-       // Ordering / Allocation
+        // Ordering / Allocation
         int sortOrder,
         Guid? driverId = null,
-        Guid? vehicleAssetId = null,
-        Guid? trailerAssetId = null)
+        Guid? vehicleAssetId = null)
     {
         if (jobId == Guid.Empty)
             throw new ArgumentException("JobId required.", nameof(jobId));
@@ -184,12 +183,10 @@ public class Job
 
         // Pricing
         SetRateInternal(rateType, rateValue, quantity);
-         
+
         SortOrder = sortOrder;
         DriverId = driverId;
         VehicleAssetId = vehicleAssetId;
-        TrailerAssetId = trailerAssetId;
-
     }
 
     #endregion
@@ -231,6 +228,7 @@ public class Job
     // Later workflow: job assigned to a sub-user account
     public void AssignToSubUser(Guid? subUserId) => AssignedToUserId = subUserId;
 
+    // ✅ Max 2 trailers
     public void SetTrailers(IEnumerable<Guid>? trailerAssetIds)
     {
         _trailerAssignments.Clear();
@@ -240,11 +238,13 @@ public class Job
         var distinct = trailerAssetIds
             .Where(id => id != Guid.Empty)
             .Distinct()
+            .Take(2) // max two trailers
             .ToList();
 
         for (int i = 0; i < distinct.Count; i++)
             _trailerAssignments.Add(new JobTrailerAssignment(Id, distinct[i], i + 1));
     }
+
     #endregion
 
     #region Ordering

@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Windows.Input;
 using Haulory.Application.Features.Users;
-using Haulory.Application.Interfaces.Services;
 using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
@@ -11,7 +10,6 @@ public class LoginViewModel : BaseViewModel
     #region Dependencies
 
     private readonly LoginUserHandler _handler;
-    private readonly ISessionService _sessionService;
 
     #endregion
 
@@ -31,12 +29,9 @@ public class LoginViewModel : BaseViewModel
 
     #region Constructor
 
-    public LoginViewModel(
-        LoginUserHandler handler,
-        ISessionService sessionService)
+    public LoginViewModel(LoginUserHandler handler)
     {
         _handler = handler;
-        _sessionService = sessionService;
 
         LoginCommand = new Command(async () => await LoginAsync());
 
@@ -52,20 +47,15 @@ public class LoginViewModel : BaseViewModel
 
     private async Task LoginAsync()
     {
-        var user = await _handler.HandleAsync(
-            new LoginUserCommand(Email, Password));
+        var user = await _handler.HandleAsync(new LoginUserCommand(Email, Password));
 
         if (user != null)
         {
-            // Store authenticated session
-            await _sessionService.SetAccountAsync(user.Id);
-
-            // Navigate to app root
+            // Session already set by LoginUserHandler
             await Shell.Current.GoToAsync("///DashboardPage");
         }
         else
         {
-            // Display login failure
             await Shell.Current.DisplayAlertAsync(
                 "Login Failed",
                 "Invalid credentials",

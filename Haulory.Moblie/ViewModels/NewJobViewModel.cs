@@ -231,7 +231,7 @@ public class NewJobViewModel : BaseViewModel
 
     public async Task LoadAsync()
     {
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
@@ -268,7 +268,7 @@ public class NewJobViewModel : BaseViewModel
 
     private async Task SaveAsync()
     {
-        var ownerUserId = _session.CurrentAccountId ?? Guid.Empty;
+        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
 
