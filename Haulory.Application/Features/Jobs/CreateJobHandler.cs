@@ -14,13 +14,8 @@ public class CreateJobHandler
 
     public async Task HandleAsync(CreateJobCommand command)
     {
-        // If your repo is owner-scoped (recommended), use this:
         var nextOrder = await _jobRepository.GetNextSortOrderAsync(command.OwnerUserId);
 
-        // If your repo is NOT owner-scoped yet, use this instead:
-        // var nextOrder = await _jobRepository.GetNextSortOrderAsync();
-
-        // Invoice number token (8 chars) — keep as-is for now
         var invoiceNumber = Guid.NewGuid().ToString("N")[..8];
 
         var job = new Job(
@@ -51,6 +46,9 @@ public class CreateJobHandler
             driverId: command.DriverId,
             vehicleAssetId: command.VehicleAssetId
         );
+
+        // persist trailer assignments (0..N)
+        job.SetTrailers(command.TrailerAssetIds);
 
         await _jobRepository.AddAsync(job);
     }

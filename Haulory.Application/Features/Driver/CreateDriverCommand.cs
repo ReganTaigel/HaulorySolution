@@ -13,6 +13,10 @@ public record CreateDriverCommand(
 
     // NEW: Licence
     DateTime? LicenceExpiresOnUtc,
+    string? LicenceVersion,                  
+    string? LicenceClassOrEndorsements,    
+    DateTime? LicenceIssuedOnUtc,          
+    string? LicenceConditionsNotes,         
 
     // NEW: Address
     string? Line1,

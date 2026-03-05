@@ -30,6 +30,10 @@ public class DriverInductionListItemDto
     // Title of the induction requirement.
     public string RequirementTitle { get; set; } = string.Empty;
 
+    // Company name for this requirement (optional).
+    // Useful when multiple companies share one site.
+    public string? CompanyName { get; set; }
+
     #endregion
 
     #region Requirement Configuration

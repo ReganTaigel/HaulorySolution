@@ -1081,14 +1081,12 @@ public class NewVehicleViewModel : BaseViewModel
             if (Unit1Year == null)
                 throw new InvalidOperationException("Year is required.");
 
-            var odo = PowerUnitOdometerKm;
-
             var asset = new VehicleAsset
             {
                 OwnerUserId = ownerUserId,
-
                 VehicleSetId = setId,
                 UnitNumber = POWER_UNIT_SLOT,
+
                 Kind = AssetKind.PowerUnit,
                 VehicleType = SelectedVehicleType.Value,
                 FuelType = SelectedFuelType.Value,
@@ -1103,7 +1101,7 @@ public class NewVehicleViewModel : BaseViewModel
                 CertificateType = certType,
                 CertificateExpiry = Unit1CertExpiry,
 
-                OdometerKm = odo
+                OdometerKm = PowerUnitOdometerKm
             };
 
             // Slot-based RUC (Unit 1 only) when it applies
@@ -1120,114 +1118,110 @@ public class NewVehicleViewModel : BaseViewModel
             }
 
             assets.Add(asset);
-
-            // Safety net (future-proof if more assets get added here later)
-            foreach (var a in assets)
-                a.OwnerUserId = ownerUserId;
-
-            await _vehicleRepository.AddRangeAsync(assets);
-            return;
         }
-
-        // -------- Trailer-only path --------
-
-        if (Unit2Year == null)
-            throw new InvalidOperationException("Trailer year is required.");
-
-        var trailer1Odo = IsHeavyTrailer ? Trailer1OdometerKm : null;
-
-        var trailer1 = new VehicleAsset
+        else
         {
-            OwnerUserId = ownerUserId,
+            // -------- Trailer-only path --------
 
-            VehicleSetId = setId,
-            UnitNumber = TRAILER_1_SLOT,
-            Kind = AssetKind.Trailer,
-            VehicleType = SelectedVehicleType.Value,
-            // Trailer configuration depends on whether this is light or heavy trailer.
-            Configuration =
+            if (Unit2Year == null)
+                throw new InvalidOperationException("Trailer year is required.");
+
+            var trailer1 = new VehicleAsset
+            {
+                OwnerUserId = ownerUserId,
+                VehicleSetId = setId,
+                UnitNumber = TRAILER_1_SLOT,
+
+                Kind = AssetKind.Trailer,
+                VehicleType = SelectedVehicleType.Value,
+
+                Configuration =
                     IsHeavyTrailer ? SelectedHeavyConfig?.Value
                     : IsLightTrailer ? SelectedLightConfig?.Value
                     : null,
 
-            Year = Unit2Year.Value,
-            Rego = Unit2Rego.Trim(),
-            RegoExpiry = Unit2RegoExpiry,
+                Year = Unit2Year.Value,
+                Rego = Unit2Rego.Trim(),
+                RegoExpiry = Unit2RegoExpiry,
 
-            Make = Unit2Make.Trim(),
-            Model = Unit2Model.Trim(),
-
-            CertificateType = certType,
-            CertificateExpiry = Unit2CertExpiry,
-
-            OdometerKm = trailer1Odo
-        };
-
-        // Heavy trailers always have RUC
-        if (IsHeavyTrailer)
-        {
-            trailer1.RucPurchasedDate = Unit2RucPurchasedDate;
-            trailer1.RucDistancePurchasedKm = Unit2RucDistancePurchasedKm;
-
-            trailer1.RucLicenceStartKm = Unit2RucLicenceStartKm;
-            trailer1.RucLicenceEndKm = Unit2RucLicenceEndKm;
-
-            trailer1.RucOdometerAtPurchaseKm = null;
-            trailer1.RucNextDueOdometerKm = Unit2RucLicenceEndKm;
-        }
-
-        assets.Add(trailer1);
-
-        // B-Train adds Unit 3 trailer
-        if (IsBTrain)
-        {
-            if (Unit3Year == null)
-                throw new InvalidOperationException("Trailer 2 year is required.");
-
-            var trailer2Odo = Trailer2OdometerKm;
-
-            var trailer2 = new VehicleAsset
-            {
-                OwnerUserId = ownerUserId,
-
-                VehicleSetId = setId,
-                UnitNumber = TRAILER_2_SLOT,
-                Kind = AssetKind.Trailer,
-                VehicleType = SelectedVehicleType.Value,
-
-                Configuration = SelectedHeavyConfig?.Value,
-
-                Year = Unit3Year.Value,
-                Rego = Unit3Rego.Trim(),
-                RegoExpiry = Unit3RegoExpiry,
-
-                Make = Unit3Make.Trim(),
-                Model = Unit3Model.Trim(),
+                Make = Unit2Make.Trim(),
+                Model = Unit2Model.Trim(),
 
                 CertificateType = certType,
-                CertificateExpiry = Unit3CertExpiry,
+                CertificateExpiry = Unit2CertExpiry,
 
-                OdometerKm = trailer2Odo
+                OdometerKm = IsHeavyTrailer ? Trailer1OdometerKm : null
             };
 
-            trailer2.RucPurchasedDate = Unit3RucPurchasedDate;
-            trailer2.RucDistancePurchasedKm = Unit3RucDistancePurchasedKm;
+            // Heavy trailers always have RUC
+            if (IsHeavyTrailer)
+            {
+                trailer1.RucPurchasedDate = Unit2RucPurchasedDate;
+                trailer1.RucDistancePurchasedKm = Unit2RucDistancePurchasedKm;
 
-            trailer2.RucLicenceStartKm = Unit3RucLicenceStartKm;
-            trailer2.RucLicenceEndKm = Unit3RucLicenceEndKm;
+                trailer1.RucLicenceStartKm = Unit2RucLicenceStartKm;
+                trailer1.RucLicenceEndKm = Unit2RucLicenceEndKm;
 
-            trailer2.RucOdometerAtPurchaseKm = null;
-            trailer2.RucNextDueOdometerKm = Unit3RucLicenceEndKm;
+                trailer1.RucOdometerAtPurchaseKm = null;
+                trailer1.RucNextDueOdometerKm = Unit2RucLicenceEndKm;
+            }
 
-            assets.Add(trailer2);
+            assets.Add(trailer1);
+
+            // B-Train adds Unit 3 trailer
+            if (IsBTrain)
+            {
+                if (Unit3Year == null)
+                    throw new InvalidOperationException("Trailer 2 year is required.");
+
+                var trailer2 = new VehicleAsset
+                {
+                    OwnerUserId = ownerUserId,
+                    VehicleSetId = setId,
+                    UnitNumber = TRAILER_2_SLOT,
+
+                    Kind = AssetKind.Trailer,
+                    VehicleType = SelectedVehicleType.Value,
+                    Configuration = SelectedHeavyConfig?.Value,
+
+                    Year = Unit3Year.Value,
+                    Rego = Unit3Rego.Trim(),
+                    RegoExpiry = Unit3RegoExpiry,
+
+                    Make = Unit3Make.Trim(),
+                    Model = Unit3Model.Trim(),
+
+                    CertificateType = certType,
+                    CertificateExpiry = Unit3CertExpiry,
+
+                    OdometerKm = Trailer2OdometerKm
+                };
+
+                trailer2.RucPurchasedDate = Unit3RucPurchasedDate;
+                trailer2.RucDistancePurchasedKm = Unit3RucDistancePurchasedKm;
+
+                trailer2.RucLicenceStartKm = Unit3RucLicenceStartKm;
+                trailer2.RucLicenceEndKm = Unit3RucLicenceEndKm;
+
+                trailer2.RucOdometerAtPurchaseKm = null;
+                trailer2.RucNextDueOdometerKm = Unit3RucLicenceEndKm;
+
+                assets.Add(trailer2);
+            }
         }
 
-        // Safety net for trailer path too
+        // Safety net
         foreach (var a in assets)
+        {
             a.OwnerUserId = ownerUserId;
+            if (a.VehicleSetId == Guid.Empty)
+                a.VehicleSetId = setId;
+        }
 
+        // IMPORTANT: pass OwnerUserId so handler doesn't return "Owner required"
         var result = await _createVehicleHandler.HandleAsync(new CreateVehicleCommand
         {
+            OwnerUserId = ownerUserId,
             Assets = assets
         });
 

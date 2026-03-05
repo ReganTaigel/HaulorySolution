@@ -26,6 +26,9 @@ public class InductionRequirement
     // Optional PPE requirements (comma-separated or descriptive)
     public string? PpeRequired { get; private set; }
 
+    // NEW: Optional company name
+    public string? CompanyName { get; private set; }
+
     public bool IsActive { get; private set; } = true;
 
     #endregion
@@ -38,8 +41,9 @@ public class InductionRequirement
         Guid ownerUserId,
         Guid workSiteId,
         string title,
-        int? validForDays = null,
-        string? ppeRequired = null)
+        int? validForDays,
+        string? ppeRequired,
+        string? companyName = null)
     {
         OwnerUserId = ownerUserId;
         WorkSiteId = workSiteId;
@@ -50,13 +54,19 @@ public class InductionRequirement
         PpeRequired = string.IsNullOrWhiteSpace(ppeRequired)
             ? null
             : ppeRequired.Trim();
+
+        CompanyName = string.IsNullOrWhiteSpace(companyName)
+            ? null
+            : companyName.Trim();
+
+        IsActive = true;
     }
 
     #endregion
 
     #region Mutators
 
-    public void Update(string title, int? validForDays, string? ppeRequired)
+    public void Update(string title, int? validForDays, string? ppeRequired, string? companyName)
     {
         Title = title.Trim();
         ValidForDays = validForDays;
@@ -64,6 +74,10 @@ public class InductionRequirement
         PpeRequired = string.IsNullOrWhiteSpace(ppeRequired)
             ? null
             : ppeRequired.Trim();
+
+        CompanyName = string.IsNullOrWhiteSpace(companyName)
+            ? null
+            : companyName.Trim();
     }
 
     public void Deactivate() => IsActive = false;

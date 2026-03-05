@@ -24,40 +24,84 @@ public class WorkSite
 
     #endregion
 
+    #region Optional Location (NEW)
+
+    public string? AddressLine1 { get; private set; }   // NEW
+    public string? AddressLine2 { get; private set; }   // NEW
+    public string? Suburb { get; private set; }         // NEW
+    public string? City { get; private set; }           // NEW
+    public string? Region { get; private set; }         // NEW
+    public string? Postcode { get; private set; }       // NEW
+    public string? Country { get; private set; }        // NEW
+
+    #endregion
+
     #region Constructors
 
     // Required by EF Core
     private WorkSite() { }
 
-    public WorkSite(Guid ownerUserId, string name, string? companyName = null)
+    public WorkSite(
+        Guid ownerUserId,
+        string name,
+        string? companyName = null,
+        string? addressLine1 = null,
+        string? addressLine2 = null,
+        string? suburb = null,
+        string? city = null,
+        string? region = null,
+        string? postcode = null,
+        string? country = null)
     {
         OwnerUserId = ownerUserId;
         Name = name.Trim();
 
-        CompanyName = string.IsNullOrWhiteSpace(companyName)
-            ? null
-            : companyName.Trim();
+        CompanyName = Clean(companyName);
+
+        AddressLine1 = Clean(addressLine1);
+        AddressLine2 = Clean(addressLine2);
+        Suburb = Clean(suburb);
+        City = Clean(city);
+        Region = Clean(region);
+        Postcode = Clean(postcode);
+        Country = Clean(country);
     }
 
     #endregion
 
     #region Mutators
 
-    public void Rename(string name)
-    {
-        Name = name.Trim();
-    }
+    public void Rename(string name) => Name = name.Trim();
 
-    public void SetCompanyName(string? companyName)
+    public void SetCompanyName(string? companyName) => CompanyName = Clean(companyName);
+
+    public void UpdateAddress(
+        string? addressLine1,
+        string? addressLine2,
+        string? suburb,
+        string? city,
+        string? region,
+        string? postcode,
+        string? country)
     {
-        CompanyName = string.IsNullOrWhiteSpace(companyName)
-            ? null
-            : companyName.Trim();
+        AddressLine1 = Clean(addressLine1);
+        AddressLine2 = Clean(addressLine2);
+        Suburb = Clean(suburb);
+        City = Clean(city);
+        Region = Clean(region);
+        Postcode = Clean(postcode);
+        Country = Clean(country);
     }
 
     public void Deactivate() => IsActive = false;
-
     public void Activate() => IsActive = true;
+
+    #endregion
+
+    #region Helpers
+
+    private static string? Clean(string? s) =>
+        string.IsNullOrWhiteSpace(s) ? null : s.Trim();
 
     #endregion
 }

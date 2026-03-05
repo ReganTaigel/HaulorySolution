@@ -17,6 +17,24 @@ public record RegisterUserCommand(
 
 #endregion
 
+#region Business Information 
+
+    // NEW: Business (for Invoice + POD)
+    string BusinessName,
+    string? BusinessEmail,
+    string? BusinessPhone,
+    string? BusinessAddress1,
+    string? BusinessAddress2,
+    string? BusinessSuburb,
+    string? BusinessCity,
+    string? BusinessRegion,
+    string? BusinessPostcode,
+    string? BusinessCountry,
+    string? SupplierGstNumber,
+    string? SupplierNzbn,
+
+#endregion
+
 #region Credentials
 
     // Plain-text password (must be hashed in handler)

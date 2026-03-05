@@ -77,6 +77,32 @@ public class DriverRepository : IDriverRepository
                 d.UserId.Value == userId);
     }
 
+    // ✅ NEW: main driver count (UserId != null)
+    public async Task<int> CountMainDriversAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            return 0;
+
+        return await _db.Drivers
+            .AsNoTracking()
+            .CountAsync(d =>
+                d.OwnerUserId == ownerUserId &&
+                d.UserId.HasValue);
+    }
+
+    // ✅ NEW: sub driver count (UserId == null)
+    public async Task<int> CountSubDriversAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            return 0;
+
+        return await _db.Drivers
+            .AsNoTracking()
+            .CountAsync(d =>
+                d.OwnerUserId == ownerUserId &&
+                !d.UserId.HasValue);
+    }
+
     #endregion
 
     #region Persistence
@@ -116,6 +142,11 @@ public class DriverRepository : IDriverRepository
 
         // Licence
         target.UpdateLicenceNumber(driver.LicenceNumber);
+        target.UpdateLicenceVersion(driver.LicenceVersion);
+        target.UpdateLicenceClassOrEndorsements(driver.LicenceClassOrEndorsements);
+        target.UpdateLicenceIssuedOnUtc(driver.LicenceIssuedOnUtc);
+        target.UpdateLicenceExpiryUtc(driver.LicenceExpiresOnUtc);
+        target.UpdateLicenceConditionsNotes(driver.LicenceConditionsNotes);
 
         // Owned type update
         target.UpdateEmergencyContact(driver.EmergencyContact);
@@ -134,9 +165,6 @@ public class DriverRepository : IDriverRepository
             driver.Region,
             driver.Postcode,
             driver.Country);
-
-        // Status if you allow changes later (optional)
-        // target.SetStatus(driver.Status);
 
         await _db.SaveChangesAsync();
     }

@@ -234,6 +234,7 @@
                             Padding="12">
 
                         <VerticalStackLayout Spacing="10">
+
                             <Label Text="Driver"
                                    FontSize="12"
                                    FontAttributes="Bold"
@@ -257,6 +258,39 @@
                                     SelectedItem="{Binding SelectedVehicle}"
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
+
+                            <!-- Trailer 1 -->
+                            <Label Text="Trailer 1 (optional)"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandTitle}" />
+
+                            <Picker Title="Select trailer 1"
+                                    ItemsSource="{Binding Trailers}"
+                                    ItemDisplayBinding="{Binding Rego}"
+                                    SelectedItem="{Binding SelectedTrailer1}"
+                                    TitleColor="{StaticResource Gray600}"
+                                    TextColor="{StaticResource BrandInk}" />
+
+                            <!-- Trailer 2 -->
+                            <Label Text="Trailer 2 (optional)"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource BrandTitle}" />
+
+                            <Picker Title="Select trailer 2"
+                                    ItemsSource="{Binding Trailers}"
+                                    ItemDisplayBinding="{Binding Rego}"
+                                    SelectedItem="{Binding SelectedTrailer2}"
+                                    TitleColor="{StaticResource Gray600}"
+                                    TextColor="{StaticResource BrandInk}" />
+
+                            <!-- Optional: quick summary -->
+                            <Label Text="{Binding SelectedTrailerSummary}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource BrandInk}"
+                                   Opacity="0.85" />
+
                         </VerticalStackLayout>
                     </Border>
 

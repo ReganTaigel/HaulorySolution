@@ -201,8 +201,7 @@ public partial class AppShell : Shell
         // Inductions
         Routing.RegisterRoute(nameof(ManageInductionsPage), typeof(ManageInductionsPage));
         Routing.RegisterRoute(nameof(InductionTemplatesPage), typeof(InductionTemplatesPage));
-        Routing.RegisterRoute(nameof(AddWorkSitePage), typeof(AddWorkSitePage));
-        Routing.RegisterRoute(nameof(AddInductionRequirementPage), typeof(AddInductionRequirementPage));
+        Routing.RegisterRoute(nameof(AddWorkSiteTemplatePage), typeof(AddWorkSiteTemplatePage));
     }
 
     #endregion
@@ -242,8 +241,6 @@ public partial class AppShell : Shell
         // Inductions should also be protected
         nameof(ManageInductionsPage),
         nameof(InductionTemplatesPage),
-        nameof(AddWorkSitePage),
-        nameof(AddInductionRequirementPage),
     };
 
     // Routes that should be inaccessible once authenticated.

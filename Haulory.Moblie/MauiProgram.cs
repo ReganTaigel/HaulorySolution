@@ -169,10 +169,9 @@ public static class MauiProgram
         builder.Services.AddTransient<EditDriverViewModel>();
 
         // Inductions
-        builder.Services.AddTransient<AddWorkSiteViewModel>();
-        builder.Services.AddTransient<AddInductionRequirementViewModel>();
         builder.Services.AddTransient<ManageInductionsViewModel>();
         builder.Services.AddTransient<InductionTemplatesViewModel>();
+        builder.Services.AddTransient<AddWorkSiteTemplateViewModel>();
     }
 
     #endregion
@@ -207,9 +206,8 @@ public static class MauiProgram
 
         // Inductions
         builder.Services.AddTransient<ManageInductionsPage>();
-        builder.Services.AddTransient<AddWorkSitePage>();
-        builder.Services.AddTransient<AddInductionRequirementPage>();
         builder.Services.AddTransient<InductionTemplatesPage>();
+        builder.Services.AddTransient<AddWorkSiteTemplatePage>();
     }
 
     #endregion

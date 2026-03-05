@@ -73,7 +73,8 @@
                             Padding="12"
                             Margin="0,0,0,10">
 
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                        <!-- CHANGED: added a row for Company -->
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                               ColumnDefinitions="*,Auto"
                               RowSpacing="6"
                               ColumnSpacing="10">
@@ -83,7 +84,7 @@
                                    Grid.Column="0"
                                    Text="{Binding WorkSiteName}"
                                    FontSize="12"
-                                   TextColor="{StaticResource BrandInk}"/>
+                                   TextColor="{StaticResource BrandInk}" />
 
                             <!-- Status (top-right) -->
                             <Border Grid.Row="0"
@@ -109,8 +110,25 @@
                                    TextColor="{StaticResource BrandTitle}"
                                    LineBreakMode="TailTruncation" />
 
-                            <!-- PPE (only if not empty) -->
+                            <!-- NEW: Company (only if not empty) -->
                             <Label Grid.Row="2"
+                                   Grid.Column="0"
+                                   Grid.ColumnSpan="2"
+                                   Text="{Binding CompanyName, StringFormat='Company: {0}'}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource BrandInk}">
+                                <Label.Triggers>
+                                    <DataTrigger TargetType="Label" Binding="{Binding CompanyName}" Value="{x:Null}">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                    <DataTrigger TargetType="Label" Binding="{Binding CompanyName}" Value="">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+
+                            <!-- PPE (only if not empty) -->
+                            <Label Grid.Row="3"
                                    Grid.Column="0"
                                    Grid.ColumnSpan="2"
                                    Text="{Binding PpeRequired, StringFormat='PPE: {0}'}"
@@ -127,7 +145,7 @@
                             </Label>
 
                             <!-- Dates + days-left -->
-                            <VerticalStackLayout Grid.Row="3"
+                            <VerticalStackLayout Grid.Row="4"
                                                  Grid.Column="0"
                                                  Spacing="3">
 
@@ -167,7 +185,7 @@
                             </VerticalStackLayout>
 
                             <!-- Edit button (bottom-right) -->
-                            <Button Grid.Row="3"
+                            <Button Grid.Row="4"
                                     Grid.Column="1"
                                     Text="Edit"
                                     Padding="14,0"

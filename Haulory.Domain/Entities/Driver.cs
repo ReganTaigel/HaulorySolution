@@ -33,7 +33,11 @@ public class Driver
     #region Licence
 
     public string? LicenceNumber { get; private set; }
-    public DateTime? LicenceExpiresOnUtc { get; private set; }
+    public string? LicenceVersion { get; private set; }                 // NEW
+    public string? LicenceClassOrEndorsements { get; private set; }     // NEW
+    public DateTime? LicenceIssuedOnUtc { get; private set; }           // NEW
+    public DateTime? LicenceExpiresOnUtc { get; private set; }          // existing
+    public string? LicenceConditionsNotes { get; private set; }         // NEW
 
     #endregion
 
@@ -114,12 +118,33 @@ public class Driver
         LicenceNumber = Clean(licenceNumber);
     }
 
+    public void UpdateLicenceVersion(string? version)
+    {
+        LicenceVersion = Clean(version);
+    }
+
+    public void UpdateLicenceClassOrEndorsements(string? classOrEndorsements)
+    {
+        LicenceClassOrEndorsements = Clean(classOrEndorsements);
+    }
+
+    public void UpdateLicenceIssuedOnUtc(DateTime? issuedUtc)
+    {
+        LicenceIssuedOnUtc = issuedUtc.HasValue
+            ? DateTime.SpecifyKind(issuedUtc.Value, DateTimeKind.Utc)
+            : null;
+    }
+
     public void UpdateLicenceExpiryUtc(DateTime? expiresUtc)
     {
-        // Store as UTC kind to avoid timezone ambiguity across devices/services
         LicenceExpiresOnUtc = expiresUtc.HasValue
             ? DateTime.SpecifyKind(expiresUtc.Value, DateTimeKind.Utc)
             : null;
+    }
+
+    public void UpdateLicenceConditionsNotes(string? notes)
+    {
+        LicenceConditionsNotes = Clean(notes);
     }
 
     #endregion

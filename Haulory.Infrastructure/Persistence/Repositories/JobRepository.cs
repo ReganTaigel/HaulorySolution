@@ -82,12 +82,10 @@ public class JobRepository : IJobRepository
         await _db.SaveChangesAsync();
     }
 
-    /// <summary>
-    /// Safe reorder:
-    /// - owner-scoped
-    /// - does NOT delete any rows
-    /// - only updates SortOrder for jobs passed in
-    /// </summary>
+    // Safe reorder:
+    // - owner-scoped
+    // - does NOT delete any rows
+    // - only updates SortOrder for jobs passed in
     public async Task UpdateAllAsync(Guid ownerUserId, IReadOnlyList<Job> jobs)
     {
         if (ownerUserId == Guid.Empty)

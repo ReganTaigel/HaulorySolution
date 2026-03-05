@@ -94,6 +94,7 @@
 
                         <VerticalStackLayout Spacing="12">
 
+                            <!-- Phone -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Phone number"
                                        FontSize="12"
@@ -107,6 +108,7 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
+                            <!-- DOB + Licence Expiry -->
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                                     <Label Text="Date of birth"
@@ -138,6 +140,67 @@
                                     </Border>
                                 </VerticalStackLayout>
                             </Grid>
+
+                            <!-- NEW: Licence Version -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Licence version"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Entry Placeholder="e.g., V3 / Card version"
+                                       Text="{Binding LicenceVersion}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
+
+                            <!-- NEW: Class / endorsements -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Class / endorsements"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Entry Placeholder="e.g., Class 5, D, F"
+                                       Text="{Binding LicenceClassOrEndorsements}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
+
+                            <!-- NEW: Issued date -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Issued date"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{StaticResource BrandSurface}"
+                                        Padding="10,6">
+                                    <DatePicker Date="{Binding LicenceIssuedLocal}"
+                                                TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- NEW: Conditions / notes -->
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Conditions / notes"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{StaticResource BrandSurface}"
+                                        Padding="10,8">
+                                    <Editor Placeholder="e.g., Must wear corrective lenses, restricted hours..."
+                                            Text="{Binding LicenceConditionsNotes}"
+                                            AutoSize="TextChanges"
+                                            HeightRequest="110"
+                                            TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
 
                         </VerticalStackLayout>
                     </Border>

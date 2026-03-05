@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Haulory.Infrastructure.Persistence.Repositories;
@@ -108,6 +112,47 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         return await _db.VehicleAssets
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    public async Task<int> CountPoweredUnitsAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            return 0;
+
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .CountAsync(v =>
+                v.OwnerUserId == ownerUserId &&
+                v.Kind == AssetKind.PowerUnit);
+    }
+
+    public async Task<int> CountTrailersAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            return 0;
+
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .CountAsync(v =>
+                v.OwnerUserId == ownerUserId &&
+                v.Kind == AssetKind.Trailer);
+    }
+
+    public async Task<bool> RegoExistsAsync(Guid ownerUserId, string rego, Guid? excludeAssetId = null)
+    {
+        if (ownerUserId == Guid.Empty)
+            return false;
+
+        var normRego = (rego ?? string.Empty).Trim().ToUpperInvariant();
+        if (string.IsNullOrWhiteSpace(normRego))
+            return false;
+
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .AnyAsync(v =>
+                v.OwnerUserId == ownerUserId &&
+                v.Rego.ToUpper() == normRego &&
+                (!excludeAssetId.HasValue || v.Id != excludeAssetId.Value));
     }
 
     #endregion

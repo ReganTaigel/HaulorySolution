@@ -112,7 +112,53 @@ public class EditDriverViewModel : BaseViewModel
             Refresh();
         }
     }
+    private string _licenceVersion = string.Empty;
+    public string LicenceVersion
+    {
+        get => _licenceVersion;
+        set
+        {
+            _licenceVersion = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
 
+    private string _licenceClassOrEndorsements = string.Empty;
+    public string LicenceClassOrEndorsements
+    {
+        get => _licenceClassOrEndorsements;
+        set
+        {
+            _licenceClassOrEndorsements = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
+
+    // DatePicker requires a value
+    private DateTime _licenceIssuedLocal = DateTime.Today;
+    public DateTime LicenceIssuedLocal
+    {
+        get => _licenceIssuedLocal;
+        set
+        {
+            _licenceIssuedLocal = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string _licenceConditionsNotes = string.Empty;
+    public string LicenceConditionsNotes
+    {
+        get => _licenceConditionsNotes;
+        set
+        {
+            _licenceConditionsNotes = value;
+            OnPropertyChanged();
+            Refresh();
+        }
+    }
     #endregion
 
     #region Editable Fields - Contact + Licence + Address
@@ -356,6 +402,15 @@ public class EditDriverViewModel : BaseViewModel
         LastName = _driver.LastName ?? string.Empty;
         Email = _driver.Email ?? string.Empty;
         LicenceNumber = _driver.LicenceNumber ?? string.Empty;
+        LicenceVersion = _driver.LicenceVersion ?? string.Empty;
+        LicenceClassOrEndorsements = _driver.LicenceClassOrEndorsements ?? string.Empty;
+        LicenceConditionsNotes = _driver.LicenceConditionsNotes ?? string.Empty;
+
+        if (_driver.LicenceIssuedOnUtc.HasValue)
+            LicenceIssuedLocal = _driver.LicenceIssuedOnUtc.Value.ToLocalTime().Date;
+
+        if (_driver.LicenceExpiresOnUtc.HasValue)
+            LicenceExpiryLocal = _driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
 
         // Populate contact/licence fields
         PhoneNumber = _driver.PhoneNumber ?? string.Empty;
@@ -408,7 +463,12 @@ public class EditDriverViewModel : BaseViewModel
             // Update identity fields
             _driver.UpdateIdentity(FirstName, LastName, Email);
             _driver.UpdateLicenceNumber(string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber);
+            _driver.UpdateLicenceVersion(string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion);
+            _driver.UpdateLicenceClassOrEndorsements(string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements);
+            _driver.UpdateLicenceConditionsNotes(string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes);
 
+            var licIssuedUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime();
+            _driver.UpdateLicenceIssuedOnUtc(licIssuedUtc);
             // Update contact/licence fields
             _driver.UpdatePhone(string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber);
 

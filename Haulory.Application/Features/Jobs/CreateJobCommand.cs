@@ -5,7 +5,6 @@ namespace Haulory.Application.Features.Jobs;
 #region Command: Create Job
 
 public record CreateJobCommand(
-    // Ownership
     Guid OwnerUserId,
     Guid JobId,
 
@@ -36,7 +35,10 @@ public record CreateJobCommand(
 
     // Allocation (optional)
     Guid? DriverId,
-    Guid? VehicleAssetId
+    Guid? VehicleAssetId,
+
+    // 0..2 trailers (ordered)
+    IReadOnlyList<Guid>? TrailerAssetIds
 );
 
 #endregion

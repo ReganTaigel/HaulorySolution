@@ -42,6 +42,14 @@ public class NewDriverViewModel : BaseViewModel
     private DateTime _dateOfBirthLocal = DateTime.Today;
     private DateTime _licenceExpiryLocal = DateTime.Today;
 
+    // NEW licence fields
+    private string _licenceVersion = string.Empty;
+    private string _licenceClassOrEndorsements = string.Empty;
+    private string _licenceConditionsNotes = string.Empty;
+
+    // DatePicker pattern (if you want it optional later, use a toggle)
+    private DateTime _licenceIssuedLocal = DateTime.Today;
+
     private string _line1 = string.Empty;
     private string _line2 = string.Empty;
     private string _suburb = string.Empty;
@@ -150,6 +158,49 @@ public class NewDriverViewModel : BaseViewModel
         set
         {
             _licenceExpiryLocal = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string LicenceVersion
+    {
+        get => _licenceVersion;
+        set
+        {
+            _licenceVersion = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
+    }
+
+    public string LicenceClassOrEndorsements
+    {
+        get => _licenceClassOrEndorsements;
+        set
+        {
+            _licenceClassOrEndorsements = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
+    }
+
+    public string LicenceConditionsNotes
+    {
+        get => _licenceConditionsNotes;
+        set
+        {
+            _licenceConditionsNotes = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
+    }
+
+    public DateTime LicenceIssuedLocal
+    {
+        get => _licenceIssuedLocal;
+        set
+        {
+            _licenceIssuedLocal = value;
             OnPropertyChanged();
         }
     }
@@ -325,6 +376,9 @@ public class NewDriverViewModel : BaseViewModel
             var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
             var licenceExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
 
+            // NEW: issued date Local -> UTC
+            var issuedUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime();
+
             var cmd = new CreateDriverCommand(
                 OwnerUserId: ownerId,
                 FirstName: FirstName.Trim(),
@@ -332,10 +386,18 @@ public class NewDriverViewModel : BaseViewModel
                 Email: Email.Trim().ToLowerInvariant(),
                 LicenceNumber: string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
 
+                // Contact + profile
                 PhoneNumber: string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
                 DateOfBirthUtc: dobUtc,
-                LicenceExpiresOnUtc: licenceExpUtc,
 
+                // Licence
+                LicenceExpiresOnUtc: licenceExpUtc,
+                LicenceVersion: string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
+                LicenceClassOrEndorsements: string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
+                LicenceIssuedOnUtc: issuedUtc,
+                LicenceConditionsNotes: string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
+
+                // Address
                 Line1: string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
                 Line2: string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
                 Suburb: string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
@@ -344,6 +406,7 @@ public class NewDriverViewModel : BaseViewModel
                 Postcode: string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
                 Country: string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
 
+                // Emergency contact (required)
                 EmergencyFirstName: EmergencyFirstName.Trim(),
                 EmergencyLastName: EmergencyLastName.Trim(),
                 EmergencyRelationship: EmergencyRelationship.Trim(),

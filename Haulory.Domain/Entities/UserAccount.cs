@@ -35,7 +35,7 @@ public class UserAccount
 
     public DateTime? LicenceExpiresOnUtc { get; private set; }
 
-    // ✅ Business profile (Supplier) for PDFs
+    //  Business profile (Supplier) for PDFs
     public string BusinessName { get; private set; } = string.Empty;
     public string? BusinessEmail { get; private set; }
     public string? BusinessPhone { get; private set; }

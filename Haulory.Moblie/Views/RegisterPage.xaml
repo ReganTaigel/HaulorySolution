@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -36,8 +37,11 @@
                     BackgroundColor="{StaticResource BrandSurface}"
                     Padding="18">
 
-                <VerticalStackLayout Spacing="14">
+                <VerticalStackLayout Spacing="16">
 
+                    <!-- ========================= -->
+                    <!-- USER DETAILS -->
+                    <!-- ========================= -->
                     <Label Text="Your details"
                            FontSize="16"
                            FontAttributes="Bold"
@@ -151,6 +155,242 @@
                                IsVisible="{Binding ConfirmPassword, Converter={StaticResource StringNotEmptyConverter}}" />
                     </VerticalStackLayout>
 
+                    <!-- Divider -->
+                    <BoxView HeightRequest="1"
+                             BackgroundColor="{StaticResource Gray200}"
+                             Opacity="0.8"
+                             Margin="0,4" />
+
+                    <!-- ========================= -->
+                    <!-- BUSINESS DETAILS -->
+                    <!-- ========================= -->
+                    <Label Text="Business details"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
+
+                    <Label Text="Used for invoices and POD documents"
+                           FontSize="12"
+                           TextColor="{StaticResource BrandInk}"
+                           Opacity="0.9" />
+
+                    <!-- Business name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Business name"
+                               FontSize="12"
+                               TextColor="{StaticResource BrandInk}" />
+
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,8">
+                            <Entry Placeholder="e.g., Haulory Logistics Ltd"
+                                   Text="{Binding BusinessName}"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Business contact -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Text="Business email (optional)"
+                                   FontSize="12"
+                                   TextColor="{StaticResource BrandInk}" />
+
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="accounts@business.com"
+                                       Text="{Binding BusinessEmail}"
+                                       Keyboard="Email"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Business phone (optional)"
+                                   FontSize="12"
+                                   TextColor="{StaticResource BrandInk}" />
+
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="+64..."
+                                       Text="{Binding BusinessPhone}"
+                                       Keyboard="Telephone"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                    <!-- Business Address -->
+                    <Label Text="Business address (optional)"
+                           FontSize="12"
+                           TextColor="{StaticResource BrandInk}"
+                           Margin="0,6,0,0" />
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,8">
+                            <Entry Placeholder="Address line 1"
+                                   Text="{Binding BusinessAddress1}"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,8">
+                            <Entry Placeholder="Address line 2"
+                                   Text="{Binding BusinessAddress2}"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="Suburb"
+                                       Text="{Binding BusinessSuburb}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="City"
+                                       Text="{Binding BusinessCity}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Border Grid.Column="0"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="Region"
+                                       Text="{Binding BusinessRegion}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+
+                            <Border Grid.Column="1"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="Postcode"
+                                       Text="{Binding BusinessPostcode}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </Grid>
+
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,8">
+                            <Entry Placeholder="Country"
+                                   Text="{Binding BusinessCountry}"
+                                   HeightRequest="44"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+
+                    </VerticalStackLayout>
+
+                    <!-- Tax / identifiers -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+
+                        <VerticalStackLayout Grid.Column="0" Spacing="6">
+                            <Label Text="GST number (optional)"
+                                   FontSize="12"
+                                   TextColor="{StaticResource BrandInk}" />
+
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="e.g., 123-456-789"
+                                       Text="{Binding SupplierGstNumber}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="NZBN (optional)"
+                                   FontSize="12"
+                                   TextColor="{StaticResource BrandInk}" />
+
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Padding="12,8">
+                                <Entry Placeholder="e.g., 942904..."
+                                       Text="{Binding SupplierNzbn}"
+                                       HeightRequest="44"
+                                       BackgroundColor="Transparent"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                    </Grid>
+
                     <!-- Register Button -->
                     <Button Text="Create account"
                             Command="{Binding RegisterCommand}"
@@ -158,7 +398,8 @@
                             CornerRadius="14"
                             FontAttributes="Bold"
                             BackgroundColor="{StaticResource Primary}"
-                            TextColor="{StaticResource White}" />
+                            TextColor="{StaticResource White}"
+                            Margin="0,6,0,0" />
 
                 </VerticalStackLayout>
             </Border>

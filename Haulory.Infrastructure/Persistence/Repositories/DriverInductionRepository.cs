@@ -98,6 +98,10 @@ public class DriverInductionRepository : IDriverInductionRepository
 
                     RequirementId = r.Id,
                     RequirementTitle = r.Title,
+
+                    // ✅ NEW: include company name (optional)
+                    CompanyName = r.CompanyName,
+
                     ValidForDays = r.ValidForDays,
                     PpeRequired = r.PpeRequired,
 

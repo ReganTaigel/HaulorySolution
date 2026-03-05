@@ -51,7 +51,6 @@ public class InductionTemplatesViewModel : BaseViewModel
     #region Commands
 
     public ICommand AddSiteCommand { get; }
-    public ICommand AddRequirementCommand { get; }
     public ICommand RefreshCommand { get; }
 
     #endregion
@@ -70,22 +69,8 @@ public class InductionTemplatesViewModel : BaseViewModel
         RefreshCommand = new Command(async () => await LoadAsync());
 
         AddSiteCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(AddWorkSitePage)));
+            await Shell.Current.GoToAsync(nameof(AddWorkSiteTemplatePage)));
 
-        AddRequirementCommand = new Command(async () =>
-        {
-            if (SelectedSite == null)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Select a site",
-                    "Choose a work site first.",
-                    "OK");
-                return;
-            }
-
-            await Shell.Current.GoToAsync(
-                $"{nameof(AddInductionRequirementPage)}?workSiteId={SelectedSite.Id}");
-        });
     }
 
     #endregion

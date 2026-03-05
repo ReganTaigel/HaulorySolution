@@ -25,9 +25,13 @@ public class NewJobViewModel : BaseViewModel
 
     public ObservableCollection<Driver> Drivers { get; } = new();
     public ObservableCollection<VehicleAsset> Vehicles { get; } = new();
+    public ObservableCollection<VehicleAsset> Trailers { get; } = new();
 
     private Driver? _selectedDriver;
     private VehicleAsset? _selectedVehicle;
+
+    private VehicleAsset? _selectedTrailer1;
+    private VehicleAsset? _selectedTrailer2;
 
     private RateType _rateType;
     private decimal _quantity = 1m;
@@ -53,7 +57,7 @@ public class NewJobViewModel : BaseViewModel
     public string? ClientEmail { get; set; }
     public string ClientAddressLine1 { get; set; } = string.Empty;
     public string ClientCity { get; set; } = string.Empty;
-    public string ClientCountry { get; set; } = "New Zealand"; // optional default
+    public string ClientCountry { get; set; } = "New Zealand";
 
     #endregion
 
@@ -76,6 +80,67 @@ public class NewJobViewModel : BaseViewModel
             if (_selectedVehicle == value) return;
             _selectedVehicle = value;
             OnPropertyChanged();
+
+            // If vehicle cleared, clear trailers too
+            if (_selectedVehicle == null)
+            {
+                SelectedTrailer1 = null;
+                SelectedTrailer2 = null;
+            }
+        }
+    }
+
+    public VehicleAsset? SelectedTrailer1
+    {
+        get => _selectedTrailer1;
+        set
+        {
+            if (_selectedTrailer1 == value) return;
+
+            // Prevent duplicate selection
+            if (value != null && SelectedTrailer2?.Id == value.Id)
+                SelectedTrailer2 = null;
+
+            _selectedTrailer1 = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SelectedTrailerSummary));
+        }
+    }
+
+    public VehicleAsset? SelectedTrailer2
+    {
+        get => _selectedTrailer2;
+        set
+        {
+            if (_selectedTrailer2 == value) return;
+
+            // Prevent duplicate selection
+            if (value != null && SelectedTrailer1?.Id == value.Id)
+                return;
+
+            _selectedTrailer2 = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SelectedTrailerSummary));
+        }
+    }
+
+    public string SelectedTrailerSummary
+    {
+        get
+        {
+            var t1 = SelectedTrailer1?.Rego;
+            var t2 = SelectedTrailer2?.Rego;
+
+            if (string.IsNullOrWhiteSpace(t1) && string.IsNullOrWhiteSpace(t2))
+                return "No trailers selected";
+
+            if (!string.IsNullOrWhiteSpace(t1) && string.IsNullOrWhiteSpace(t2))
+                return $"Trailer 1: {t1}";
+
+            if (string.IsNullOrWhiteSpace(t1) && !string.IsNullOrWhiteSpace(t2))
+                return $"Trailer 2: {t2}";
+
+            return $"Trailer 1: {t1}, Trailer 2: {t2}";
         }
     }
 
@@ -158,7 +223,6 @@ public class NewJobViewModel : BaseViewModel
         _session = session;
 
         SaveJobCommand = new Command(async () => await SaveAsync());
-
         CancelCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(DashboardPage)));
 
@@ -177,20 +241,29 @@ public class NewJobViewModel : BaseViewModel
             Drivers.Add(d);
 
         Vehicles.Clear();
-        var allAssets = await _vehicleRepo.GetAllAsync();
-        var vehicles = allAssets
-            .Where(a => a.OwnerUserId == ownerUserId)
-            .Where(a => a.Kind == AssetKind.PowerUnit)
-            .OrderBy(a => a.Rego);
+        Trailers.Clear();
 
-        foreach (var v in vehicles)
+        var allAssets = await _vehicleRepo.GetAllAsync();
+
+        foreach (var v in allAssets
+                     .Where(a => a.OwnerUserId == ownerUserId)
+                     .Where(a => a.Kind == AssetKind.PowerUnit)
+                     .OrderBy(a => a.Rego))
             Vehicles.Add(v);
+
+        foreach (var t in allAssets
+                     .Where(a => a.OwnerUserId == ownerUserId)
+                     .Where(a => a.Kind == AssetKind.Trailer)
+                     .OrderBy(a => a.Rego))
+            Trailers.Add(t);
 
         if (Drivers.Count == 1 && SelectedDriver == null)
             SelectedDriver = Drivers[0];
 
         if (Vehicles.Count == 1 && SelectedVehicle == null)
             SelectedVehicle = Vehicles[0];
+
+        OnPropertyChanged(nameof(SelectedTrailerSummary));
     }
 
     private async Task SaveAsync()
@@ -199,12 +272,29 @@ public class NewJobViewModel : BaseViewModel
         if (ownerUserId == Guid.Empty)
             return;
 
-        // Minimal validation to avoid empty “bill-to”
         if (string.IsNullOrWhiteSpace(ClientCompanyName))
         {
             await Shell.Current.DisplayAlertAsync("Missing info", "Client company name is required.", "OK");
             return;
         }
+
+        // Require power unit if any trailer chosen
+        if ((SelectedTrailer1 != null || SelectedTrailer2 != null) && SelectedVehicle == null)
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Select a vehicle (power unit) before assigning trailers.", "OK");
+            return;
+        }
+
+        // Build ordered list: Trailer1 then Trailer2 (max 2)
+        var trailerIds = new[]
+        {
+            SelectedTrailer1?.Id,
+            SelectedTrailer2?.Id
+        }
+        .Where(id => id.HasValue && id.Value != Guid.Empty)
+        .Select(id => id!.Value)
+        .Distinct()
+        .ToList();
 
         var jobId = Guid.NewGuid();
 
@@ -233,7 +323,9 @@ public class NewJobViewModel : BaseViewModel
             Quantity: Quantity,
 
             DriverId: SelectedDriver?.Id,
-            VehicleAssetId: SelectedVehicle?.Id
+            VehicleAssetId: SelectedVehicle?.Id,
+
+            TrailerAssetIds: trailerIds
         ));
 
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));

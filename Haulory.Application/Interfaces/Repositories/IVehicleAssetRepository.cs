@@ -2,44 +2,22 @@
 
 namespace Haulory.Application.Interfaces.Repositories;
 
-#region Interface: Vehicle Asset Repository
-
 public interface IVehicleAssetRepository
 {
-    #region Create
-
-    // Adds a single vehicle asset
+    // Commands
     Task AddAsync(VehicleAsset asset);
-
-    // Adds multiple vehicle assets (used for vehicle set creation)
-    Task AddRangeAsync(IReadOnlyList<VehicleAsset> assets);
-
-    #endregion
-
-    #region Queries
-
-    // Retrieves all vehicle assets
-    // Typically filtered by owner in infrastructure layer
-    Task<IReadOnlyList<VehicleAsset>> GetAllAsync();
-
-    // Retrieves a specific vehicle asset by Id
-    Task<VehicleAsset?> GetByIdAsync(Guid id);
-
-    #endregion
-
-    #region Update
-
-    // Updates an existing vehicle asset
+    Task AddRangeAsync(IReadOnlyList<VehicleAsset> assetsToAdd);
     Task UpdateAsync(VehicleAsset asset);
-
-    #endregion
-
-    #region Lifecycle
-
-    // Deletes a vehicle asset by Id
     Task DeleteAsync(Guid id);
 
-    #endregion
-}
+    // Queries
+    Task<IReadOnlyList<VehicleAsset>> GetAllAsync();
+    Task<VehicleAsset?> GetByIdAsync(Guid id);
 
-#endregion
+    // NEW: Plan limit counts
+    Task<int> CountPoweredUnitsAsync(Guid ownerUserId);
+    Task<int> CountTrailersAsync(Guid ownerUserId);
+
+    // NEW: Prevent duplicate rego per owner (optional but recommended)
+    Task<bool> RegoExistsAsync(Guid ownerUserId, string rego, Guid? excludeAssetId = null);
+}

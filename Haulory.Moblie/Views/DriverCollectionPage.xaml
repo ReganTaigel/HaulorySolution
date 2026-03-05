@@ -16,7 +16,6 @@
         <!-- HEADER -->
         <VerticalStackLayout Grid.Row="0" Spacing="10">
 
-            <!-- Title + subtitle -->
             <VerticalStackLayout Spacing="2">
                 <Label Text="Drivers"
                        FontSize="28"
@@ -28,7 +27,6 @@
                        TextColor="{StaticResource BrandInk}" />
             </VerticalStackLayout>
 
-            <!-- Actions -->
             <Grid ColumnDefinitions="*,*"
                   ColumnSpacing="12">
 
@@ -85,7 +83,6 @@
                                        TextColor="{StaticResource BrandTitle}"
                                        LineBreakMode="TailTruncation" />
 
-                                <!-- MAIN badge -->
                                 <Border Grid.Column="1"
                                         StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
@@ -99,7 +96,6 @@
                                            TextColor="{StaticResource BrandInk}" />
                                 </Border>
 
-                                <!-- Warning badge -->
                                 <Border Grid.Column="2"
                                         StrokeThickness="1"
                                         Stroke="{StaticResource BrandAccent}"
@@ -120,7 +116,6 @@
                                   ColumnSpacing="10"
                                   IsVisible="{Binding HasWarnings}">
 
-                                <!-- Expired -->
                                 <Border Grid.Column="0"
                                         StrokeThickness="1"
                                         Stroke="{StaticResource BrandDanger}"
@@ -138,7 +133,6 @@
                                            TextColor="{StaticResource BrandDanger}" />
                                 </Border>
 
-                                <!-- Expiring soon -->
                                 <Border Grid.Column="1"
                                         StrokeThickness="1"
                                         Stroke="{StaticResource BrandAccent}"
@@ -193,7 +187,7 @@
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Licence -->
+                                    <!-- Licence number -->
                                     <Label Text="{Binding Driver.LicenceNumber, StringFormat='Licence: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
@@ -202,6 +196,45 @@
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                             <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceNumber}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <!-- NEW: Class / endorsements -->
+                                    <Label Text="{Binding Driver.LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
+                                           FontSize="13"
+                                           TextColor="{StaticResource BrandInk}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceClassOrEndorsements}" Value="{x:Null}">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceClassOrEndorsements}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <!-- NEW: Version (optional) -->
+                                    <Label Text="{Binding Driver.LicenceVersion, StringFormat='Version: {0}'}"
+                                           FontSize="13"
+                                           TextColor="{StaticResource BrandInk}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceVersion}" Value="{x:Null}">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceVersion}" Value="">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <!-- NEW: Issued date (optional) -->
+                                    <Label Text="{Binding Driver.LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
+                                           FontSize="13"
+                                           TextColor="{StaticResource BrandInk}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceIssuedOnUtc}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
@@ -303,4 +336,4 @@
         </CollectionView>
 
     </Grid>
-</ContentPage>
+</ContentPage> 
