@@ -29,15 +29,12 @@ public class NewJobViewModel : BaseViewModel
 
     private Driver? _selectedDriver;
     private VehicleAsset? _selectedVehicle;
-
     private VehicleAsset? _selectedTrailer1;
     private VehicleAsset? _selectedTrailer2;
 
     private RateType _rateType;
     private decimal _quantity = 1m;
     private decimal _rateValue;
-
-    #region Job Fields
 
     public string PickupCompany { get; set; } = string.Empty;
     public string PickupAddress { get; set; } = string.Empty;
@@ -48,18 +45,12 @@ public class NewJobViewModel : BaseViewModel
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
 
-    #endregion
-
-    #region Client (Bill To) Fields
-
     public string ClientCompanyName { get; set; } = string.Empty;
     public string? ClientContactName { get; set; }
     public string? ClientEmail { get; set; }
     public string ClientAddressLine1 { get; set; } = string.Empty;
     public string ClientCity { get; set; } = string.Empty;
     public string ClientCountry { get; set; } = "New Zealand";
-
-    #endregion
 
     public Driver? SelectedDriver
     {
@@ -81,7 +72,6 @@ public class NewJobViewModel : BaseViewModel
             _selectedVehicle = value;
             OnPropertyChanged();
 
-            // If vehicle cleared, clear trailers too
             if (_selectedVehicle == null)
             {
                 SelectedTrailer1 = null;
@@ -97,7 +87,6 @@ public class NewJobViewModel : BaseViewModel
         {
             if (_selectedTrailer1 == value) return;
 
-            // Prevent duplicate selection
             if (value != null && SelectedTrailer2?.Id == value.Id)
                 SelectedTrailer2 = null;
 
@@ -114,7 +103,6 @@ public class NewJobViewModel : BaseViewModel
         {
             if (_selectedTrailer2 == value) return;
 
-            // Prevent duplicate selection
             if (value != null && SelectedTrailer1?.Id == value.Id)
                 return;
 
@@ -152,7 +140,6 @@ public class NewJobViewModel : BaseViewModel
             if (_rateType == value) return;
 
             _rateType = value;
-
             OnPropertyChanged();
             OnPropertyChanged(nameof(QuantityLabel));
             OnPropertyChanged(nameof(Total));
@@ -278,14 +265,12 @@ public class NewJobViewModel : BaseViewModel
             return;
         }
 
-        // Require power unit if any trailer chosen
         if ((SelectedTrailer1 != null || SelectedTrailer2 != null) && SelectedVehicle == null)
         {
             await Shell.Current.DisplayAlertAsync("Missing info", "Select a vehicle (power unit) before assigning trailers.", "OK");
             return;
         }
 
-        // Build ordered list: Trailer1 then Trailer2 (max 2)
         var trailerIds = new[]
         {
             SelectedTrailer1?.Id,
@@ -324,7 +309,10 @@ public class NewJobViewModel : BaseViewModel
 
             DriverId: SelectedDriver?.Id,
             VehicleAssetId: SelectedVehicle?.Id,
+            AssignedToUserId: SelectedDriver?.UserId,
 
+            TrailerAssetId1: SelectedTrailer1?.Id,
+            TrailerAssetId2: SelectedTrailer2?.Id,
             TrailerAssetIds: trailerIds
         ));
 

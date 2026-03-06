@@ -1,5 +1,7 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Limits;
+using Haulory.Application.Security;
+using Haulory.Core.Security;
 using Haulory.Domain.Entities;
 
 namespace Haulory.Application.Features.Drivers;
@@ -7,11 +9,16 @@ namespace Haulory.Application.Features.Drivers;
 public class CreateDriverHandler
 {
     private readonly IDriverRepository _repository;
+    private readonly IUserAccountRepository _users;
     private readonly IComplianceEnsurer _complianceEnsurer;
 
-    public CreateDriverHandler(IDriverRepository repository, IComplianceEnsurer complianceEnsurer)
+    public CreateDriverHandler(
+        IDriverRepository repository,
+        IUserAccountRepository users,
+        IComplianceEnsurer complianceEnsurer)
     {
         _repository = repository;
+        _users = users;
         _complianceEnsurer = complianceEnsurer;
     }
 
@@ -20,7 +27,7 @@ public class CreateDriverHandler
         if (command.OwnerUserId == Guid.Empty)
             return null;
 
-        // ✅ LIMIT: 4 sub drivers max
+        // ✅ LIMIT: 4 sub drivers max (your existing limit)
         var subCount = await _repository.CountSubDriversAsync(command.OwnerUserId);
         if (subCount >= PlanLimits.MaxSubDrivers)
             throw new InvalidOperationException("Sub driver limit reached (max 4).");
@@ -53,9 +60,46 @@ public class CreateDriverHandler
             string.IsNullOrWhiteSpace(ecPhone))
             return null;
 
+        // ===============================
+        // ✅ OPTIONAL: CREATE LOGIN ACCOUNT
+        // ===============================
+        Guid? userId = null;
+
+        if (command.CreateLoginAccount)
+        {
+            if (string.IsNullOrWhiteSpace(command.Password))
+                return null;
+
+            if (!PasswordPolicy.IsValid(command.Password, out _))
+                return null;
+
+            // Ensure unique email
+            var existing = await _users.GetByEmailAsync(email);
+            if (existing != null)
+                return null;
+
+            var hash = PasswordHasher.Hash(command.Password);
+
+            var subUser = UserAccount.CreateSubUser(
+                parentMainUserId: command.OwnerUserId,
+                firstName: firstName!,
+                lastName: lastName!,
+                email: email!,
+                passwordHash: hash
+            );
+
+            await _users.AddAsync(subUser);
+
+            // Link driver -> user account
+            userId = subUser.Id;
+        }
+
+        // ===============================
+        // ✅ CREATE DRIVER (linked or not)
+        // ===============================
         var driver = new Driver(
             ownerUserId: command.OwnerUserId,
-            userId: null,
+            userId: userId, // <-- if CreateLoginAccount, this is the sub-user id
             firstName: firstName!,
             lastName: lastName!,
             email: email!

@@ -52,10 +52,19 @@ public class CreateDriverFromUserHandler
         if (existing != null)
             return existing;
 
-        // LIMIT: 1 main driver max
-        var mainCount = await _repository.CountMainDriversAsync(ownerUserId);
-        if (mainCount >= PlanLimits.MaxMainDrivers)
-            throw new InvalidOperationException("Main driver limit reached (max 1).");
+        // Limits: main user gets 1 "main driver", sub-users count toward sub limit
+        if (actor.Role == UserRole.Main)
+        {
+            var mainCount = await _repository.CountMainDriversAsync(ownerUserId);
+            if (mainCount >= PlanLimits.MaxMainDrivers)
+                throw new InvalidOperationException("Main driver limit reached (max 1).");
+        }
+        else
+        {
+            var subCount = await _repository.CountSubDriversAsync(ownerUserId);
+            if (subCount >= PlanLimits.MaxSubDrivers)
+                throw new InvalidOperationException("Sub driver limit reached.");
+        }
 
         var driver = new Driver(
             ownerUserId: ownerUserId,

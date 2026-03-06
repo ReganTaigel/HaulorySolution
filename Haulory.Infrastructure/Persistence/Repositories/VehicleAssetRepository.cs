@@ -104,6 +104,7 @@ public class VehicleAssetRepository : IVehicleAssetRepository
     {
         return await _db.VehicleAssets
             .AsNoTracking()
+            .OrderByDescending(a => a.CreatedUtc)
             .ToListAsync();
     }
 
@@ -112,6 +113,42 @@ public class VehicleAssetRepository : IVehicleAssetRepository
         return await _db.VehicleAssets
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
+    }
+
+    // ✅ Sub-user sees only truck + trailers from their active assigned jobs
+    public async Task<IReadOnlyList<VehicleAsset>> GetActiveAssetsAssignedToUserAsync(Guid ownerUserId, Guid assignedToUserId)
+    {
+        if (ownerUserId == Guid.Empty || assignedToUserId == Guid.Empty)
+            return Array.Empty<VehicleAsset>();
+
+        // Get active jobs assigned to this sub-user
+        var jobs = await _db.Jobs
+            .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
+            .Where(j => j.OwnerUserId == ownerUserId)
+            .Where(j => j.AssignedToUserId == assignedToUserId)
+            .Where(j => j.Status == JobStatus.Active)
+            .ToListAsync();
+
+        // Collect distinct asset ids from truck + trailers
+        var assetIds = jobs
+            .SelectMany(j =>
+                new[] { j.VehicleAssetId }
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value)
+                .Concat(j.TrailerAssignments.Select(t => t.TrailerAssetId)))
+            .Distinct()
+            .ToList();
+
+        if (assetIds.Count == 0)
+            return Array.Empty<VehicleAsset>();
+
+        return await _db.VehicleAssets
+            .AsNoTracking()
+            .Where(a => a.OwnerUserId == ownerUserId)
+            .Where(a => assetIds.Contains(a.Id))
+            .OrderByDescending(a => a.CreatedUtc)
+            .ToListAsync();
     }
 
     public async Task<int> CountPoweredUnitsAsync(Guid ownerUserId)
@@ -161,19 +198,16 @@ public class VehicleAssetRepository : IVehicleAssetRepository
 
     private static VehicleAsset Normalize(VehicleAsset a)
     {
-        // Normalize strings
         a.Rego = (a.Rego ?? string.Empty).Trim().ToUpperInvariant();
         a.Make = (a.Make ?? string.Empty).Trim();
         a.Model = (a.Model ?? string.Empty).Trim();
 
-        // Ensure ids exist
         if (a.VehicleSetId == Guid.Empty)
             a.VehicleSetId = Guid.NewGuid();
 
         if (a.Id == Guid.Empty)
             a.Id = Guid.NewGuid();
 
-        // Ensure created timestamp exists
         if (a.CreatedUtc == default)
             a.CreatedUtc = DateTime.UtcNow;
 

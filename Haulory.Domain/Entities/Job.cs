@@ -29,6 +29,20 @@ public class Job
     public IReadOnlyCollection<JobTrailerAssignment> TrailerAssignments => _trailerAssignments;
     private readonly List<JobTrailerAssignment> _trailerAssignments = new();
 
+    public JobStatus Status { get; private set; } = JobStatus.Active;
+
+    // Sub-user completion inputs
+    public int? WaitTimeMinutes { get; private set; }
+    public string? DamageNotes { get; private set; }
+
+    // Optional: who completed it (useful for audit)
+    public Guid? DeliveredByUserId { get; private set; }
+
+    // Derived
+    public bool RequiresReview =>
+        (WaitTimeMinutes.HasValue && WaitTimeMinutes.Value > 0)
+        || !string.IsNullOrWhiteSpace(DamageNotes);
+
     #endregion
 
     #region Pickup
@@ -255,7 +269,12 @@ public class Job
 
     #region Delivery
 
-    public void MarkDelivered(string receiverName, string signatureJson)
+    public void CompleteDelivery(
+        Guid deliveredByUserId,
+        string receiverName,
+        string signatureJson,
+        int? waitTimeMinutes,
+        string? damageNotes)
     {
         ReceiverName = NameFormatter.ToTitleCase(receiverName);
 
@@ -264,6 +283,15 @@ public class Job
             : signatureJson.Trim();
 
         DeliveredAtUtc = DateTime.UtcNow;
+        DeliveredByUserId = deliveredByUserId;
+
+        WaitTimeMinutes = waitTimeMinutes;
+        DamageNotes = string.IsNullOrWhiteSpace(damageNotes) ? null : damageNotes.Trim();
+
+        // Your rule:
+        Status = RequiresReview
+            ? JobStatus.DeliveredPendingReview
+            : JobStatus.Completed;
     }
 
     #endregion

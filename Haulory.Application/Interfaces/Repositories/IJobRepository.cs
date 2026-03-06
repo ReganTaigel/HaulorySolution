@@ -14,11 +14,17 @@ public interface IJobRepository
 
     #region Queries
 
-    // Active = NOT delivered yet (your "Active Deliveries" list)
+    // Active = jobs the driver still needs to act on (Status == Active)
     Task<IReadOnlyList<Job>> GetActiveByOwnerAsync(Guid ownerUserId);
 
-    // Optional (but useful): active jobs assigned to a driver
+    // Active jobs assigned to a driver (optional)
     Task<IReadOnlyList<Job>> GetActiveByDriverAsync(Guid ownerUserId, Guid driverId);
+
+    // ✅ Sub-user: only their assigned active jobs
+    Task<IReadOnlyList<Job>> GetActiveAssignedToUserAsync(Guid ownerUserId, Guid assignedToUserId);
+
+    // ✅ Main-user review inbox: delivered with exceptions
+    Task<IReadOnlyList<Job>> GetNeedsReviewAsync(Guid ownerUserId);
 
     Task<Job?> GetByIdAsync(Guid id);
 
@@ -50,6 +56,7 @@ public interface IJobRepository
 
     #region Lifecycle
 
+    // Keep for admin/cleanup; do NOT use for normal delivery completion anymore
     Task DeleteAsync(Guid id);
 
     #endregion

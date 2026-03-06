@@ -14,6 +14,9 @@ public interface IVehicleAssetRepository
     Task<IReadOnlyList<VehicleAsset>> GetAllAsync();
     Task<VehicleAsset?> GetByIdAsync(Guid id);
 
+    // ✅ NEW: sub-user vehicles from active assigned jobs (truck + trailers)
+    Task<IReadOnlyList<VehicleAsset>> GetActiveAssetsAssignedToUserAsync(Guid ownerUserId, Guid assignedToUserId);
+
     // NEW: Plan limit counts
     Task<int> CountPoweredUnitsAsync(Guid ownerUserId);
     Task<int> CountTrailersAsync(Guid ownerUserId);

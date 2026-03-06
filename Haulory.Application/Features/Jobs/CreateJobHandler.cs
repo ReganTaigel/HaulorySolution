@@ -47,10 +47,18 @@ public class CreateJobHandler
             vehicleAssetId: command.VehicleAssetId
         );
 
-        // Two trailers max (join table)
-        job.SetTrailers(new Guid?[] { command.TrailerAssetId1, command.TrailerAssetId2 }
-            .Where(x => x.HasValue)
-            .Select(x => x!.Value));
+        job.AssignToSubUser(command.AssignedToUserId);
+
+        if (command.TrailerAssetIds != null && command.TrailerAssetIds.Count > 0)
+        {
+            job.SetTrailers(command.TrailerAssetIds);
+        }
+        else
+        {
+            job.SetTrailers(new Guid?[] { command.TrailerAssetId1, command.TrailerAssetId2 }
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value));
+        }
 
         await _jobRepository.AddAsync(job);
     }

@@ -26,6 +26,16 @@ public class JobsCollectionViewModel : BaseViewModel
     public ICommand MoveDownCommand { get; }
     public ICommand SignDeliveryCommand { get; }
 
+    public bool IsSubUser =>
+        _session.CurrentAccountId.HasValue &&
+        _session.CurrentOwnerId.HasValue &&
+        _session.CurrentOwnerId.Value != _session.CurrentAccountId.Value;
+
+    public bool IsMainUser =>
+        _session.CurrentAccountId.HasValue &&
+        _session.CurrentOwnerId.HasValue &&
+        _session.CurrentOwnerId.Value == _session.CurrentAccountId.Value;
+
     public JobsCollectionViewModel(
         IJobRepository jobRepository,
         IDriverRepository driverRepository,
@@ -38,7 +48,10 @@ public class JobsCollectionViewModel : BaseViewModel
         _session = session;
 
         AddJobCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(NewJobPage)));
+        {
+            if (!IsMainUser) return;
+            await Shell.Current.GoToAsync(nameof(NewJobPage));
+        });
 
         SignDeliveryCommand = new Command<JobListItemViewModel>(async item =>
         {
@@ -48,8 +61,17 @@ public class JobsCollectionViewModel : BaseViewModel
                 $"{nameof(DeliverySignaturePage)}?jobId={item.Job.Id}");
         });
 
-        MoveUpCommand = new Command<JobListItemViewModel>(async item => await MoveAsync(item, -1));
-        MoveDownCommand = new Command<JobListItemViewModel>(async item => await MoveAsync(item, +1));
+        MoveUpCommand = new Command<JobListItemViewModel>(async item =>
+        {
+            if (!IsMainUser) return;
+            await MoveAsync(item, -1);
+        });
+
+        MoveDownCommand = new Command<JobListItemViewModel>(async item =>
+        {
+            if (!IsMainUser) return;
+            await MoveAsync(item, +1);
+        });
     }
 
     public async Task LoadAsync()
@@ -57,12 +79,16 @@ public class JobsCollectionViewModel : BaseViewModel
         Jobs.Clear();
 
         var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
+        var accountId = _session.CurrentAccountId ?? Guid.Empty;
+
+        if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
             return;
 
-        var jobs = (await _jobRepository.GetActiveByOwnerAsync(ownerUserId))
-            .OrderBy(j => j.SortOrder)
-            .ToList();
+        var jobs = IsSubUser
+            ? (await _jobRepository.GetActiveAssignedToUserAsync(ownerUserId, accountId)).ToList()
+            : (await _jobRepository.GetActiveByOwnerAsync(ownerUserId)).ToList();
+
+        jobs = jobs.OrderBy(j => j.SortOrder).ToList();
 
         var driverIds = jobs.Where(j => j.DriverId.HasValue)
             .Select(j => j.DriverId!.Value)
@@ -73,6 +99,7 @@ public class JobsCollectionViewModel : BaseViewModel
             .Select(j => j.VehicleAssetId!.Value)
             .Distinct()
             .ToList();
+
         var trailerIds = jobs
             .SelectMany(j => j.TrailerAssignments)
             .Select(t => t.TrailerAssetId)
@@ -83,30 +110,43 @@ public class JobsCollectionViewModel : BaseViewModel
         foreach (var id in driverIds)
         {
             var d = await _driverRepository.GetByIdAsync(id);
-            if (d != null) driversById[id] = d;
+            if (d != null)
+                driversById[id] = d;
         }
 
         var assetsById = new Dictionary<Guid, VehicleAsset>();
         foreach (var id in vehicleIds.Concat(trailerIds).Distinct())
         {
             var a = await _vehicleAssetRepository.GetByIdAsync(id);
-            if (a != null) assetsById[id] = a;
+            if (a != null)
+                assetsById[id] = a;
         }
+
+        var showPricing = IsMainUser;
 
         foreach (var job in jobs)
         {
             var driverName = "—";
-            if (job.DriverId is Guid did && driversById.TryGetValue(did, out var d) && d != null)
+            if (job.DriverId is Guid did &&
+                driversById.TryGetValue(did, out var d) &&
+                d != null)
+            {
                 driverName = $"{d.FirstName} {d.LastName}".Trim();
+            }
 
             var truck = "—";
-            if (job.VehicleAssetId is Guid vid && assetsById.TryGetValue(vid, out var v) && v != null)
+            if (job.VehicleAssetId is Guid vid &&
+                assetsById.TryGetValue(vid, out var v) &&
+                v != null)
+            {
                 truck = $"{v.Make} {v.Model} • {v.Rego}".Trim();
+            }
 
-
-            // If your JobListItemViewModel doesn’t have trailer yet, add a new ctor param/property
-            Jobs.Add(new JobListItemViewModel(job, driverName, truck /*, trailer */));
+            Jobs.Add(new JobListItemViewModel(job, driverName, truck, showPricing));
         }
+
+        OnPropertyChanged(nameof(IsMainUser));
+        OnPropertyChanged(nameof(IsSubUser));
     }
 
     private async Task MoveAsync(JobListItemViewModel? item, int direction)

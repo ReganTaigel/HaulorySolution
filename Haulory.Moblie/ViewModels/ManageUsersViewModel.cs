@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Haulory.Application.Features.Users;
@@ -42,19 +44,30 @@ public class ManageUsersViewModel : BaseViewModel
     {
         SubUsers.Clear();
 
+        // Ensure session restored
+        if (!_session.IsAuthenticated)
+            await _session.RestoreAsync();
+
         var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerId == Guid.Empty)
             return;
 
         var users = await _getSubUsers.HandleAsync(ownerId);
+
         foreach (var u in users.OrderBy(x => x.LastName).ThenBy(x => x.FirstName))
             SubUsers.Add(u);
     }
 
     private async Task CreateAsync()
     {
+        // Ensure session restored
+        if (!_session.IsAuthenticated)
+            await _session.RestoreAsync();
+
+        var requestorAccountId = _session.CurrentAccountId ?? Guid.Empty;
         var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerId == Guid.Empty)
+
+        if (requestorAccountId == Guid.Empty || ownerId == Guid.Empty)
             return;
 
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
@@ -64,6 +77,7 @@ public class ManageUsersViewModel : BaseViewModel
         }
 
         var created = await _createSubUser.HandleAsync(new CreateSubUserCommand(
+            RequestorAccountId: requestorAccountId,
             OwnerMainUserId: ownerId,
             FirstName: FirstName,
             LastName: LastName,
@@ -73,7 +87,10 @@ public class ManageUsersViewModel : BaseViewModel
 
         if (created == null)
         {
-            await Shell.Current.DisplayAlertAsync("Not created", "Could not create user (email may already exist).", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Not created",
+                "Could not create user (email may already exist, or you don’t have permission).",
+                "OK");
             return;
         }
 

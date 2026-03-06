@@ -37,17 +37,13 @@ public class NewDriverViewModel : BaseViewModel
 
     private string _phoneNumber = string.Empty;
 
-    // DatePickers require a value; default to Today.
-    // If you want true optional later, add HasDob/HasLicenceExpiry toggles.
     private DateTime _dateOfBirthLocal = DateTime.Today;
     private DateTime _licenceExpiryLocal = DateTime.Today;
 
-    // NEW licence fields
     private string _licenceVersion = string.Empty;
     private string _licenceClassOrEndorsements = string.Empty;
     private string _licenceConditionsNotes = string.Empty;
 
-    // DatePicker pattern (if you want it optional later, use a toggle)
     private DateTime _licenceIssuedLocal = DateTime.Today;
 
     private string _line1 = string.Empty;
@@ -68,6 +64,41 @@ public class NewDriverViewModel : BaseViewModel
     private string _ecEmail = string.Empty;
     private string _ecPhoneNumber = string.Empty;
     private string _ecSecondaryPhoneNumber = string.Empty;
+
+    #endregion
+
+    #region ✅ NEW: Login Account Fields (Optional)
+
+    private bool _createLoginAccount;
+    private string _password = string.Empty;
+
+    public bool CreateLoginAccount
+    {
+        get => _createLoginAccount;
+        set
+        {
+            if (_createLoginAccount == value) return;
+            _createLoginAccount = value;
+            OnPropertyChanged();
+
+            // If turning off, clear password (optional)
+            if (!_createLoginAccount && !string.IsNullOrWhiteSpace(Password))
+                Password = string.Empty;
+
+            RefreshSaveState();
+        }
+    }
+
+    public string Password
+    {
+        get => _password;
+        set
+        {
+            _password = value;
+            OnPropertyChanged();
+            RefreshSaveState();
+        }
+    }
 
     #endregion
 
@@ -294,15 +325,14 @@ public class NewDriverViewModel : BaseViewModel
             if (_isSaving)
                 return false;
 
-            // Must be logged in
             if (!_sessionService.IsAuthenticated)
                 return false;
 
-            var ownerId = _sessionService.CurrentAccountId ?? Guid.Empty;
+            // ✅ Tenant boundary (owner)
+            var ownerId = _sessionService.CurrentOwnerId ?? Guid.Empty;
             if (ownerId == Guid.Empty)
                 return false;
 
-            // Driver identity fields
             if (string.IsNullOrWhiteSpace(FirstName))
                 return false;
 
@@ -328,6 +358,10 @@ public class NewDriverViewModel : BaseViewModel
                 return false;
 
             if (string.IsNullOrWhiteSpace(EmergencyPhoneNumber))
+                return false;
+
+            // ✅ NEW: only required if you want login
+            if (CreateLoginAccount && string.IsNullOrWhiteSpace(Password))
                 return false;
 
             return true;
@@ -370,13 +404,11 @@ public class NewDriverViewModel : BaseViewModel
             _isSaving = true;
             RefreshSaveState();
 
-            var ownerId = _sessionService.CurrentAccountId!.Value;
+            // ✅ Tenant boundary (owner)
+            var ownerId = _sessionService.CurrentOwnerId!.Value;
 
-            // Convert date-only Local -> UTC (date-only comparisons work fine)
             var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
             var licenceExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
-
-            // NEW: issued date Local -> UTC
             var issuedUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime();
 
             var cmd = new CreateDriverCommand(
@@ -414,7 +446,11 @@ public class NewDriverViewModel : BaseViewModel
                 EmergencyPhoneNumber: EmergencyPhoneNumber.Trim(),
                 EmergencySecondaryPhoneNumber: string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
                     ? null
-                    : EmergencySecondaryPhoneNumber.Trim()
+                    : EmergencySecondaryPhoneNumber.Trim(),
+
+                // ✅ NEW (login driver account)
+                CreateLoginAccount: CreateLoginAccount,
+                Password: string.IsNullOrWhiteSpace(Password) ? null : Password
             );
 
             var created = await _createDriverHandler.HandleAsync(cmd);
@@ -425,7 +461,11 @@ public class NewDriverViewModel : BaseViewModel
                 return;
             }
 
-            await Shell.Current.DisplayAlertAsync("Saved", "Driver created.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Saved",
+                CreateLoginAccount ? "Driver + login account created." : "Driver created.",
+                "OK");
+
             await Shell.Current.GoToAsync("..");
         }
         catch (Exception ex)

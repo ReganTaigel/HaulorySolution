@@ -40,6 +40,16 @@ public class DashboardViewModel : BaseViewModel
 
     #region Bindable Properties
 
+    public bool IsSubUser =>
+        _sessionService.CurrentAccountId.HasValue &&
+        _sessionService.CurrentOwnerId.HasValue &&
+        _sessionService.CurrentOwnerId.Value != _sessionService.CurrentAccountId.Value;
+
+    public bool IsMainUser =>
+        _sessionService.CurrentAccountId.HasValue &&
+        _sessionService.CurrentOwnerId.HasValue &&
+        _sessionService.CurrentOwnerId.Value == _sessionService.CurrentAccountId.Value;
+
     public string CurrentJobSummary
     {
         get => _currentJobSummary;
@@ -49,7 +59,12 @@ public class DashboardViewModel : BaseViewModel
     public string ReferenceNumber
     {
         get => _referenceNumber;
-        private set { _referenceNumber = value; OnPropertyChanged(); }
+        private set
+        {
+            _referenceNumber = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasActiveJob));
+        }
     }
 
     public string PickupCompany
@@ -149,6 +164,9 @@ public class DashboardViewModel : BaseViewModel
         {
             await LoadCurrentJobAsync();
             await LoadCompletedReportSummaryAsync();
+
+            OnPropertyChanged(nameof(IsMainUser));
+            OnPropertyChanged(nameof(IsSubUser));
         }
         finally
         {
@@ -159,15 +177,18 @@ public class DashboardViewModel : BaseViewModel
     public async Task LoadCurrentJobAsync()
     {
         var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
+        var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;
+
+        if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
         {
             ClearCurrentJobUi();
             CurrentJobSummary = "Please log in again";
             return;
         }
 
-        // ✅ NEW: owner-scoped active jobs
-        var jobs = await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
+        var jobs = IsSubUser
+            ? await _jobRepository.GetActiveAssignedToUserAsync(ownerUserId, accountId)
+            : await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
 
         var nextJob = jobs
             .OrderBy(j => j.SortOrder)
@@ -175,7 +196,10 @@ public class DashboardViewModel : BaseViewModel
 
         if (nextJob == null)
         {
-            CurrentJobSummary = "No active jobs yet";
+            CurrentJobSummary = IsSubUser
+                ? "No assigned jobs right now"
+                : "No active jobs yet";
+
             ClearCurrentJobUi();
             return;
         }
@@ -191,8 +215,6 @@ public class DashboardViewModel : BaseViewModel
             $"{nextJob.PickupCompany} → {nextJob.DeliveryCompany}\n" +
             $"{nextJob.DeliveryAddress}\n" +
             $"{nextJob.LoadDescription}";
-
-        OnPropertyChanged(nameof(HasActiveJob));
     }
 
     public async Task LoadCompletedReportSummaryAsync()
@@ -206,7 +228,6 @@ public class DashboardViewModel : BaseViewModel
             return;
         }
 
-        // ✅ NEW: owner-scoped receipts
         var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
 
         var todayLocal = DateTime.Now.Date;
@@ -236,7 +257,6 @@ public class DashboardViewModel : BaseViewModel
         DeliveryCompany = string.Empty;
         DeliveryAddress = string.Empty;
         LoadDescription = string.Empty;
-        OnPropertyChanged(nameof(HasActiveJob));
     }
 
     private void EnsureShellNavigationRefreshHook()

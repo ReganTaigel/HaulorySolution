@@ -1,9 +1,8 @@
-﻿using Haulory.Domain.Enums;
-
-namespace Haulory.Application.Features.Users;
+﻿namespace Haulory.Application.Features.Users;
 
 public record CreateSubUserCommand(
-    Guid OwnerMainUserId,   // tenant/main user id
+    Guid RequestorAccountId,   // who is calling this (CurrentAccountId)
+    Guid OwnerMainUserId,       // tenant root (CurrentOwnerId)
     string FirstName,
     string LastName,
     string Email,

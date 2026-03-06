@@ -88,9 +88,13 @@ public class DriverRepository : IDriverRepository
         if (ownerUserId == Guid.Empty)
             return 0;
 
+        // ✅ Main driver = linked to owner account
         return await _db.Drivers
             .AsNoTracking()
-            .CountAsync(d => d.OwnerUserId == ownerUserId && d.UserId.HasValue);
+            .CountAsync(d =>
+                d.OwnerUserId == ownerUserId &&
+                d.UserId.HasValue &&
+                d.UserId.Value == ownerUserId);
     }
 
     public async Task<int> CountSubDriversAsync(Guid ownerUserId)
@@ -98,9 +102,13 @@ public class DriverRepository : IDriverRepository
         if (ownerUserId == Guid.Empty)
             return 0;
 
+        // ✅ Sub driver accounts = linked to a login user that is NOT the owner
         return await _db.Drivers
             .AsNoTracking()
-            .CountAsync(d => d.OwnerUserId == ownerUserId && !d.UserId.HasValue);
+            .CountAsync(d =>
+                d.OwnerUserId == ownerUserId &&
+                d.UserId.HasValue &&
+                d.UserId.Value != ownerUserId);
     }
 
     #endregion

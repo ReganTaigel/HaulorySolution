@@ -37,6 +37,8 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private Guid _jobId;
 
+    private string? _damageNotes;
+    private int? _waitTimeMinutes;
     #endregion
 
     #region Bindable Properties - Job Details
@@ -75,6 +77,17 @@ public class DeliverySignatureViewModel : BaseViewModel
         }
     }
 
+    public int? WaitTimeMinutes
+    {
+        get => _waitTimeMinutes;
+        set { _waitTimeMinutes = value; OnPropertyChanged(); }
+    }
+
+    public string? DamageNotes
+    {
+        get => _damageNotes;
+        set { _damageNotes = value; OnPropertyChanged(); }
+    }
     #endregion
 
     #region Signature Data
@@ -211,7 +224,6 @@ public class DeliverySignatureViewModel : BaseViewModel
     #endregion
 
     #region Save Flow
-
     private async Task SaveAsync()
     {
         if (_isSaving) return;
@@ -255,18 +267,26 @@ public class DeliverySignatureViewModel : BaseViewModel
             }
 
             var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-            if (ownerUserId == Guid.Empty)
+            var deliveredByUserId = _session.CurrentAccountId ?? Guid.Empty;
+
+            if (ownerUserId == Guid.Empty || deliveredByUserId == Guid.Empty)
             {
                 await Shell.Current.DisplayAlertAsync("Not logged in", "Please log in again.", "OK");
                 return;
             }
 
             var signatureJson = BuildSignatureJson();
-            var deliveredAtUtc = DateTime.UtcNow;
 
-            // Mark delivered (optional if you still delete job, but OK)
-            _job.MarkDelivered(ReceiverName.Trim(), signatureJson);
+            // ✅ NEW: Complete delivery using your new method (sets DeliveredAtUtc + Status)
+            _job.CompleteDelivery(
+                deliveredByUserId: deliveredByUserId,
+                receiverName: ReceiverName.Trim(),
+                signatureJson: signatureJson,
+                waitTimeMinutes: WaitTimeMinutes,
+                damageNotes: DamageNotes
+            );
 
+            // Build receipt using the job snapshot AFTER completion
             var receipt = new DeliveryReceipt(
                 ownerUserId: ownerUserId,
                 jobId: _job.Id,
@@ -279,7 +299,6 @@ public class DeliverySignatureViewModel : BaseViewModel
                 clientCity: _job.ClientCity,
                 clientCountry: _job.ClientCountry,
 
-                // existing receipt snapshot fields
                 referenceNumber: _job.ReferenceNumber,
                 invoiceNumber: _job.InvoiceNumber,
                 pickupCompany: _job.PickupCompany,
@@ -291,24 +310,31 @@ public class DeliverySignatureViewModel : BaseViewModel
                 rateValue: _job.RateValue,
                 quantity: _job.Quantity,
                 total: _job.Total,
-                receiverName: ReceiverName.Trim(),
-                deliveredAtUtc: deliveredAtUtc,
-                signatureJson: signatureJson
+                receiverName: _job.ReceiverName!,
+                deliveredAtUtc: _job.DeliveredAtUtc ?? DateTime.UtcNow,
+                signatureJson: _job.DeliverySignatureJson!
             );
 
             await _uow.ExecuteInTransactionAsync(async () =>
             {
+                // Receipt = your reporting snapshot (keep this)
                 await _deliveryReceiptRepository.AddAsync(receipt);
-                await _jobRepository.DeleteAsync(_job.Id);
+
+                // ✅ IMPORTANT CHANGE:
+                // Do NOT delete the job anymore.
+                // Update it so its Status becomes Completed or DeliveredPendingReview.
+                await _jobRepository.UpdateAsync(_job);
             });
 
             if (_events != null)
                 await _events.PublishAsync(new JobCompletedEvent(_job.Id));
 
-            await Shell.Current.DisplayAlertAsync(
-                "Saved",
-                "Delivery signed and moved to Reports.",
-                "OK");
+            // Message differs depending on whether main review is required
+            var msg = _job.RequiresReview
+                ? "Delivery saved. Exceptions recorded—Main user review required."
+                : "Delivery saved. Job completed.";
+
+            await Shell.Current.DisplayAlertAsync("Saved", msg, "OK");
 
             await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
         }

@@ -30,6 +30,7 @@
                 <Button Grid.Column="1"
                         Text="Add"
                         Command="{Binding AddJobCommand}"
+                        IsVisible="{Binding IsMainUser}"
                         HeightRequest="44"
                         Padding="16,0"
                         CornerRadius="14"
@@ -37,7 +38,7 @@
                         TextColor="{StaticResource White}" />
             </Grid>
 
-            <!-- Optional summary strip -->
+            <!-- Tip strip -->
             <Border StrokeThickness="1"
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
@@ -48,10 +49,18 @@
                            FontSize="12"
                            FontAttributes="Bold"
                            TextColor="{StaticResource BrandTitle}" />
-                    <Label Text="Tap Sign Delivery when complete"
+
+                    <Label Text="Tap Sign delivery when complete"
                            FontSize="13"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource BrandInk}" />
+                           TextColor="{StaticResource BrandInk}"
+                           IsVisible="{Binding IsMainUser}" />
+
+                    <Label Text="Tap Sign delivery to complete your assigned job"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandInk}"
+                           IsVisible="{Binding IsSubUser}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -64,19 +73,23 @@
                         Margin="0,2,0,0">
 
             <CollectionView.EmptyView>
-                <VerticalStackLayout HorizontalOptions="Center"
-                                     VerticalOptions="Center"
-                                     Spacing="6"
-                                     Padding="24">
-                    <Label Text="No jobs yet"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
-                    <Label Text="Tap Add to create your first job."
-                           FontSize="13"
-                           TextColor="{StaticResource BrandInk}"
-                           HorizontalTextAlignment="Center" />
-                </VerticalStackLayout>
+                <Grid>
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                         VerticalOptions="Center"
+                                         Spacing="6"
+                                         Padding="24">
+                        <Label Text="No jobs yet"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}"
+                               HorizontalTextAlignment="Center" />
+
+                        <Label Text="Use Add to create your first job."
+                               FontSize="13"
+                               TextColor="{StaticResource BrandInk}"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </Grid>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
@@ -91,7 +104,7 @@
 
                         <VerticalStackLayout Spacing="12">
 
-                            <!-- TOP ROW: Reference + reorder -->
+                            <!-- TOP ROW -->
                             <Grid ColumnDefinitions="*,Auto"
                                   ColumnSpacing="12"
                                   VerticalOptions="Center">
@@ -111,8 +124,11 @@
                                            MaxLines="2" />
                                 </VerticalStackLayout>
 
-                                <!-- Reorder controls -->
-                                <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                <!-- Reorder controls (Main only) -->
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="8"
+                                                     VerticalOptions="Center"
+                                                     IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsMainUser}">
                                     <Button Text="Up"
                                             FontSize="13"
                                             WidthRequest="56"
@@ -149,26 +165,30 @@
                                       RowSpacing="8">
 
                                     <Label Text="Driver"
-                                           Grid.Row="0" Grid.Column="0"
+                                           Grid.Row="0"
+                                           Grid.Column="0"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
 
                                     <Label Text="{Binding DriverName}"
-                                           Grid.Row="0" Grid.Column="1"
+                                           Grid.Row="0"
+                                           Grid.Column="1"
                                            FontSize="13"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandInk}"
                                            LineBreakMode="TailTruncation" />
 
                                     <Label Text="Truck"
-                                           Grid.Row="1" Grid.Column="0"
+                                           Grid.Row="1"
+                                           Grid.Column="0"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
 
                                     <Label Text="{Binding TruckDisplay}"
-                                           Grid.Row="1" Grid.Column="1"
+                                           Grid.Row="1"
+                                           Grid.Column="1"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}"
                                            LineBreakMode="TailTruncation" />
@@ -187,7 +207,8 @@
                                       RowSpacing="10">
 
                                     <Label Text="Pickup"
-                                           Grid.Row="0" Grid.Column="0"
+                                           Grid.Row="0"
+                                           Grid.Column="0"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
@@ -206,7 +227,8 @@
                                     </VerticalStackLayout>
 
                                     <Label Text="Drop"
-                                           Grid.Row="1" Grid.Column="0"
+                                           Grid.Row="1"
+                                           Grid.Column="0"
                                            FontSize="12"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
@@ -231,14 +253,15 @@
                                     Stroke="{StaticResource Gray200}"
                                     StrokeShape="RoundRectangle 14"
                                     BackgroundColor="{StaticResource BrandTileFill}"
-                                    Padding="12">
+                                    Padding="12"
+                                    IsVisible="{Binding ShowPricing}">
                                 <VerticalStackLayout Spacing="4">
                                     <Label Text="{Binding RateLine}"
                                            FontSize="12"
-                                           TextColor="{StaticResource BrandInk}"/>
+                                           TextColor="{StaticResource BrandInk}" />
                                     <Label Text="{Binding TotalLine}"
                                            FontSize="12"
-                                           TextColor="{StaticResource BrandInk}"/>
+                                           TextColor="{StaticResource BrandInk}" />
                                 </VerticalStackLayout>
                             </Border>
 

@@ -29,6 +29,7 @@
                 <Button Grid.Column="1"
                         Text="Add"
                         Command="{Binding GoToNewVehicleCommand}"
+                        IsVisible="{Binding IsMainUser}"
                         HeightRequest="44"
                         Padding="16,0"
                         CornerRadius="14"
@@ -37,7 +38,7 @@
                         VerticalOptions="Center"/>
             </Grid>
 
-            <!-- Optional guidance card -->
+            <!-- Guidance -->
             <Border StrokeThickness="1"
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
@@ -48,10 +49,18 @@
                            FontSize="12"
                            Opacity="0.85"
                            TextColor="{StaticResource BrandInk}" />
+
                     <Label Text="Pull down to refresh compliance status"
                            FontSize="13"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
+                           TextColor="{StaticResource BrandTitle}"
+                           IsVisible="{Binding IsMainUser}" />
+
+                    <Label Text="These are the vehicles assigned to your active jobs"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}"
+                           IsVisible="{Binding IsSubUser}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -67,16 +76,26 @@
                             Margin="0,2,0,0">
 
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="24" Spacing="8" HorizontalOptions="Center">
-                        <Label Text="No vehicles saved yet"
+                    <VerticalStackLayout Padding="24"
+                                         Spacing="8"
+                                         HorizontalOptions="Center">
+                        <Label Text="No vehicles available"
                                FontAttributes="Bold"
                                FontSize="16"
                                TextColor="{StaticResource BrandTitle}"
                                HorizontalTextAlignment="Center"/>
+
                         <Label Text="Tap Add to create your first vehicle"
                                FontSize="13"
                                TextColor="{StaticResource BrandInk}"
-                               HorizontalTextAlignment="Center"/>
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding IsMainUser}"/>
+
+                        <Label Text="No vehicles are assigned to your active jobs right now"
+                               FontSize="13"
+                               TextColor="{StaticResource BrandInk}"
+                               HorizontalTextAlignment="Center"
+                               IsVisible="{Binding IsSubUser}"/>
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
 
@@ -221,4 +240,4 @@
         </RefreshView>
 
     </Grid>
-</ContentPage>
+</ContentPage> 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Haulory.Infrastructure.Persistence.Repositories;
@@ -23,7 +24,6 @@ public class JobRepository : IJobRepository
     {
         if (job == null) throw new ArgumentNullException(nameof(job));
 
-        // Prevent attaching duplicate instances
         var tracked = _db.Jobs.Local.FirstOrDefault(j => j.Id == job.Id);
         if (tracked != null)
             return;
@@ -41,18 +41,14 @@ public class JobRepository : IJobRepository
         if (job == null) throw new ArgumentNullException(nameof(job));
         if (job.Id == Guid.Empty) throw new ArgumentException("Job.Id required.", nameof(job));
 
-        // Use tracked instance if present; otherwise load tracked from DB
         var target = _db.Jobs.Local.FirstOrDefault(j => j.Id == job.Id)
                   ?? await _db.Jobs.FirstOrDefaultAsync(j => j.Id == job.Id);
 
         if (target == null)
             throw new KeyNotFoundException($"Job not found: {job.Id}");
 
-        // Safety: never allow tenant change
         if (target.OwnerUserId != job.OwnerUserId)
             throw new InvalidOperationException("OwnerUserId mismatch.");
-
-        // ===== Apply allowed changes only =====
 
         // Assignment / allocation
         target.AssignToSubUser(job.AssignedToUserId);
@@ -62,11 +58,23 @@ public class JobRepository : IJobRepository
         // Ordering
         target.SetSortOrder(job.SortOrder);
 
-        // Delivery (signature + receiver)
-        if (!string.IsNullOrWhiteSpace(job.DeliverySignatureJson) &&
-            !string.IsNullOrWhiteSpace(job.ReceiverName))
+        // ✅ Delivery completion (run ONCE only)
+        // If already delivered, do not overwrite DeliveredAtUtc/status.
+        var incomingHasDelivery = !string.IsNullOrWhiteSpace(job.DeliverySignatureJson)
+                                  && !string.IsNullOrWhiteSpace(job.ReceiverName);
+
+        if (target.DeliveredAtUtc == null && incomingHasDelivery)
         {
-            target.MarkDelivered(job.ReceiverName!, job.DeliverySignatureJson!);
+            if (!job.DeliveredByUserId.HasValue || job.DeliveredByUserId.Value == Guid.Empty)
+                throw new InvalidOperationException("DeliveredByUserId is required when completing delivery.");
+
+            target.CompleteDelivery(
+                job.DeliveredByUserId.Value,
+                job.ReceiverName!.Trim(),
+                job.DeliverySignatureJson!,
+                job.WaitTimeMinutes,
+                job.DamageNotes
+            );
         }
 
         await _db.SaveChangesAsync();
@@ -82,10 +90,6 @@ public class JobRepository : IJobRepository
         await _db.SaveChangesAsync();
     }
 
-    // Safe reorder:
-    // - owner-scoped
-    // - does NOT delete any rows
-    // - only updates SortOrder for jobs passed in
     public async Task UpdateAllAsync(Guid ownerUserId, IReadOnlyList<Job> jobs)
     {
         if (ownerUserId == Guid.Empty)
@@ -94,13 +98,11 @@ public class JobRepository : IJobRepository
         if (jobs == null)
             throw new ArgumentNullException(nameof(jobs));
 
-        // Safety: do not allow cross-owner updates
         if (jobs.Any(j => j.OwnerUserId != ownerUserId))
             throw new InvalidOperationException("UpdateAllAsync contains jobs from a different owner.");
 
         await using var tx = await _db.Database.BeginTransactionAsync();
 
-        // Load existing jobs for this owner (tracked)
         var existing = await _db.Jobs
             .Where(j => j.OwnerUserId == ownerUserId)
             .ToListAsync();
@@ -128,9 +130,41 @@ public class JobRepository : IJobRepository
 
         return await _db.Jobs
             .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
             .Where(j => j.OwnerUserId == ownerUserId)
-            .Where(j => j.DeliveredAtUtc == null) // Active = not delivered
+            .Where(j => j.Status == JobStatus.Active) // ✅ use Status (not DeliveredAtUtc)
             .OrderBy(j => j.SortOrder)
+            .ToListAsync();
+    }
+
+    // ✅ Sub user: only their assigned active jobs
+    public async Task<IReadOnlyList<Job>> GetActiveAssignedToUserAsync(Guid ownerUserId, Guid assignedToUserId)
+    {
+        if (ownerUserId == Guid.Empty || assignedToUserId == Guid.Empty)
+            return Array.Empty<Job>();
+
+        return await _db.Jobs
+            .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
+            .Where(j => j.OwnerUserId == ownerUserId)
+            .Where(j => j.AssignedToUserId == assignedToUserId)
+            .Where(j => j.Status == JobStatus.Active)
+            .OrderBy(j => j.SortOrder)
+            .ToListAsync();
+    }
+
+    // ✅ Main user review inbox: delivered with exceptions
+    public async Task<IReadOnlyList<Job>> GetNeedsReviewAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            return Array.Empty<Job>();
+
+        return await _db.Jobs
+            .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
+            .Where(j => j.OwnerUserId == ownerUserId)
+            .Where(j => j.Status == JobStatus.DeliveredPendingReview)
+            .OrderByDescending(j => j.DeliveredAtUtc)
             .ToListAsync();
     }
 
@@ -141,9 +175,10 @@ public class JobRepository : IJobRepository
 
         return await _db.Jobs
             .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
             .Where(j => j.OwnerUserId == ownerUserId)
             .Where(j => j.DriverId == driverId)
-            .Where(j => j.DeliveredAtUtc == null) // Active only
+            .Where(j => j.Status == JobStatus.Active)
             .OrderBy(j => j.SortOrder)
             .ToListAsync();
     }
@@ -152,13 +187,14 @@ public class JobRepository : IJobRepository
     {
         return await _db.Jobs
             .AsNoTracking()
+            .Include(j => j.TrailerAssignments)
             .FirstOrDefaultAsync(j => j.Id == id);
     }
 
     public async Task<Job?> GetByIdForUpdateAsync(Guid id)
     {
-        // tracked for mutation + SaveChanges
         return await _db.Jobs
+            .Include(j => j.TrailerAssignments)
             .FirstOrDefaultAsync(j => j.Id == id);
     }
 

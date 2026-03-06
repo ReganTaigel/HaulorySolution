@@ -68,6 +68,63 @@
                                    TextColor="{StaticResource BrandInk}"
                                    PlaceholderColor="{StaticResource Gray600}" />
 
+                            <!-- ✅ NEW: Optional login account -->
+                            <Border StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="12"
+                                    Margin="0,4,0,0">
+                                <VerticalStackLayout Spacing="10">
+
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="Create login for this driver"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource BrandTitle}" />
+                                            <Label Text="Allows this driver to sign in on their phone"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource BrandInk}"
+                                                   Opacity="0.85" />
+                                        </VerticalStackLayout>
+
+                                        <Switch Grid.Column="1"
+                                                IsToggled="{Binding CreateLoginAccount}"
+                                                VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!-- Password row (only visible when CreateLoginAccount = true) -->
+                                    <VerticalStackLayout Spacing="6">
+                                        <VerticalStackLayout.Triggers>
+                                            <DataTrigger TargetType="VerticalStackLayout"
+                                                         Binding="{Binding CreateLoginAccount}"
+                                                         Value="False">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </VerticalStackLayout.Triggers>
+
+                                        <Label Text="Temporary password"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Entry Placeholder="Password"
+                                               Text="{Binding Password}"
+                                               IsPassword="True"
+                                               HeightRequest="44"
+                                               TextColor="{StaticResource BrandInk}"
+                                               PlaceholderColor="{StaticResource Gray600}" />
+
+                                        <Label Text="You can reset this later in Manage Users."
+                                               FontSize="12"
+                                               TextColor="{StaticResource BrandInk}"
+                                               Opacity="0.85" />
+                                    </VerticalStackLayout>
+
+                                </VerticalStackLayout>
+                            </Border>
+
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
@@ -141,7 +198,7 @@
                                 </VerticalStackLayout>
                             </Grid>
 
-                            <!-- NEW: Licence Version -->
+                            <!-- Licence Version -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Licence version"
                                        FontSize="12"
@@ -154,7 +211,7 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
-                            <!-- NEW: Class / endorsements -->
+                            <!-- Class / endorsements -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Class / endorsements"
                                        FontSize="12"
@@ -167,7 +224,7 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
-                            <!-- NEW: Issued date -->
+                            <!-- Issued date -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Issued date"
                                        FontSize="12"
@@ -183,7 +240,7 @@
                                 </Border>
                             </VerticalStackLayout>
 
-                            <!-- NEW: Conditions / notes -->
+                            <!-- Conditions / notes -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Conditions / notes"
                                        FontSize="12"

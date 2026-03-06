@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Haulory.Application.Interfaces.Services;
 using Microsoft.Maui.Storage;
 
@@ -6,26 +7,13 @@ namespace Haulory.Infrastructure.Services;
 
 public class SessionService : ISessionService
 {
-    #region Constants
-
     private const string AccountKey = "haulory_current_account_id";
     private const string OwnerKey = "haulory_current_owner_id";
 
-    #endregion
-
-    #region Properties
-
     public Guid? CurrentAccountId { get; private set; }
-
-    // ✅ NEW: Tenant boundary
     public Guid? CurrentOwnerId { get; private set; }
 
-    // True if a user account is currently active
     public bool IsAuthenticated => CurrentAccountId.HasValue;
-
-    #endregion
-
-    #region Session Lifecycle
 
     public async Task RestoreAsync()
     {
@@ -38,7 +26,7 @@ public class SessionService : ISessionService
         if (Guid.TryParse(ownerValue, out var ownerId))
             CurrentOwnerId = ownerId;
 
-        // ✅ Back-compat: if older installs only have AccountKey, treat it as owner too
+        // Back-compat: if older installs only have AccountKey, treat it as owner too
         if (CurrentAccountId.HasValue && !CurrentOwnerId.HasValue)
             CurrentOwnerId = CurrentAccountId;
     }
@@ -55,6 +43,7 @@ public class SessionService : ISessionService
 
     public async Task SetAccountAsync(Guid accountId, Guid ownerId)
     {
+        // Sub account login: owner != account
         CurrentAccountId = accountId;
         CurrentOwnerId = ownerId;
 
@@ -72,6 +61,4 @@ public class SessionService : ISessionService
 
         await Task.CompletedTask;
     }
-
-    #endregion
-} 
+}

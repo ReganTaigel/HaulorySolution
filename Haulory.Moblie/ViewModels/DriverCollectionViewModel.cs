@@ -144,7 +144,7 @@ public class DriverCollectionViewModel : BaseViewModel
                         account.FirstName ?? string.Empty,
                         account.LastName ?? string.Empty,
                         account.Email ?? string.Empty
-                    )
+                    ) 
                 );
 
                 // Reload after creation

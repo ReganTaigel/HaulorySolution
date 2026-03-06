@@ -235,17 +235,14 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.TrailerAssetId).IsRequired();
             entity.Property(x => x.Position).IsRequired();
 
-            // Only one trailer per slot (1, 2) per job
-            entity.HasIndex(x => new { x.JobId, x.Position })
-                  .IsUnique();
+            entity.HasIndex(x => new { x.JobId, x.Position }).IsUnique();
 
-            // Helpful indexes
             entity.HasIndex(x => x.JobId);
             entity.HasIndex(x => x.TrailerAssetId);
 
-            // Link back to Job using backing field
+            // Link back to Job (use the navigation property)
             entity.HasOne<Job>()
-                  .WithMany("_trailerAssignments")
+                  .WithMany(j => j.TrailerAssignments)
                   .HasForeignKey(x => x.JobId)
                   .OnDelete(DeleteBehavior.Cascade);
 
@@ -255,6 +252,11 @@ public class HauloryDbContext : DbContext
                   .HasForeignKey(x => x.TrailerAssetId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
+
+        // Tell EF that TrailerAssignments uses the backing field "_trailerAssignments"
+        modelBuilder.Entity<Job>()
+            .Navigation(j => j.TrailerAssignments)
+            .HasField("_trailerAssignments");
     }
     #endregion
 

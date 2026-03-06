@@ -3,30 +3,19 @@ using Haulory.Domain.Enums;
 
 namespace Haulory.Mobile.ViewModels;
 
-#region ViewModel Helper: Job List Item
-
 public class JobListItemViewModel
 {
-    #region Constructor
-
-    public JobListItemViewModel(Job job, string driverName, string truckDisplay)
+    public JobListItemViewModel(Job job, string driverName, string truckDisplay, bool showPricing)
     {
         Job = job;
-
-        // Fallback display values
         DriverName = string.IsNullOrWhiteSpace(driverName) ? "—" : driverName;
         TruckDisplay = string.IsNullOrWhiteSpace(truckDisplay) ? "—" : truckDisplay;
+        ShowPricing = showPricing;
     }
-
-    #endregion
-
-    #region Underlying Domain Model
 
     public Job Job { get; }
 
-    #endregion
-
-    #region Pass-Through Properties (Simplifies XAML)
+    public bool ShowPricing { get; }
 
     public Guid Id => Job.Id;
     public string ReferenceNumber => Job.ReferenceNumber;
@@ -42,18 +31,9 @@ public class JobListItemViewModel
 
     public bool IsDelivered => Job.IsDelivered;
 
-    #endregion
-
-    #region Assignment Display
-
     public string DriverName { get; }
     public string TruckDisplay { get; }
 
-    #endregion
-
-    #region Display Helpers
-
-    // Friendly rate description line
     public string RateLine => Job.RateType switch
     {
         RateType.FixedFee =>
@@ -81,16 +61,5 @@ public class JobListItemViewModel
             $"Rate: ${Job.RateValue:0.##} × {Job.Quantity:0.##}"
     };
 
-    public string TotalLine =>
-        $"Total: ${Job.Total:0.##}";
-
-    // Combined card display summary
-    public string CardSummary =>
-        $"{PickupCompany} → {DeliveryCompany}\n" +
-        $"{LoadDescription}\n" +
-        $"{RateLine} • {TotalLine}";
-
-    #endregion
+    public string TotalLine => $"Total: ${Job.Total:0.##}";
 }
-
-#endregion
