@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using Microsoft.Maui.Storage;
 
-namespace Haulory.Infrastructure.Services;
+namespace Haulory.Mobile.Services;
 
 public static class KeyService
 {

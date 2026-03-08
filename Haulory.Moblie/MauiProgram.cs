@@ -5,10 +5,12 @@ using Haulory.Application.Features.Users;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Application.Services;
 using Haulory.Infrastructure.Persistence;
 using Haulory.Infrastructure.Persistence.Repositories;
 using Haulory.Infrastructure.Persistence.Services;
 using Haulory.Infrastructure.Services;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.ViewModels;
 using Haulory.Mobile.Views;
 using Microsoft.EntityFrameworkCore;
@@ -60,34 +62,32 @@ public static class MauiProgram
     // Domain/application-level services and handlers.
     private static void RegisterApplicationServices(MauiAppBuilder builder)
     {
-        // App shell is the root navigation container.
         builder.Services.AddSingleton<AppShell>();
 
-        // Application handlers (use transient; they’re stateless and short-lived).
         builder.Services.AddTransient<CreateJobHandler>();
-        builder.Services.AddTransient<RegisterUserHandler>();
-        builder.Services.AddTransient<LoginUserHandler>();
         builder.Services.AddTransient<CreateSubUserHandler>();
         builder.Services.AddTransient<CreateDriverFromUserHandler>();
         builder.Services.AddTransient<CreateDriverHandler>();
 
         builder.Services.AddTransient<CreateVehicleHandler>();
-
-        // Report handlers (these are application handlers, not repositories)
+        builder.Services.AddSingleton<JobsApiService>();
         builder.Services.AddTransient<InvoiceReportHandler>();
         builder.Services.AddTransient<PodReportHandler>();
 
-        // PDF generators (fixes: Unable to resolve IPdfInvoiceGenerator / IPdfPodGenerator)
         builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
         builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
 
-        // Session can remain Singleton (does not depend on DbContext directly)
         builder.Services.AddSingleton<ISessionService, SessionService>();
 
-        // Cross-cutting helpers
         builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+        builder.Services.AddSingleton(new HttpClient
+        {
+            BaseAddress = new Uri("http://10.0.2.2:5158/")
+        });
+
+        builder.Services.AddSingleton<AuthApiService>();
+        builder.Services.AddSingleton<DriversApiService>();
     }
 
     #endregion
@@ -131,11 +131,10 @@ public static class MauiProgram
         builder.Services.AddScoped<IDriverRepository, DriverRepository>();
         builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
         builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
-
+        builder.Services.AddScoped<IOdometerService, OdometerServiceRepository>();
         builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
         builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
         builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
-
     }
 
     #endregion

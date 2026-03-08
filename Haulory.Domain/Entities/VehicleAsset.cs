@@ -174,6 +174,7 @@ public class VehicleAsset
 
         _ => string.Empty
     };
+
     // Power unit subtype display (body style only; tractor is represented by VehicleType)
     public string PowerUnitSubtypeDisplay =>
         Kind == AssetKind.PowerUnit && PowerUnitBodyType != null
@@ -305,6 +306,48 @@ public class VehicleAsset
 
     // YES/NO string for UI
     public string IsRucOverdueYesNo => IsRucOverdue ? "YES" : "NO";
+
+    #endregion
+
+    #region Behaviour
+
+    public void SetOdometer(int km, bool allowDecrease = false)
+    {
+        if (km < 0)
+            throw new ArgumentOutOfRangeException(nameof(km), "Odometer cannot be negative.");
+
+        if (!allowDecrease && OdometerKm.HasValue && km < OdometerKm.Value)
+            throw new InvalidOperationException("Odometer cannot be reduced unless a correction is being applied.");
+
+        OdometerKm = km;
+    }
+
+    public void UpdateRucPurchase(int odometerAtPurchaseKm, int distancePurchasedKm, DateTime purchasedDateUtc)
+    {
+        if (odometerAtPurchaseKm < 0)
+            throw new ArgumentOutOfRangeException(nameof(odometerAtPurchaseKm));
+
+        if (distancePurchasedKm <= 0)
+            throw new ArgumentOutOfRangeException(nameof(distancePurchasedKm));
+
+        RucOdometerAtPurchaseKm = odometerAtPurchaseKm;
+        RucDistancePurchasedKm = distancePurchasedKm;
+        RucPurchasedDate = purchasedDateUtc;
+        RucNextDueOdometerKm = odometerAtPurchaseKm + distancePurchasedKm;
+    }
+
+    public void UpdateRucLicenceRange(int startKm, int endKm)
+    {
+        if (startKm < 0)
+            throw new ArgumentOutOfRangeException(nameof(startKm));
+
+        if (endKm < startKm)
+            throw new ArgumentException("RUC licence end km cannot be less than start km.");
+
+        RucLicenceStartKm = startKm;
+        RucLicenceEndKm = endKm;
+        RucNextDueOdometerKm = endKm;
+    }
 
     #endregion
 

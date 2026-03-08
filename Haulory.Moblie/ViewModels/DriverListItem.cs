@@ -1,4 +1,5 @@
 ﻿using Haulory.Domain.Entities;
+using Haulory.Mobile.Contracts.Drivers;
 
 namespace Haulory.Mobile.ViewModels;
 
@@ -8,8 +9,11 @@ public class DriverListItem
 {
     #region Data
 
-    // Underlying domain driver
-    public Driver Driver { get; }
+    // Domain driver (used by legacy/local flows)
+    public Driver? Driver { get; }
+
+    // API driver (used by cloud flows)
+    public DriverDto? DriverDto { get; }
 
     // Number of inductions expiring soon
     public int ExpiringSoonCount { get; }
@@ -19,8 +23,9 @@ public class DriverListItem
 
     #endregion
 
-    #region Constructor
+    #region Constructors
 
+    // Legacy/local constructor
     public DriverListItem(
         Driver driver,
         int expiringSoonCount,
@@ -31,12 +36,26 @@ public class DriverListItem
         ExpiredCount = expiredCount;
     }
 
+    // API constructor
+    public DriverListItem(
+        DriverDto driver,
+        int expiringSoonCount = 0,
+        int expiredCount = 0)
+    {
+        DriverDto = driver;
+        ExpiringSoonCount = expiringSoonCount;
+        ExpiredCount = expiredCount;
+    }
+
     #endregion
 
     #region Derived Properties
 
-    // Full display name shortcut
-    public string DisplayName => Driver.DisplayName;
+    // Display name works for both domain and DTO
+    public string DisplayName =>
+        Driver?.DisplayName ??
+        DriverDto?.DisplayName ??
+        $"{DriverDto?.FirstName} {DriverDto?.LastName}".Trim();
 
     // True if driver has any compliance warnings
     public bool HasWarnings =>

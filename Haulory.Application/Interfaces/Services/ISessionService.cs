@@ -1,35 +1,17 @@
 ﻿namespace Haulory.Application.Interfaces.Services;
 
-#region Interface: Session Service
-
 public interface ISessionService
 {
-    #region State
-
-    // Logged in user (driver / dispatcher / main)
     Guid? CurrentAccountId { get; }
-
-    // Tenant boundary (main account)
     Guid? CurrentOwnerId { get; }
-
-    // Indicates whether a user is authenticated
     bool IsAuthenticated { get; }
 
-    #endregion
-
-    #region Lifecycle
+    string? JwtToken { get; }
 
     Task RestoreAsync();
 
-    // MAIN account login
-    Task SetAccountAsync(Guid accountId);
-
-    // SUB user login
-    Task SetAccountAsync(Guid accountId, Guid ownerId);
+    Task SetAccountAsync(Guid accountId, string jwtToken);
+    Task SetAccountAsync(Guid accountId, Guid ownerId, string jwtToken);
 
     Task ClearAsync();
-
-    #endregion
 }
-
-#endregion

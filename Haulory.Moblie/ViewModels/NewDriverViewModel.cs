@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Haulory.Application.Features.Drivers;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Contracts.Drivers;
+using Haulory.Mobile.Services;
 using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
@@ -10,30 +11,16 @@ namespace Haulory.Mobile.ViewModels;
 [QueryProperty(nameof(DriverId), "driverId")]
 public class NewDriverViewModel : BaseViewModel
 {
-    #region Dependencies
-
-    private readonly CreateDriverHandler _createDriverHandler;
+    private readonly DriversApiService _driversApiService;
     private readonly ISessionService _sessionService;
-
-    #endregion
-
-    #region State
 
     private string _driverId = string.Empty;
     private bool _isSaving;
-
-    #endregion
-
-    #region Driver Fields
 
     private string _firstName = string.Empty;
     private string _lastName = string.Empty;
     private string _email = string.Empty;
     private string _licenceNumber = string.Empty;
-
-    #endregion
-
-    #region Contact + Licence + Address
 
     private string _phoneNumber = string.Empty;
 
@@ -54,10 +41,6 @@ public class NewDriverViewModel : BaseViewModel
     private string _postcode = string.Empty;
     private string _country = string.Empty;
 
-    #endregion
-
-    #region Emergency Contact (Required)
-
     private string _ecFirstName = string.Empty;
     private string _ecLastName = string.Empty;
     private string _ecRelationship = string.Empty;
@@ -65,12 +48,26 @@ public class NewDriverViewModel : BaseViewModel
     private string _ecPhoneNumber = string.Empty;
     private string _ecSecondaryPhoneNumber = string.Empty;
 
-    #endregion
-
-    #region ✅ NEW: Login Account Fields (Optional)
-
     private bool _createLoginAccount;
     private string _password = string.Empty;
+
+    public NewDriverViewModel(
+        DriversApiService driversApiService,
+        ISessionService sessionService)
+    {
+        _driversApiService = driversApiService;
+        _sessionService = sessionService;
+
+        SaveDriverCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
+
+        RefreshSaveState();
+    }
+
+    public string DriverId
+    {
+        get => _driverId;
+        set => _driverId = value;
+    }
 
     public bool CreateLoginAccount
     {
@@ -81,7 +78,6 @@ public class NewDriverViewModel : BaseViewModel
             _createLoginAccount = value;
             OnPropertyChanged();
 
-            // If turning off, clear password (optional)
             if (!_createLoginAccount && !string.IsNullOrWhiteSpace(Password))
                 Password = string.Empty;
 
@@ -100,140 +96,70 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
-    #endregion
-
-    #region Query Properties
-
-    public string DriverId
-    {
-        get => _driverId;
-        set => _driverId = value;
-    }
-
-    #endregion
-
-    #region Bindable Properties (Driver)
-
     public string FirstName
     {
         get => _firstName;
-        set
-        {
-            _firstName = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _firstName = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string LastName
     {
         get => _lastName;
-        set
-        {
-            _lastName = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _lastName = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string Email
     {
         get => _email;
-        set
-        {
-            _email = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _email = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string LicenceNumber
     {
         get => _licenceNumber;
-        set
-        {
-            _licenceNumber = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _licenceNumber = value; OnPropertyChanged(); RefreshSaveState(); }
     }
-
-    #endregion
-
-    #region Bindable Properties (Contact + Licence + Address)
 
     public string PhoneNumber
     {
         get => _phoneNumber;
-        set
-        {
-            _phoneNumber = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _phoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public DateTime DateOfBirthLocal
     {
         get => _dateOfBirthLocal;
-        set
-        {
-            _dateOfBirthLocal = value;
-            OnPropertyChanged();
-        }
+        set { _dateOfBirthLocal = value; OnPropertyChanged(); }
     }
 
     public DateTime LicenceExpiryLocal
     {
         get => _licenceExpiryLocal;
-        set
-        {
-            _licenceExpiryLocal = value;
-            OnPropertyChanged();
-        }
+        set { _licenceExpiryLocal = value; OnPropertyChanged(); }
     }
 
     public string LicenceVersion
     {
         get => _licenceVersion;
-        set
-        {
-            _licenceVersion = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _licenceVersion = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string LicenceClassOrEndorsements
     {
         get => _licenceClassOrEndorsements;
-        set
-        {
-            _licenceClassOrEndorsements = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _licenceClassOrEndorsements = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string LicenceConditionsNotes
     {
         get => _licenceConditionsNotes;
-        set
-        {
-            _licenceConditionsNotes = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _licenceConditionsNotes = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public DateTime LicenceIssuedLocal
     {
         get => _licenceIssuedLocal;
-        set
-        {
-            _licenceIssuedLocal = value;
-            OnPropertyChanged();
-        }
+        set { _licenceIssuedLocal = value; OnPropertyChanged(); }
     }
 
     public string Line1 { get => _line1; set { _line1 = value; OnPropertyChanged(); } }
@@ -244,79 +170,41 @@ public class NewDriverViewModel : BaseViewModel
     public string Postcode { get => _postcode; set { _postcode = value; OnPropertyChanged(); } }
     public string Country { get => _country; set { _country = value; OnPropertyChanged(); } }
 
-    #endregion
-
-    #region Bindable Properties (Emergency Contact)
-
     public string EmergencyFirstName
     {
         get => _ecFirstName;
-        set
-        {
-            _ecFirstName = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecFirstName = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string EmergencyLastName
     {
         get => _ecLastName;
-        set
-        {
-            _ecLastName = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecLastName = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string EmergencyRelationship
     {
         get => _ecRelationship;
-        set
-        {
-            _ecRelationship = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecRelationship = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string EmergencyEmail
     {
         get => _ecEmail;
-        set
-        {
-            _ecEmail = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecEmail = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string EmergencyPhoneNumber
     {
         get => _ecPhoneNumber;
-        set
-        {
-            _ecPhoneNumber = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
     public string EmergencySecondaryPhoneNumber
     {
         get => _ecSecondaryPhoneNumber;
-        set
-        {
-            _ecSecondaryPhoneNumber = value;
-            OnPropertyChanged();
-            RefreshSaveState();
-        }
+        set { _ecSecondaryPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
     }
-
-    #endregion
-
-    #region Save Gate
 
     public bool CanSave
     {
@@ -328,7 +216,6 @@ public class NewDriverViewModel : BaseViewModel
             if (!_sessionService.IsAuthenticated)
                 return false;
 
-            // ✅ Tenant boundary (owner)
             var ownerId = _sessionService.CurrentOwnerId ?? Guid.Empty;
             if (ownerId == Guid.Empty)
                 return false;
@@ -343,7 +230,6 @@ public class NewDriverViewModel : BaseViewModel
             if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
                 return false;
 
-            // Emergency contact (required)
             if (string.IsNullOrWhiteSpace(EmergencyFirstName))
                 return false;
 
@@ -360,7 +246,6 @@ public class NewDriverViewModel : BaseViewModel
             if (string.IsNullOrWhiteSpace(EmergencyPhoneNumber))
                 return false;
 
-            // ✅ NEW: only required if you want login
             if (CreateLoginAccount && string.IsNullOrWhiteSpace(Password))
                 return false;
 
@@ -368,31 +253,7 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
-    #endregion
-
-    #region Commands
-
     public ICommand SaveDriverCommand { get; }
-
-    #endregion
-
-    #region Constructor
-
-    public NewDriverViewModel(
-        CreateDriverHandler createDriverHandler,
-        ISessionService sessionService)
-    {
-        _createDriverHandler = createDriverHandler;
-        _sessionService = sessionService;
-
-        SaveDriverCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
-
-        RefreshSaveState();
-    }
-
-    #endregion
-
-    #region Save Logic
 
     private async Task ExecuteSaveAsync()
     {
@@ -404,62 +265,47 @@ public class NewDriverViewModel : BaseViewModel
             _isSaving = true;
             RefreshSaveState();
 
-            // ✅ Tenant boundary (owner)
-            var ownerId = _sessionService.CurrentOwnerId!.Value;
-
-            var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
-            var licenceExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
-            var issuedUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime();
-
-            var cmd = new CreateDriverCommand(
-                OwnerUserId: ownerId,
-                FirstName: FirstName.Trim(),
-                LastName: LastName.Trim(),
-                Email: Email.Trim().ToLowerInvariant(),
-                LicenceNumber: string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
-
-                // Contact + profile
-                PhoneNumber: string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
-                DateOfBirthUtc: dobUtc,
-
-                // Licence
-                LicenceExpiresOnUtc: licenceExpUtc,
-                LicenceVersion: string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
-                LicenceClassOrEndorsements: string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
-                LicenceIssuedOnUtc: issuedUtc,
-                LicenceConditionsNotes: string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
-
-                // Address
-                Line1: string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
-                Line2: string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
-                Suburb: string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
-                City: string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
-                Region: string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
-                Postcode: string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
-                Country: string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
-
-                // Emergency contact (required)
-                EmergencyFirstName: EmergencyFirstName.Trim(),
-                EmergencyLastName: EmergencyLastName.Trim(),
-                EmergencyRelationship: EmergencyRelationship.Trim(),
-                EmergencyEmail: EmergencyEmail.Trim().ToLowerInvariant(),
-                EmergencyPhoneNumber: EmergencyPhoneNumber.Trim(),
-                EmergencySecondaryPhoneNumber: string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
-                    ? null
-                    : EmergencySecondaryPhoneNumber.Trim(),
-
-                // ✅ NEW (login driver account)
-                CreateLoginAccount: CreateLoginAccount,
-                Password: string.IsNullOrWhiteSpace(Password) ? null : Password
-            );
-
-            var created = await _createDriverHandler.HandleAsync(cmd);
-
-            if (created == null)
+            var request = new CreateDriverRequest
             {
-                await Shell.Current.DisplayAlertAsync("Save failed", "Unable to create driver.", "OK");
-                return;
-            }
+                FirstName = FirstName.Trim(),
+                LastName = LastName.Trim(),
+                Email = Email.Trim().ToLowerInvariant(),
+
+                PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
+                DateOfBirthUtc = ToUtcDate(DateOfBirthLocal),
+
+                LicenceNumber = string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
+                LicenceVersion = string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
+                LicenceClassOrEndorsements = string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
+                LicenceIssuedOnUtc = ToUtcDate(LicenceIssuedLocal),
+                LicenceExpiresOnUtc = ToUtcDate(LicenceExpiryLocal),
+                LicenceConditionsNotes = string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
+
+                Line1 = string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
+                Line2 = string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
+                Suburb = string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
+                City = string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
+                Region = string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
+                Postcode = string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
+                Country = string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
+
+                EmergencyContact = new EmergencyContactRequest
+                {
+                    FirstName = EmergencyFirstName.Trim(),
+                    LastName = EmergencyLastName.Trim(),
+                    Relationship = EmergencyRelationship.Trim(),
+                    Email = EmergencyEmail.Trim().ToLowerInvariant(),
+                    PhoneNumber = EmergencyPhoneNumber.Trim(),
+                    SecondaryPhoneNumber = string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
+                        ? null
+                        : EmergencySecondaryPhoneNumber.Trim()
+                },
+
+                CreateLoginAccount = CreateLoginAccount,
+                Password = string.IsNullOrWhiteSpace(Password) ? null : Password
+            };
+
+            var created = await _driversApiService.CreateDriverAsync(request);
 
             await Shell.Current.DisplayAlertAsync(
                 "Saved",
@@ -479,15 +325,14 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
-    #endregion
-
-    #region Helpers
-
     private void RefreshSaveState()
     {
         OnPropertyChanged(nameof(CanSave));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 
-    #endregion
+    private static DateTime ToUtcDate(DateTime localDate)
+    {
+        return DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local).ToUniversalTime();
+    }
 }

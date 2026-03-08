@@ -41,13 +41,47 @@
                            TextColor="{StaticResource BrandInk}"
                            LineBreakMode="WordWrap" />
 
-                    <!-- Delivered count visible only for Main -->
+                    <Label Text="Day Status"
+                           FontSize="16"
+                           FontAttributes="Bold" />
+
+                    <Label Text="{Binding AssignedVehicleDisplay}"
+                            FontSize="13" />
+
+                    <Label Text="{Binding DayStatusText}"
+                            FontSize="13" />
+
+                    <Button Text="Start Day"
+                            Command="{Binding StartDayCommand}"
+                            IsVisible="{Binding CanStartDay}" />
+
+                    <Button Text="End Day"
+                            Command="{Binding EndDayCommand}"
+                            IsVisible="{Binding CanEndDay}" />
+                </VerticalStackLayout>
+                
+            </Border>
+
+            <!-- STATS (Main only) -->
+            <Border StrokeThickness="1"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{StaticResource BrandSurface}"
+                    Padding="16"
+                    IsVisible="{Binding IsMainUser}">
+                <VerticalStackLayout Spacing="12">
+
+                    <Label Text="Quick stats"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
+
+                    <!-- Delivered count moved here -->
                     <Border StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
                             BackgroundColor="{StaticResource BrandTileFill}"
-                            Padding="12"
-                            IsVisible="{Binding IsMainUser}">
+                            Padding="12">
 
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                             <VerticalStackLayout Spacing="2">
@@ -67,22 +101,6 @@
                                    VerticalTextAlignment="Center" />
                         </Grid>
                     </Border>
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- STATS (Main only) -->
-            <Border StrokeThickness="1"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeShape="RoundRectangle 18"
-                    BackgroundColor="{StaticResource BrandSurface}"
-                    Padding="16"
-                    IsVisible="{Binding IsMainUser}">
-                <VerticalStackLayout Spacing="12">
-
-                    <Label Text="Quick stats"
-                           FontSize="16"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
 
                     <!-- Revenue -->
                     <Border StrokeThickness="1"
@@ -290,7 +308,7 @@
                                TextColor="{StaticResource White}" />
                         <Label Text="Sign out of Haulory on this device"
                                FontSize="12"
-                               TextColor="{StaticResource Gray200}" />
+                                 TextColor="{StaticResource Gray200}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"

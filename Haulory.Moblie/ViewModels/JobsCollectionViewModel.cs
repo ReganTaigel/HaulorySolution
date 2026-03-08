@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
+using Haulory.Mobile.Contracts.Jobs;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
 
@@ -14,12 +12,13 @@ namespace Haulory.Mobile.ViewModels;
 
 public class JobsCollectionViewModel : BaseViewModel
 {
-    private readonly IJobRepository _jobRepository;
+    private readonly JobsApiService _jobsApiService;
     private readonly IDriverRepository _driverRepository;
     private readonly IVehicleAssetRepository _vehicleAssetRepository;
     private readonly ISessionService _session;
 
     public ObservableCollection<JobListItemViewModel> Jobs { get; } = new();
+    public ObservableCollection<JobGroupViewModel> JobGroups { get; } = new();
 
     public ICommand AddJobCommand { get; }
     public ICommand MoveUpCommand { get; }
@@ -37,12 +36,12 @@ public class JobsCollectionViewModel : BaseViewModel
         _session.CurrentOwnerId.Value == _session.CurrentAccountId.Value;
 
     public JobsCollectionViewModel(
-        IJobRepository jobRepository,
+        JobsApiService jobsApiService,
         IDriverRepository driverRepository,
         IVehicleAssetRepository vehicleAssetRepository,
         ISessionService session)
     {
-        _jobRepository = jobRepository;
+        _jobsApiService = jobsApiService;
         _driverRepository = driverRepository;
         _vehicleAssetRepository = vehicleAssetRepository;
         _session = session;
@@ -64,19 +63,26 @@ public class JobsCollectionViewModel : BaseViewModel
         MoveUpCommand = new Command<JobListItemViewModel>(async item =>
         {
             if (!IsMainUser) return;
-            await MoveAsync(item, -1);
+            await Shell.Current.DisplayAlertAsync(
+                "Not moved",
+                "Job reordering is still using the local repository flow and has not been moved to the API yet.",
+                "OK");
         });
 
         MoveDownCommand = new Command<JobListItemViewModel>(async item =>
         {
             if (!IsMainUser) return;
-            await MoveAsync(item, +1);
+            await Shell.Current.DisplayAlertAsync(
+                "Not moved",
+                "Job reordering is still using the local repository flow and has not been moved to the API yet.",
+                "OK");
         });
     }
 
     public async Task LoadAsync()
     {
         Jobs.Clear();
+        JobGroups.Clear();
 
         var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         var accountId = _session.CurrentAccountId ?? Guid.Empty;
@@ -84,9 +90,7 @@ public class JobsCollectionViewModel : BaseViewModel
         if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
             return;
 
-        var jobs = IsSubUser
-            ? (await _jobRepository.GetActiveAssignedToUserAsync(ownerUserId, accountId)).ToList()
-            : (await _jobRepository.GetActiveByOwnerAsync(ownerUserId)).ToList();
+        var jobs = (await _jobsApiService.GetActiveJobsAsync()).ToList();
 
         jobs = jobs.OrderBy(j => j.SortOrder).ToList();
 
@@ -101,8 +105,7 @@ public class JobsCollectionViewModel : BaseViewModel
             .ToList();
 
         var trailerIds = jobs
-            .SelectMany(j => j.TrailerAssignments)
-            .Select(t => t.TrailerAssetId)
+            .SelectMany(j => j.TrailerAssetIds)
             .Distinct()
             .ToList();
 
@@ -124,6 +127,8 @@ public class JobsCollectionViewModel : BaseViewModel
 
         var showPricing = IsMainUser;
 
+        var items = new List<JobListItemViewModel>();
+
         foreach (var job in jobs)
         {
             var driverName = "—";
@@ -142,42 +147,52 @@ public class JobsCollectionViewModel : BaseViewModel
                 truck = $"{v.Make} {v.Model} • {v.Rego}".Trim();
             }
 
-            Jobs.Add(new JobListItemViewModel(job, driverName, truck, showPricing));
+            items.Add(new JobListItemViewModel(job, driverName, truck, showPricing));
+        }
+
+        if (IsSubUser)
+        {
+            foreach (var item in items)
+                Jobs.Add(item);
+        }
+        else
+        {
+            BuildMainUserGroups(items, accountId);
         }
 
         OnPropertyChanged(nameof(IsMainUser));
         OnPropertyChanged(nameof(IsSubUser));
     }
 
-    private async Task MoveAsync(JobListItemViewModel? item, int direction)
+    private void BuildMainUserGroups(List<JobListItemViewModel> items, Guid currentAccountId)
     {
-        if (item?.Job == null) return;
+        var mainGroup = new JobGroupViewModel("Main User", isMainGroup: true);
 
-        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
-            return;
+        foreach (var item in items
+                     .Where(x => x.Job.AssignedToUserId == null || x.Job.AssignedToUserId == currentAccountId)
+                     .OrderBy(x => x.Job.SortOrder))
+        {
+            mainGroup.Jobs.Add(item);
+        }
 
-        if (item.Job.IsDelivered)
-            return;
+        JobGroups.Add(mainGroup);
 
-        var list = Jobs.ToList();
-        var index = list.FindIndex(x => x.Job.Id == item.Job.Id);
-        if (index < 0) return;
+        var subGroups = items
+            .Where(x => x.Job.AssignedToUserId != null && x.Job.AssignedToUserId != currentAccountId)
+            .GroupBy(x => x.Job.AssignedToUserId!.Value)
+            .OrderBy(g => g.First().DriverName);
 
-        var newIndex = index + direction;
-        if (newIndex < 0 || newIndex >= list.Count) return;
+        foreach (var g in subGroups)
+        {
+            var first = g.First();
+            var title = string.IsNullOrWhiteSpace(first.DriverName) ? "Assigned Driver" : first.DriverName;
 
-        (list[index], list[newIndex]) = (list[newIndex], list[index]);
+            var group = new JobGroupViewModel(title);
 
-        for (int i = 0; i < list.Count; i++)
-            list[i].Job.SetSortOrder(i + 1);
+            foreach (var item in g.OrderBy(x => x.Job.SortOrder))
+                group.Jobs.Add(item);
 
-        await _jobRepository.UpdateAllAsync(
-            ownerUserId,
-            list.Select(x => x.Job).ToList());
-
-        Jobs.Clear();
-        foreach (var x in list.OrderBy(x => x.Job.SortOrder))
-            Jobs.Add(x);
+            JobGroups.Add(group);
+        }
     }
 }

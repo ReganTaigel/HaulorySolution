@@ -186,7 +186,33 @@
 
                                     </VerticalStackLayout>
                                 </Border>
+                                <!-- Odometer section -->
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                        Padding="12">
 
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Odometer"
+                                               FontSize="12"
+                                               TextColor="{StaticResource BrandInk}" />
+
+                                        <Label FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}"
+                                               LineBreakMode="TailTruncation">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="Current: " />
+                                                    <Span Text="{Binding OdometerKm, StringFormat='{0:N0}'}"
+                                                           FontAttributes="Bold" />
+                                                    <Span Text=" km" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </VerticalStackLayout>
+                                </Border>
+                                
                                 <!-- RUC section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"

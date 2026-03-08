@@ -61,17 +61,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <AndroidResource Remove="Models\**" />
 	  <AndroidResource Remove="Serivces\**" />
-	  <Compile Remove="Models\**" />
 	  <Compile Remove="Serivces\**" />
-	  <EmbeddedResource Remove="Models\**" />
 	  <EmbeddedResource Remove="Serivces\**" />
-	  <MauiCss Remove="Models\**" />
 	  <MauiCss Remove="Serivces\**" />
-	  <MauiXaml Remove="Models\**" />
 	  <MauiXaml Remove="Serivces\**" />
-	  <None Remove="Models\**" />
 	  <None Remove="Serivces\**" />
 	</ItemGroup>
 
@@ -112,6 +106,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\ManageInductionsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\OdometerEntryPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Views\RegisterPage.xaml">

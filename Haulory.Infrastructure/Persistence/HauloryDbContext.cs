@@ -18,11 +18,11 @@ public class HauloryDbContext : DbContext
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<VehicleAsset> VehicleAssets => Set<VehicleAsset>();
     public DbSet<DeliveryReceipt> DeliveryReceipts => Set<DeliveryReceipt>();
-
     public DbSet<WorkSite> WorkSites => Set<WorkSite>();
     public DbSet<InductionRequirement> InductionRequirements => Set<InductionRequirement>();
     public DbSet<DriverInduction> DriverInductions => Set<DriverInduction>();
     public DbSet<JobTrailerAssignment> JobTrailerAssignments => Set<JobTrailerAssignment>();
+    public DbSet<OdometerReading> OdometerReadings => Set<OdometerReading>();
 
     #endregion
 
@@ -41,6 +41,7 @@ public class HauloryDbContext : DbContext
         ConfigureInductionRequirements(modelBuilder);
         ConfigureDriverInductions(modelBuilder);
         ConfigureJobTrailerAssignments(modelBuilder);
+        ConfigureOdometerReadings(modelBuilder);
     }
 
     #endregion
@@ -53,7 +54,6 @@ public class HauloryDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            // Identity / login
             entity.HasIndex(x => x.Email).IsUnique();
             entity.Property(x => x.Email).IsRequired().HasMaxLength(320);
 
@@ -62,11 +62,9 @@ public class HauloryDbContext : DbContext
 
             entity.Property(x => x.PasswordHash).IsRequired().HasMaxLength(512);
 
-            // Roles / hierarchy
             entity.Property(x => x.Role).IsRequired();
             entity.HasIndex(x => x.ParentMainUserId);
 
-            // Personal profile (optional)
             entity.Property(x => x.PhoneNumber).HasMaxLength(50);
             entity.Property(x => x.DateOfBirthUtc);
 
@@ -80,7 +78,6 @@ public class HauloryDbContext : DbContext
 
             entity.Property(x => x.LicenceExpiresOnUtc);
 
-            // Business profile (Supplier) for PDFs
             entity.Property(x => x.BusinessName).HasMaxLength(200);
             entity.Property(x => x.BusinessEmail).HasMaxLength(320);
             entity.Property(x => x.BusinessPhone).HasMaxLength(50);
@@ -108,19 +105,16 @@ public class HauloryDbContext : DbContext
         {
             entity.HasKey(x => x.Id);
 
-            // Owner relationship (required)
             entity.HasOne<UserAccount>()
                   .WithMany()
                   .HasForeignKey(x => x.OwnerUserId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
-            // Optional link to actual User account
             entity.HasOne<UserAccount>()
                   .WithMany()
                   .HasForeignKey(x => x.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            // Basic details
             entity.Property(d => d.FirstName).HasMaxLength(120);
             entity.Property(d => d.LastName).HasMaxLength(120);
             entity.Property(d => d.Email).HasMaxLength(320);
@@ -128,7 +122,6 @@ public class HauloryDbContext : DbContext
             entity.Property(d => d.PhoneNumber).HasMaxLength(50);
             entity.Property(d => d.DateOfBirthUtc);
 
-            // Licence (expanded)
             entity.Property(d => d.LicenceNumber).HasMaxLength(64);
             entity.Property(d => d.LicenceVersion).HasMaxLength(64);
             entity.Property(d => d.LicenceClassOrEndorsements).HasMaxLength(200);
@@ -136,7 +129,6 @@ public class HauloryDbContext : DbContext
             entity.Property(d => d.LicenceExpiresOnUtc);
             entity.Property(d => d.LicenceConditionsNotes).HasMaxLength(500);
 
-            // Address
             entity.Property(d => d.Line1).HasMaxLength(250);
             entity.Property(d => d.Line2).HasMaxLength(250);
             entity.Property(d => d.Suburb).HasMaxLength(120);
@@ -145,15 +137,10 @@ public class HauloryDbContext : DbContext
             entity.Property(d => d.Postcode).HasMaxLength(20);
             entity.Property(d => d.Country).HasMaxLength(120);
 
-            // Status
             entity.Property(d => d.Status).IsRequired();
 
-            // Owned value object
             entity.OwnsOne(d => d.EmergencyContact, owned =>
             {
-                // IMPORTANT: adjust these property names to match your EmergencyContact class
-                // (I’ve used the names shown in your view models: FirstName, LastName, Relationship, Email, PhoneNumber, SecondaryPhoneNumber)
-
                 owned.Property(x => x.FirstName).HasMaxLength(120);
                 owned.Property(x => x.LastName).HasMaxLength(120);
                 owned.Property(x => x.Relationship).HasMaxLength(80);
@@ -179,13 +166,11 @@ public class HauloryDbContext : DbContext
             entity.HasOne<UserAccount>()
                   .WithMany()
                   .HasForeignKey(v => v.OwnerUserId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
-            // Indexes
             entity.HasIndex(v => v.OwnerUserId);
             entity.HasIndex(v => v.VehicleSetId);
 
-            // Rego (unique per owner)
             entity.Property(v => v.Rego)
                   .IsRequired()
                   .HasMaxLength(32);
@@ -193,7 +178,6 @@ public class HauloryDbContext : DbContext
             entity.HasIndex(v => new { v.OwnerUserId, v.Rego })
                   .IsUnique();
 
-            // Core vehicle details
             entity.Property(v => v.Make)
                   .IsRequired()
                   .HasMaxLength(120);
@@ -208,15 +192,24 @@ public class HauloryDbContext : DbContext
             entity.Property(v => v.CreatedUtc)
                   .IsRequired();
 
-            // Optional enum fields (no max length)
             entity.Property(v => v.Kind).IsRequired();
             entity.Property(v => v.VehicleType);
             entity.Property(v => v.FuelType);
             entity.Property(v => v.Configuration);
             entity.Property(v => v.PowerUnitBodyType);
+
+            entity.Property(v => v.RucOdometerAtPurchaseKm);
+            entity.Property(v => v.RucDistancePurchasedKm);
+            entity.Property(v => v.RucPurchasedDate);
+            entity.Property(v => v.RucNextDueOdometerKm);
+            entity.Property(v => v.RucLicenceStartKm);
+            entity.Property(v => v.RucLicenceEndKm);
+
+            entity.Property(v => v.OdometerKm);
+            entity.Property(v => v.RegoExpiry);
+            entity.Property(v => v.CertificateExpiry);
         });
 
-        // Prevent duplicate slot positions inside a vehicle set
         modelBuilder.Entity<VehicleAsset>()
             .HasIndex(v => new { v.VehicleSetId, v.UnitNumber })
             .IsUnique();
@@ -224,7 +217,8 @@ public class HauloryDbContext : DbContext
 
     #endregion
 
-    #region Entity Config: Extra Trailer Asset 
+    #region Entity Config: Extra Trailer Asset
+
     private static void ConfigureJobTrailerAssignments(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<JobTrailerAssignment>(entity =>
@@ -240,24 +234,22 @@ public class HauloryDbContext : DbContext
             entity.HasIndex(x => x.JobId);
             entity.HasIndex(x => x.TrailerAssetId);
 
-            // Link back to Job (use the navigation property)
             entity.HasOne<Job>()
                   .WithMany(j => j.TrailerAssignments)
                   .HasForeignKey(x => x.JobId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
-            // Link to VehicleAsset (Trailer)
             entity.HasOne<VehicleAsset>()
                   .WithMany()
                   .HasForeignKey(x => x.TrailerAssetId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // Tell EF that TrailerAssignments uses the backing field "_trailerAssignments"
         modelBuilder.Entity<Job>()
             .Navigation(j => j.TrailerAssignments)
             .HasField("_trailerAssignments");
     }
+
     #endregion
 
     #region Entity Config: Job
@@ -271,11 +263,9 @@ public class HauloryDbContext : DbContext
             entity.Property(j => j.OwnerUserId).IsRequired();
             entity.HasIndex(j => j.OwnerUserId);
 
-            // Ordering
             entity.Property(j => j.SortOrder).IsRequired();
             entity.HasIndex(j => new { j.OwnerUserId, j.SortOrder });
 
-            // Client (Bill To)
             entity.Property(j => j.ClientCompanyName).IsRequired().HasMaxLength(200);
             entity.Property(j => j.ClientContactName).HasMaxLength(200);
             entity.Property(j => j.ClientEmail).HasMaxLength(320);
@@ -283,7 +273,6 @@ public class HauloryDbContext : DbContext
             entity.Property(j => j.ClientCity).IsRequired().HasMaxLength(120);
             entity.Property(j => j.ClientCountry).IsRequired().HasMaxLength(120);
 
-            // Job core fields
             entity.Property(j => j.ReferenceNumber).HasMaxLength(64);
             entity.Property(j => j.PickupCompany).HasMaxLength(200);
             entity.Property(j => j.PickupAddress).HasMaxLength(250);
@@ -291,32 +280,26 @@ public class HauloryDbContext : DbContext
             entity.Property(j => j.DeliveryAddress).HasMaxLength(250);
             entity.Property(j => j.LoadDescription).HasMaxLength(500);
 
-            // Money
             entity.Property(j => j.Quantity).HasColumnType("decimal(18,2)");
             entity.Property(j => j.RateValue).HasColumnType("decimal(18,2)");
             entity.Property(j => j.QuantityUnit).IsRequired().HasMaxLength(30);
 
-            // Invoice
             entity.Property(j => j.InvoiceNumber).IsRequired().HasMaxLength(64);
             entity.HasIndex(j => new { j.OwnerUserId, j.InvoiceNumber }).IsUnique();
 
-            // Signatures
             entity.Property(j => j.DeliverySignatureJson).IsRequired(false);
             entity.Property(j => j.PickupSignatureJson).IsRequired(false);
             entity.Property(j => j.ReceiverName).HasMaxLength(200);
             entity.Property(j => j.PickupSignedByName).HasMaxLength(200);
 
-            // Assignment indices
             entity.HasIndex(j => j.DriverId);
             entity.HasIndex(j => j.VehicleAssetId);
 
-            // Ownership link
             entity.HasOne<UserAccount>()
                   .WithMany()
                   .HasForeignKey(j => j.OwnerUserId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
-            // Optional assignment links
             entity.HasOne<Driver>()
                   .WithMany()
                   .HasForeignKey(j => j.DriverId)
@@ -326,8 +309,6 @@ public class HauloryDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(j => j.VehicleAssetId)
                   .OnDelete(DeleteBehavior.SetNull);
-
-    
         });
     }
 
@@ -344,10 +325,8 @@ public class HauloryDbContext : DbContext
             entity.Property(r => r.OwnerUserId).IsRequired();
             entity.HasIndex(r => r.OwnerUserId);
 
-            // One receipt per job per owner
             entity.HasIndex(r => new { r.OwnerUserId, r.JobId }).IsUnique();
 
-            // Snapshot fields (strings)
             entity.Property(r => r.ReferenceNumber).HasMaxLength(64);
             entity.Property(r => r.InvoiceNumber).HasMaxLength(64);
             entity.Property(r => r.PickupCompany).HasMaxLength(200);
@@ -356,16 +335,13 @@ public class HauloryDbContext : DbContext
             entity.Property(r => r.DeliveryAddress).HasMaxLength(250);
             entity.Property(r => r.LoadDescription).HasMaxLength(500);
 
-            // Money
             entity.Property(r => r.RateValue).HasColumnType("decimal(18,2)");
             entity.Property(r => r.Quantity).HasColumnType("decimal(18,2)");
             entity.Property(r => r.Total).HasColumnType("decimal(18,2)");
 
-            // Required POD/signature bits
             entity.Property(r => r.SignatureJson).IsRequired();
             entity.Property(r => r.ReceiverName).IsRequired().HasMaxLength(200);
 
-            // Client snapshot required fields
             entity.Property(r => r.ClientCompanyName).IsRequired().HasMaxLength(200);
             entity.Property(r => r.ClientContactName).HasMaxLength(200);
             entity.Property(r => r.ClientEmail).HasMaxLength(320);
@@ -399,7 +375,6 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.IsActive)
                   .IsRequired();
 
-            // NEW: Address fields (optional)
             entity.Property(x => x.AddressLine1).HasMaxLength(250);
             entity.Property(x => x.AddressLine2).HasMaxLength(250);
             entity.Property(x => x.Suburb).HasMaxLength(120);
@@ -410,11 +385,7 @@ public class HauloryDbContext : DbContext
 
             entity.HasIndex(x => x.OwnerUserId);
             entity.HasIndex(x => new { x.OwnerUserId, x.IsActive });
-
-            // Helpful if many sites share names across owners
             entity.HasIndex(x => new { x.OwnerUserId, x.Name });
-
-            // Optional: helps list/filter by company
             entity.HasIndex(x => new { x.OwnerUserId, x.CompanyName });
         });
     }
@@ -447,7 +418,7 @@ public class HauloryDbContext : DbContext
             entity.HasOne<WorkSite>()
                   .WithMany()
                   .HasForeignKey(x => x.WorkSiteId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
         });
     }
 
@@ -468,7 +439,6 @@ public class HauloryDbContext : DbContext
 
             entity.Property(x => x.IssueDateUtc).IsRequired();
 
-            // Prevent duplicates per owner/driver/site/requirement
             entity.HasIndex(x => new { x.OwnerUserId, x.DriverId, x.WorkSiteId, x.RequirementId })
                   .IsUnique();
 
@@ -477,17 +447,56 @@ public class HauloryDbContext : DbContext
             entity.HasOne<Driver>()
                   .WithMany()
                   .HasForeignKey(x => x.DriverId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne<WorkSite>()
                   .WithMany()
                   .HasForeignKey(x => x.WorkSiteId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne<InductionRequirement>()
                   .WithMany()
                   .HasForeignKey(x => x.RequirementId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    #endregion
+
+    #region Entity Config: OdometerReading
+
+    private static void ConfigureOdometerReadings(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OdometerReading>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.VehicleAssetId).IsRequired();
+            entity.Property(x => x.UnitNumber).IsRequired();
+            entity.Property(x => x.RecordedAtUtc).IsRequired();
+            entity.Property(x => x.ReadingKm).IsRequired();
+            entity.Property(x => x.ReadingType).IsRequired();
+
+            entity.Property(x => x.Notes)
+                  .HasMaxLength(1000);
+
+            entity.HasIndex(x => x.VehicleAssetId);
+            entity.HasIndex(x => new { x.VehicleAssetId, x.UnitNumber, x.RecordedAtUtc });
+
+            entity.HasOne<VehicleAsset>()
+                  .WithMany()
+                  .HasForeignKey(x => x.VehicleAssetId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne<Driver>()
+                  .WithMany()
+                  .HasForeignKey(x => x.DriverId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<UserAccount>()
+                  .WithMany()
+                  .HasForeignKey(x => x.RecordedByUserId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 

@@ -18,19 +18,6 @@ public class VehicleCollectionViewModel : BaseViewModel
 
     #region State
 
-    private bool _isBusy;
-
-    public bool IsBusy
-    {
-        get => _isBusy;
-        set
-        {
-            if (_isBusy == value) return;
-            _isBusy = value;
-            OnPropertyChanged();
-        }
-    }
-
     public bool IsSubUser =>
         _session.CurrentAccountId.HasValue &&
         _session.CurrentOwnerId.HasValue &&

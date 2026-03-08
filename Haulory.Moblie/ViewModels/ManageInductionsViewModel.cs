@@ -26,22 +26,11 @@ public class ManageInductionsViewModel : BaseViewModel
 
     #region State
 
-    private bool _isBusy;
     private Driver? _selectedDriver;
 
     #endregion
 
     #region Bindable Properties
-
-    public bool IsBusy
-    {
-        get => _isBusy;
-        set
-        {
-            _isBusy = value;
-            OnPropertyChanged();
-        }
-    }
 
     public ObservableCollection<Driver> Drivers { get; } = new();
     public ObservableCollection<DriverInductionListItemDto> Inductions { get; } = new();
@@ -179,7 +168,7 @@ public class ManageInductionsViewModel : BaseViewModel
             return;
 
         // 1) Status
-        var statusText = await Shell.Current.DisplayActionSheet(
+        var statusText = await Shell.Current.DisplayActionSheetAsync(
             "Set Status",
             "Cancel",
             null,
@@ -294,7 +283,7 @@ public class ManageInductionsViewModel : BaseViewModel
             return;
         }
 
-        var chosen = await Shell.Current.DisplayActionSheet(
+        var chosen = await Shell.Current.DisplayActionSheetAsync(
             "Choose Work Site",
             "Cancel",
             null,

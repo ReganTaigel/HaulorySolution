@@ -23,7 +23,6 @@ public class RegisterUserHandler
 
     public async Task<RegisterUserResult> HandleAsync(RegisterUserCommand command)
     {
-        // Normalize email early
         var email = command.Email?.Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(email))
             return new(false, "Email is required.");
@@ -34,22 +33,18 @@ public class RegisterUserHandler
         if (string.IsNullOrWhiteSpace(command.LastName))
             return new(false, "Last name is required.");
 
-        // Business name required (your PDFs need it)
         if (string.IsNullOrWhiteSpace(command.BusinessName))
             return new(false, "Business name is required.");
 
         if (!PasswordPolicy.IsValid(command.Password, out var error))
             return new(false, error ?? "Password does not meet requirements.");
 
-        // Unique email
         var existing = await _userRepository.GetByEmailAsync(email);
         if (existing != null)
             return new(false, "A user with this email already exists.");
 
-        // Hash password
         var hash = PasswordHasher.Hash(command.Password);
 
-        // Create base user
         var user = new UserAccount(
             firstName: command.FirstName.Trim(),
             lastName: command.LastName.Trim(),
@@ -57,7 +52,6 @@ public class RegisterUserHandler
             passwordHash: hash
         );
 
-        // Apply business profile
         user.UpdateBusinessIdentity(
             businessName: command.BusinessName,
             businessEmail: command.BusinessEmail,
@@ -77,10 +71,8 @@ public class RegisterUserHandler
             country: command.BusinessCountry
         );
 
-        // Persist
         await _userRepository.AddAsync(user);
 
-        // Create driver profile (main)
         await _createDriverFromUserHandler.HandleAsync(
             new CreateDriverFromUserCommand(
                 user.Id,

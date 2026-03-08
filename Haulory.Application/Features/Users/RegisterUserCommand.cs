@@ -6,20 +6,14 @@ public record RegisterUserCommand(
 
 #region Basic Information
 
-    // User first name
     string FirstName,
-
-    // User last name
     string LastName,
-
-    // User email (will be normalized in handler)
     string Email,
 
 #endregion
 
-#region Business Information 
+#region Business Information
 
-    // NEW: Business (for Invoice + POD)
     string BusinessName,
     string? BusinessEmail,
     string? BusinessPhone,
@@ -37,10 +31,10 @@ public record RegisterUserCommand(
 
 #region Credentials
 
-    // Plain-text password (must be hashed in handler)
     string Password
 
 #endregion
+
 );
 
 #endregion

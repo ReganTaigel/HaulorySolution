@@ -35,6 +35,16 @@ public abstract class BaseViewModel : INotifyPropertyChanged
             this,
             new PropertyChangedEventArgs(propertyName));
     }
-
+    private bool _isBusy;
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            if (_isBusy == value) return;
+            _isBusy = value;
+            OnPropertyChanged();
+        }
+    }
     #endregion
 }

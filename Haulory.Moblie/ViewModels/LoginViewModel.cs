@@ -1,7 +1,11 @@
-﻿using System.Threading.Tasks;
-using System.Windows.Input;
-using Haulory.Application.Features.Users;
+﻿using Azure;
+using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Services;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+using System;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
@@ -9,7 +13,8 @@ public class LoginViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly LoginUserHandler _handler;
+    private readonly AuthApiService _authApiService;
+    private readonly ISessionService _sessionService;
 
     #endregion
 
@@ -29,9 +34,12 @@ public class LoginViewModel : BaseViewModel
 
     #region Constructor
 
-    public LoginViewModel(LoginUserHandler handler)
+    public LoginViewModel(
+        AuthApiService authApiService,
+        ISessionService sessionService)
     {
-        _handler = handler;
+        _authApiService = authApiService;
+        _sessionService = sessionService;
 
         LoginCommand = new Command(async () => await LoginAsync());
 
@@ -47,18 +55,49 @@ public class LoginViewModel : BaseViewModel
 
     private async Task LoginAsync()
     {
-        var user = await _handler.HandleAsync(new LoginUserCommand(Email, Password));
-
-        if (user != null)
+        try
         {
-            // Session already set by LoginUserHandler
+            var (result, error) = await _authApiService.LoginAsync(Email, Password);
+
+            if (result is null)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Login Failed",
+                    error ?? "Unable to log in.",
+                    "OK");
+                return;
+            }
+
+            if (result.AccountId == result.OwnerId)
+            {
+                await _sessionService.SetAccountAsync(
+                    result.AccountId,
+                    result.Token);
+            }
+            else
+            {
+                await _sessionService.SetAccountAsync(
+                    result.AccountId,
+                    result.OwnerId,
+                    result.Token);
+            }
+
+            await SecureStorage.Default.SetAsync("haulory_api_token", result.Token);
+
             await Shell.Current.GoToAsync("///DashboardPage");
         }
-        else
+        catch (HttpRequestException ex)
         {
             await Shell.Current.DisplayAlertAsync(
-                "Login Failed",
-                "Invalid credentials",
+                "Connection Error",
+                ex.Message,
+                "OK");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Login Error",
+                ex.Message,
                 "OK");
         }
     }

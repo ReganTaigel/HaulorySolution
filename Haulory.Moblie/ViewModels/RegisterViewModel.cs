@@ -1,26 +1,26 @@
-﻿using Haulory.Application.Features.Users;
+﻿using Azure;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Contracts.Auth;
+using Haulory.Mobile.Services;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Storage;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
-// Handles first-time user registration and (on success) auto-login + session initialization.
 public class RegisterViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly RegisterUserHandler _registerHandler;
-    private readonly LoginUserHandler _loginHandler;
+    private readonly AuthApiService _authApiService;
     private readonly ISessionService _sessionService;
 
     #endregion
 
     #region State Flags
 
-    // Prevents double-taps / double submissions while registration is in progress.
     private bool _isRegistering;
 
     #endregion
@@ -99,7 +99,7 @@ public class RegisterViewModel : BaseViewModel
 
     #endregion
 
-    #region Bindable Properties - Business (Invoice + POD)
+    #region Bindable Properties - Business
 
     public string BusinessName
     {
@@ -175,19 +175,16 @@ public class RegisterViewModel : BaseViewModel
 
     #endregion
 
-    #region Validation UI (Passwords)
+    #region Validation UI
 
-    // True only when both fields are filled and identical.
     public bool PasswordsMatch =>
         !string.IsNullOrEmpty(Password) &&
         Password == ConfirmPassword;
 
-    // Friendly inline message that only appears after the user has started typing confirm password.
     public string PasswordsMatchMessage =>
         string.IsNullOrEmpty(ConfirmPassword) ? string.Empty :
         PasswordsMatch ? "Passwords match" : "Passwords do not match";
 
-    // Inline color indicator for password match feedback.
     public Color PasswordsMatchColor => PasswordsMatch ? Colors.Green : Colors.Red;
 
     private void RaisePasswordMatchState()
@@ -199,14 +196,13 @@ public class RegisterViewModel : BaseViewModel
 
     #endregion
 
-    #region Validation (Register button enable)
+    #region Validation
 
     public bool CanRegister
     {
         get
         {
             if (_isRegistering) return false;
-
             if (string.IsNullOrWhiteSpace(FirstName)) return false;
             if (string.IsNullOrWhiteSpace(LastName)) return false;
 
@@ -215,8 +211,6 @@ public class RegisterViewModel : BaseViewModel
 
             if (string.IsNullOrWhiteSpace(Password)) return false;
             if (!PasswordsMatch) return false;
-
-            // Business name required for invoicing/POD
             if (string.IsNullOrWhiteSpace(BusinessName)) return false;
 
             return true;
@@ -240,12 +234,10 @@ public class RegisterViewModel : BaseViewModel
     #region Constructor
 
     public RegisterViewModel(
-        RegisterUserHandler registerHandler,
-        LoginUserHandler loginHandler,
+        AuthApiService authApiService,
         ISessionService sessionService)
     {
-        _registerHandler = registerHandler;
-        _loginHandler = loginHandler;
+        _authApiService = authApiService;
         _sessionService = sessionService;
 
         RegisterCommand = new Command(async () => await ExecuteRegisterAsync(), () => CanRegister);
@@ -259,15 +251,14 @@ public class RegisterViewModel : BaseViewModel
 
     private async Task ExecuteRegisterAsync()
     {
-        if (!CanRegister) return;
+        if (!CanRegister || _isRegistering)
+            return;
 
-        if (_isRegistering) return;
         _isRegistering = true;
         RefreshRegisterState();
 
         try
         {
-            // Safety guard (UI already blocks it)
             if (!PasswordsMatch)
             {
                 await Shell.Current.DisplayAlertAsync(
@@ -277,64 +268,70 @@ public class RegisterViewModel : BaseViewModel
                 return;
             }
 
-            // Normalize once and reuse everywhere
-            var firstName = FirstName?.Trim() ?? string.Empty;
-            var lastName = LastName?.Trim() ?? string.Empty;
             var email = (Email?.Trim() ?? string.Empty).ToLowerInvariant();
 
-            var businessName = BusinessName?.Trim() ?? string.Empty;
+            var registerRequest = new RegisterRequest
+            {
+                FirstName = FirstName?.Trim() ?? string.Empty,
+                LastName = LastName?.Trim() ?? string.Empty,
+                Email = email,
 
-            // Build command WITH business fields
-            var cmd = new RegisterUserCommand(
-                FirstName: firstName,
-                LastName: lastName,
-                Email: email,
+                BusinessName = BusinessName?.Trim() ?? string.Empty,
+                BusinessEmail = string.IsNullOrWhiteSpace(BusinessEmail) ? null : BusinessEmail.Trim().ToLowerInvariant(),
+                BusinessPhone = string.IsNullOrWhiteSpace(BusinessPhone) ? null : BusinessPhone.Trim(),
 
-                BusinessName: businessName,
-                BusinessEmail: string.IsNullOrWhiteSpace(BusinessEmail)
-                            ? null
-                            : BusinessEmail.Trim().ToLowerInvariant(),
-                BusinessPhone: string.IsNullOrWhiteSpace(BusinessPhone) ? null : BusinessPhone.Trim(),
+                BusinessAddress1 = string.IsNullOrWhiteSpace(BusinessAddress1) ? null : BusinessAddress1.Trim(),
+                BusinessAddress2 = string.IsNullOrWhiteSpace(BusinessAddress2) ? null : BusinessAddress2.Trim(),
+                BusinessSuburb = string.IsNullOrWhiteSpace(BusinessSuburb) ? null : BusinessSuburb.Trim(),
+                BusinessCity = string.IsNullOrWhiteSpace(BusinessCity) ? null : BusinessCity.Trim(),
+                BusinessRegion = string.IsNullOrWhiteSpace(BusinessRegion) ? null : BusinessRegion.Trim(),
+                BusinessPostcode = string.IsNullOrWhiteSpace(BusinessPostcode) ? null : BusinessPostcode.Trim(),
+                BusinessCountry = string.IsNullOrWhiteSpace(BusinessCountry) ? null : BusinessCountry.Trim(),
 
-                BusinessAddress1: string.IsNullOrWhiteSpace(BusinessAddress1) ? null : BusinessAddress1.Trim(),
-                BusinessAddress2: string.IsNullOrWhiteSpace(BusinessAddress2) ? null : BusinessAddress2.Trim(),
-                BusinessSuburb: string.IsNullOrWhiteSpace(BusinessSuburb) ? null : BusinessSuburb.Trim(),
-                BusinessCity: string.IsNullOrWhiteSpace(BusinessCity) ? null : BusinessCity.Trim(),
-                BusinessRegion: string.IsNullOrWhiteSpace(BusinessRegion) ? null : BusinessRegion.Trim(),
-                BusinessPostcode: string.IsNullOrWhiteSpace(BusinessPostcode) ? null : BusinessPostcode.Trim(),
-                BusinessCountry: string.IsNullOrWhiteSpace(BusinessCountry) ? null : BusinessCountry.Trim(),
+                SupplierGstNumber = string.IsNullOrWhiteSpace(SupplierGstNumber) ? null : SupplierGstNumber.Trim(),
+                SupplierNzbn = string.IsNullOrWhiteSpace(SupplierNzbn) ? null : SupplierNzbn.Trim(),
 
-                SupplierGstNumber: string.IsNullOrWhiteSpace(SupplierGstNumber) ? null : SupplierGstNumber.Trim(),
-                SupplierNzbn: string.IsNullOrWhiteSpace(SupplierNzbn) ? null : SupplierNzbn.Trim(),
+                Password = Password
+            };
+            var registerResult = await _authApiService.RegisterAsync(registerRequest);
 
-                Password: Password
-            );
-
-            var result = await _registerHandler.HandleAsync(cmd);
-
-            if (!result.Success)
+            if (!registerResult.Success)
             {
                 await Shell.Current.DisplayAlertAsync(
                     "Registration Failed",
-                    result.Error ?? "Registration failed.",
+                    registerResult.Error ?? "Unable to create account.",
                     "OK");
                 return;
             }
 
-            // Auto-login immediately (use normalized email too)
-            var user = await _loginHandler.HandleAsync(new LoginUserCommand(email, Password));
-            if (user == null)
+            var (response, error) = await _authApiService.LoginAsync(email, Password);
+
+            if (response is null)
             {
                 await Shell.Current.DisplayAlertAsync(
                     "Registration Successful",
-                    "Account created. Please log in.",
+                    error ?? "Account created. Please log in.",
                     "OK");
 
                 await Shell.Current.GoToAsync("///LoginPage");
                 return;
             }
 
-            await _sessionService.SetAccountAsync(user.Id);
+            if (response.AccountId == response.OwnerId)
+            {
+                await _sessionService.SetAccountAsync(
+                    response.AccountId,
+                    response.Token);
+            }
+            else
+            {
+                await _sessionService.SetAccountAsync(
+                    response.AccountId,
+                    response.OwnerId,
+                    response.Token);
+            }
+
+            await SecureStorage.Default.SetAsync("haulory_api_token", response.Token);
 
             await Shell.Current.DisplayAlertAsync(
                 "Welcome",
@@ -342,6 +339,20 @@ public class RegisterViewModel : BaseViewModel
                 "OK");
 
             await Shell.Current.GoToAsync("///DashboardPage");
+        }
+        catch (HttpRequestException ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Connection Error",
+                ex.Message,
+                "OK");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Registration Error",
+                ex.Message,
+                "OK");
         }
         finally
         {

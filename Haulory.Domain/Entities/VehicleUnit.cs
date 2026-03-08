@@ -28,10 +28,25 @@ public class VehicleUnit
 
     #region Compliance
 
-    public DateTime? CertificateExpiry { get; set; }
-
     // Odometer relevant for powered units and heavy trailers
     public int? OdometerKm { get; set; }
+
+    public DateTime? CertificateExpiry { get; set; }
+
+    #endregion
+
+    #region Behaviour
+
+    public void SetOdometer(int km, bool allowDecrease = false)
+    {
+        if (km < 0)
+            throw new ArgumentOutOfRangeException(nameof(km), "Odometer cannot be negative.");
+
+        if (!allowDecrease && OdometerKm.HasValue && km < OdometerKm.Value)
+            throw new InvalidOperationException("Odometer cannot be reduced unless a correction is being applied.");
+
+        OdometerKm = km;
+    }
 
     #endregion
 }

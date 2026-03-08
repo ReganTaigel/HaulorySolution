@@ -1,25 +1,22 @@
-﻿using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
+﻿using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Views;
-using System;
-using System.Linq;
 using Microsoft.Maui.ApplicationModel;
+using System;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Haulory.Mobile;
 
 // Central navigation shell for the app.
 // Responsible for:
 // 1) Registering routes (pages)
-// 2) Enforcing "bootstrap" rules:
-//    - If no main user exists yet => force RegisterPage
-//    - If user exists but not authenticated => force LoginPage for protected routes
+// 2) Enforcing auth rules:
+//    - If not authenticated => force LoginPage for protected routes
 //    - If authenticated => block Login/Register and send to Dashboard
 public partial class AppShell : Shell
 {
     #region Route Names (Single Source of Truth)
 
-    // Keep these stable even if class names change later.
     public const string RouteDashboard = "DashboardPage";
     public const string RouteLogin = "LoginPage";
     public const string RouteRegister = "RegisterPage";
@@ -29,21 +26,11 @@ public partial class AppShell : Shell
     #region Dependencies
 
     private readonly ISessionService _sessionService;
-    private readonly IUserAccountRepository _userRepository;
-
-    #endregion
-
-    #region Cached State
-
-    // Cached answer to "does a main user exist?".
-    // Once it becomes true we never check again (fast path).
-    private bool? _hasMainUser;
 
     #endregion
 
     #region Global Toolbar State
 
-    // MAUI ToolbarItem does not support IsVisible, so we add/remove it dynamically.
     private ToolbarItem? _homeToolbarItem;
     private bool _homeToolbarInitialized;
 
@@ -51,23 +38,16 @@ public partial class AppShell : Shell
 
     #region Constructor
 
-    public AppShell(ISessionService sessionService, IUserAccountRepository userRepository)
+    public AppShell(ISessionService sessionService)
     {
         InitializeComponent();
 
         _sessionService = sessionService;
-        _userRepository = userRepository;
 
         RegisterRoutes();
-
-        // Create a single app-wide Home toolbar item.
-        // This is the global fix: Home always goes to Dashboard root (not back-stack).
         CreateHomeToolbarItem();
 
-        // Navigation guard for auth + bootstrap rules
         Navigating += OnNavigating;
-
-        // Keep toolbar state consistent across the whole app
         Navigated += OnNavigated;
     }
 
@@ -75,13 +55,12 @@ public partial class AppShell : Shell
 
     #region Public Navigation Helpers
 
-    // Always go to Dashboard root (resets Shell navigation stack)
-    // Use this for your Top Bar "Home" button everywhere.
     public Task GoHomeAsync() => GoToAsync($"//{RouteDashboard}");
 
     #endregion
 
     #region Global Toolbar
+
     private async void OnHomeToolbarClicked(object? sender, EventArgs e)
     {
         try
@@ -93,6 +72,7 @@ public partial class AppShell : Shell
             Debug.WriteLine(ex);
         }
     }
+
     private void CreateHomeToolbarItem()
     {
         if (_homeToolbarInitialized)
@@ -103,16 +83,12 @@ public partial class AppShell : Shell
             Text = "Home",
             Priority = 0,
             Order = ToolbarItemOrder.Primary
-            // IconImageSource = "home.png"
         };
 
         _homeToolbarItem.Clicked += OnHomeToolbarClicked;
-
         _homeToolbarInitialized = true;
     }
 
-    // Show/hide the Home button depending on where we are.
-    // Hides Home on Login/Register to keep auth screens clean.
     private void OnNavigated(object? sender, ShellNavigatedEventArgs e)
     {
         try
@@ -128,7 +104,6 @@ public partial class AppShell : Shell
             if (_homeToolbarItem == null)
                 return;
 
-            // Always update UI collections on the main thread (Android can throw if not).
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 try
@@ -159,28 +134,11 @@ public partial class AppShell : Shell
     }
 
     #endregion
-    private async void OnHomeClicked(object? sender, EventArgs e)
-    {
-        await GoHomeAsync();
-    }
+
     #region Route Registration
 
-    // Registers all pages with Shell routing.
-    // Keep this grouped by feature for maintainability.
     private static void RegisterRoutes()
     {
-        // NOTE:
-        // If Login/Register/Dashboard are defined in AppShell.xaml via:
-        // <ShellContent Route="DashboardPage" ... />
-        // then DO NOT register them again here.
-        //
-        // If they are NOT defined with Route="..." in XAML,
-        // uncomment these lines (and ensure the types exist).
-        //
-        // Routing.RegisterRoute(RouteLogin, typeof(LoginPage));
-        // Routing.RegisterRoute(RouteRegister, typeof(RegisterPage));
-        // Routing.RegisterRoute(RouteDashboard, typeof(DashboardPage));
-
         // Jobs
         Routing.RegisterRoute(nameof(NewJobPage), typeof(NewJobPage));
         Routing.RegisterRoute(nameof(JobsCollectionPage), typeof(JobsCollectionPage));
@@ -206,30 +164,11 @@ public partial class AppShell : Shell
 
     #endregion
 
-    #region Bootstrap Checks
-
-    // Determines whether the app has at least one "main user" account created.
-    // Caches once true to avoid hitting storage repeatedly on every navigation.
-    private async Task<bool> HasMainUserAsync()
-    {
-        // Once true, cache it forever (fast path)
-        if (_hasMainUser == true)
-            return true;
-
-        // Otherwise keep checking until it becomes true
-        _hasMainUser = await _userRepository.AnyAsync();
-        return _hasMainUser.Value;
-    }
-
-    #endregion
-
     #region Navigation Guard
 
     private static bool IsRoute(string target, string route) =>
         target.Contains(route, StringComparison.OrdinalIgnoreCase);
 
-    // Routes that should require an authenticated session.
-    // Keep these centralized so you don't scatter string checks around the app.
     private static readonly string[] ProtectedRoutes =
     {
         RouteDashboard,
@@ -237,13 +176,10 @@ public partial class AppShell : Shell
         nameof(VehicleCollectionPage),
         nameof(JobsCollectionPage),
         nameof(ReportsPage),
-
-        // Inductions should also be protected
         nameof(ManageInductionsPage),
         nameof(InductionTemplatesPage),
     };
 
-    // Routes that should be inaccessible once authenticated.
     private static readonly string[] AuthRoutes =
     {
         RouteLogin,
@@ -256,33 +192,14 @@ public partial class AppShell : Shell
     private static bool IsAuthRoute(string target) =>
         AuthRoutes.Any(r => target.Contains(r, StringComparison.OrdinalIgnoreCase));
 
-    // Navigation gatekeeper:
-    // - Restores session on cold start
-    // - Forces registration until a main user exists
-    // - Forces login for protected pages
-    // - Prevents showing login/register once authenticated
     private async void OnNavigating(object? sender, ShellNavigatingEventArgs e)
     {
-        // Always restore session on cold start before applying routing rules.
         if (!_sessionService.IsAuthenticated)
             await _sessionService.RestoreAsync();
 
         var target = e.Target.Location.OriginalString;
 
-        // BOOTSTRAP: if no main user exists yet, force RegisterPage
-        var hasMainUser = await HasMainUserAsync();
-        if (!hasMainUser)
-        {
-            // Avoid re-entrancy loops if we're already going there
-            if (!IsRoute(target, RouteRegister))
-            {
-                e.Cancel();
-                await GoToAsync($"//{RouteRegister}");
-            }
-            return;
-        }
-
-        // If user exists but not authenticated, block protected app pages
+        // Not authenticated -> block protected routes
         if (!_sessionService.IsAuthenticated && IsProtectedRoute(target))
         {
             if (!IsRoute(target, RouteLogin))
@@ -293,7 +210,7 @@ public partial class AppShell : Shell
             return;
         }
 
-        // If authenticated, block Login/Register pages
+        // Authenticated -> block auth routes
         if (_sessionService.IsAuthenticated && IsAuthRoute(target))
         {
             if (!IsRoute(target, RouteDashboard))

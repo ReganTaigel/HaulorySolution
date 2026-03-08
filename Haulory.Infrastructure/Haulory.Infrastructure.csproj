@@ -1,45 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
-
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <AndroidResource Remove="Storage\**" />
-	  <Compile Remove="Storage\**" />
-	  <EmbeddedResource Remove="Storage\**" />
-	  <MauiCss Remove="Storage\**" />
-	  <MauiXaml Remove="Storage\**" />
-	  <None Remove="Storage\**" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.3" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
-	  <ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
-	  <ProjectReference Include="..\Haulory.Domain\Haulory.Domain.csproj" />
+		<ProjectReference Include="..\Haulory.Application\Haulory.Application.csproj" />
+		<ProjectReference Include="..\Haulory.Core\Haulory.Core.csproj" />
+		<ProjectReference Include="..\Haulory.Domain\Haulory.Domain.csproj" />
 	</ItemGroup>
 
 </Project>

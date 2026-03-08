@@ -1,14 +1,10 @@
-﻿using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+﻿using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Contracts.Jobs;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
@@ -18,18 +14,15 @@ public class DeliverySignatureViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly IJobRepository _jobRepository;
-    private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly JobsApiService _jobsApiService;
     private readonly ISessionService _session;
-    private readonly IUnitOfWork _uow;
-
     private readonly IAppEventBus? _events;
 
     #endregion
 
     #region State
 
-    private Job? _job;
+    private JobDto? _job;
     private bool _isSaving;
 
     private string _receiverName = string.Empty;
@@ -39,6 +32,7 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private string? _damageNotes;
     private int? _waitTimeMinutes;
+
     #endregion
 
     #region Bindable Properties - Job Details
@@ -80,14 +74,23 @@ public class DeliverySignatureViewModel : BaseViewModel
     public int? WaitTimeMinutes
     {
         get => _waitTimeMinutes;
-        set { _waitTimeMinutes = value; OnPropertyChanged(); }
+        set
+        {
+            _waitTimeMinutes = value;
+            OnPropertyChanged();
+        }
     }
 
     public string? DamageNotes
     {
         get => _damageNotes;
-        set { _damageNotes = value; OnPropertyChanged(); }
+        set
+        {
+            _damageNotes = value;
+            OnPropertyChanged();
+        }
     }
+
     #endregion
 
     #region Signature Data
@@ -126,16 +129,12 @@ public class DeliverySignatureViewModel : BaseViewModel
     #region Constructor
 
     public DeliverySignatureViewModel(
-        IJobRepository jobRepository,
-        IDeliveryReceiptRepository deliveryReceiptRepository,
+        JobsApiService jobsApiService,
         ISessionService session,
-        IUnitOfWork uow,
         IAppEventBus? events = null)
     {
-        _jobRepository = jobRepository;
-        _deliveryReceiptRepository = deliveryReceiptRepository;
+        _jobsApiService = jobsApiService;
         _session = session;
-        _uow = uow;
         _events = events;
 
         SignatureDrawable = new SignatureDrawable(_strokes);
@@ -171,8 +170,7 @@ public class DeliverySignatureViewModel : BaseViewModel
     {
         StatusMessage = "Loading job...";
 
-        // IMPORTANT: tracked entity so we can safely work with it in a transaction if needed
-        _job = await _jobRepository.GetByIdForUpdateAsync(_jobId);
+        _job = await _jobsApiService.GetJobByIdAsync(_jobId);
 
         if (_job == null)
         {
@@ -180,6 +178,12 @@ public class DeliverySignatureViewModel : BaseViewModel
             RaiseJobPropertiesChanged();
             return;
         }
+
+        if (!string.IsNullOrWhiteSpace(_job.ReceiverName))
+            ReceiverName = _job.ReceiverName;
+
+        WaitTimeMinutes = _job.WaitTimeMinutes;
+        DamageNotes = _job.DamageNotes;
 
         RaiseJobPropertiesChanged();
 
@@ -224,6 +228,7 @@ public class DeliverySignatureViewModel : BaseViewModel
     #endregion
 
     #region Save Flow
+
     private async Task SaveAsync()
     {
         if (_isSaving) return;
@@ -277,60 +282,24 @@ public class DeliverySignatureViewModel : BaseViewModel
 
             var signatureJson = BuildSignatureJson();
 
-            // ✅ NEW: Complete delivery using your new method (sets DeliveredAtUtc + Status)
-            _job.CompleteDelivery(
-                deliveredByUserId: deliveredByUserId,
-                receiverName: ReceiverName.Trim(),
-                signatureJson: signatureJson,
-                waitTimeMinutes: WaitTimeMinutes,
-                damageNotes: DamageNotes
-            );
-
-            // Build receipt using the job snapshot AFTER completion
-            var receipt = new DeliveryReceipt(
-                ownerUserId: ownerUserId,
-                jobId: _job.Id,
-
-                // Client snapshot from Job (entered at job creation)
-                clientCompanyName: _job.ClientCompanyName,
-                clientContactName: _job.ClientContactName,
-                clientEmail: _job.ClientEmail,
-                clientAddressLine1: _job.ClientAddressLine1,
-                clientCity: _job.ClientCity,
-                clientCountry: _job.ClientCountry,
-
-                referenceNumber: _job.ReferenceNumber,
-                invoiceNumber: _job.InvoiceNumber,
-                pickupCompany: _job.PickupCompany,
-                pickupAddress: _job.PickupAddress,
-                deliveryCompany: _job.DeliveryCompany,
-                deliveryAddress: _job.DeliveryAddress,
-                loadDescription: _job.LoadDescription,
-                rateType: _job.RateType,
-                rateValue: _job.RateValue,
-                quantity: _job.Quantity,
-                total: _job.Total,
-                receiverName: _job.ReceiverName!,
-                deliveredAtUtc: _job.DeliveredAtUtc ?? DateTime.UtcNow,
-                signatureJson: _job.DeliverySignatureJson!
-            );
-
-            await _uow.ExecuteInTransactionAsync(async () =>
+            var request = new CompleteJobRequest
             {
-                // Receipt = your reporting snapshot (keep this)
-                await _deliveryReceiptRepository.AddAsync(receipt);
+                ReceiverName = ReceiverName.Trim(),
+                SignatureJson = signatureJson,
+                WaitTimeMinutes = WaitTimeMinutes,
+                DamageNotes = string.IsNullOrWhiteSpace(DamageNotes) ? null : DamageNotes.Trim()
+            };
 
-                // ✅ IMPORTANT CHANGE:
-                // Do NOT delete the job anymore.
-                // Update it so its Status becomes Completed or DeliveredPendingReview.
-                await _jobRepository.UpdateAsync(_job);
-            });
+            await _jobsApiService.CompleteJobAsync(_job.Id, request);
 
             if (_events != null)
                 await _events.PublishAsync(new JobCompletedEvent(_job.Id));
 
-            // Message differs depending on whether main review is required
-            var msg = _job.RequiresReview
+            var requiresReview =
+                (WaitTimeMinutes.HasValue && WaitTimeMinutes.Value > 0) ||
+                !string.IsNullOrWhiteSpace(DamageNotes);
+
+            var msg = requiresReview
                 ? "Delivery saved. Exceptions recorded—Main user review required."
                 : "Delivery saved. Job completed.";
 
@@ -348,6 +317,7 @@ public class DeliverySignatureViewModel : BaseViewModel
             ((Command)SaveCommand).ChangeCanExecute();
         }
     }
+
     private bool HasSignature() => _strokes.Any(s => s.Count > 2);
 
     private string BuildSignatureJson()
@@ -366,7 +336,7 @@ public class DeliverySignatureViewModel : BaseViewModel
     #endregion
 }
 
-#region Events (tiny, optional)
+#region Events
 
 public record JobCompletedEvent(Guid JobId);
 

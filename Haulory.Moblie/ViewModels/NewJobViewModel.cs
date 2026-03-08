@@ -1,21 +1,23 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Haulory.Application.Features.Jobs;
+﻿using Haulory.Application.Features.Jobs;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Contracts.Jobs;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class NewJobViewModel : BaseViewModel
 {
-    private readonly CreateJobHandler _handler;
+    private readonly JobsApiService _jobsApiService;
     private readonly IDriverRepository _driverRepo;
     private readonly IVehicleAssetRepository _vehicleRepo;
     private readonly ISessionService _session;
@@ -199,12 +201,12 @@ public class NewJobViewModel : BaseViewModel
     public ICommand CancelCommand { get; }
 
     public NewJobViewModel(
-        CreateJobHandler handler,
+        JobsApiService jobsApiService,
         IDriverRepository driverRepo,
         IVehicleAssetRepository vehicleRepo,
         ISessionService session)
     {
-        _handler = handler;
+        _jobsApiService = jobsApiService;
         _driverRepo = driverRepo;
         _vehicleRepo = vehicleRepo;
         _session = session;
@@ -281,40 +283,41 @@ public class NewJobViewModel : BaseViewModel
         .Distinct()
         .ToList();
 
-        var jobId = Guid.NewGuid();
+        var request = new CreateJobRequest
+        {
+            ClientCompanyName = ClientCompanyName,
+            ClientContactName = ClientContactName,
+            ClientEmail = ClientEmail,
+            ClientAddressLine1 = ClientAddressLine1,
+            ClientCity = ClientCity,
+            ClientCountry = ClientCountry,
 
-        await _handler.HandleAsync(new CreateJobCommand(
-            OwnerUserId: ownerUserId,
-            JobId: jobId,
+            PickupCompany = PickupCompany,
+            PickupAddress = PickupAddress,
 
-            ClientCompanyName: ClientCompanyName,
-            ClientContactName: ClientContactName,
-            ClientEmail: ClientEmail,
-            ClientAddressLine1: ClientAddressLine1,
-            ClientCity: ClientCity,
-            ClientCountry: ClientCountry,
+            DeliveryCompany = DeliveryCompany,
+            DeliveryAddress = DeliveryAddress,
 
-            PickupCompany: PickupCompany,
-            PickupAddress: PickupAddress,
+            ReferenceNumber = ReferenceNumber,
+            LoadDescription = LoadDescription,
 
-            DeliveryCompany: DeliveryCompany,
-            DeliveryAddress: DeliveryAddress,
+            RateType = RateType,
+            RateValue = RateValue,
+            Quantity = Quantity,
 
-            ReferenceNumber: ReferenceNumber,
-            LoadDescription: LoadDescription,
+            DriverId = SelectedDriver?.Id,
+            VehicleAssetId = SelectedVehicle?.Id,
+            AssignedToUserId = SelectedDriver?.UserId,
 
-            RateType: RateType,
-            RateValue: RateValue,
-            Quantity: Quantity,
+            TrailerAssetIds = trailerIds
+        };
 
-            DriverId: SelectedDriver?.Id,
-            VehicleAssetId: SelectedVehicle?.Id,
-            AssignedToUserId: SelectedDriver?.UserId,
+        var result = await _jobsApiService.CreateJobAsync(request);
 
-            TrailerAssetId1: SelectedTrailer1?.Id,
-            TrailerAssetId2: SelectedTrailer2?.Id,
-            TrailerAssetIds: trailerIds
-        ));
+        await Shell.Current.DisplayAlertAsync(
+            "Job Saved",
+            $"Job created: {result.ReferenceNumber}",
+            "OK");
 
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
     }
