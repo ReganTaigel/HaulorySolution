@@ -50,6 +50,7 @@ public class NewDriverViewModel : BaseViewModel
 
     private bool _createLoginAccount;
     private string _password = string.Empty;
+    public ICommand SaveDriverCommand { get; }
 
     public NewDriverViewModel(
         DriversApiService driversApiService,
@@ -253,12 +254,32 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
-    public ICommand SaveDriverCommand { get; }
+
 
     private async Task ExecuteSaveAsync()
     {
+
+        if (!_sessionService.IsAuthenticated)
+            await _sessionService.RestoreAsync();
+
         if (!CanSave)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Cannot save",
+                $"Authenticated: {_sessionService.IsAuthenticated}\n" +
+                $"OwnerId: {_sessionService.CurrentOwnerId}\n" +
+                $"FirstName ok: {!string.IsNullOrWhiteSpace(FirstName)}\n" +
+                $"LastName ok: {!string.IsNullOrWhiteSpace(LastName)}\n" +
+                $"Email ok: {!string.IsNullOrWhiteSpace(Email) && Email.Contains('@')}\n" +
+                $"EmergencyFirstName ok: {!string.IsNullOrWhiteSpace(EmergencyFirstName)}\n" +
+                $"EmergencyLastName ok: {!string.IsNullOrWhiteSpace(EmergencyLastName)}\n" +
+                $"EmergencyRelationship ok: {!string.IsNullOrWhiteSpace(EmergencyRelationship)}\n" +
+                $"EmergencyEmail ok: {!string.IsNullOrWhiteSpace(EmergencyEmail) && EmergencyEmail.Contains('@')}\n" +
+                $"EmergencyPhone ok: {!string.IsNullOrWhiteSpace(EmergencyPhoneNumber)}\n" +
+                $"Password ok: {!CreateLoginAccount || !string.IsNullOrWhiteSpace(Password)}",
+                "OK");
             return;
+        }
 
         try
         {
@@ -305,7 +326,7 @@ public class NewDriverViewModel : BaseViewModel
                 Password = string.IsNullOrWhiteSpace(Password) ? null : Password
             };
 
-            var created = await _driversApiService.CreateDriverAsync(request);
+            await _driversApiService.CreateDriverAsync(request);
 
             await Shell.Current.DisplayAlertAsync(
                 "Saved",
@@ -334,5 +355,13 @@ public class NewDriverViewModel : BaseViewModel
     private static DateTime ToUtcDate(DateTime localDate)
     {
         return DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local).ToUniversalTime();
+    }
+    public async Task InitializeAsync()
+    {
+        if (!_sessionService.IsAuthenticated)
+            await _sessionService.RestoreAsync();
+
+        OnPropertyChanged(nameof(CanSave));
+        (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 }

@@ -66,7 +66,7 @@
 
         </VerticalStackLayout>
 
-        <!-- List + Pull to refresh -->
+        <!-- List and Pull to refresh -->
         <RefreshView Grid.Row="1"
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsBusy}">
@@ -204,9 +204,8 @@
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Current: " />
-                                                    <Span Text="{Binding OdometerKm, StringFormat='{0:N0}'}"
-                                                           FontAttributes="Bold" />
-                                                    <Span Text=" km" />
+                                                    <Span Text="{Binding OdometerFullDisplay}"
+                                                          FontAttributes="Bold" />
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>

@@ -14,6 +14,10 @@ public interface IVehicleAssetRepository
     Task<IReadOnlyList<VehicleAsset>> GetAllAsync();
     Task<VehicleAsset?> GetByIdAsync(Guid id);
 
+    // NEW: batch trailer validation / lookup
+    Task<IReadOnlyList<VehicleAsset>> GetByIdsAsync(IEnumerable<Guid> ids);
+    Task<IReadOnlyList<VehicleAsset>> GetTrailerAssetsByOwnerAsync(Guid ownerUserId);
+
     // ✅ NEW: sub-user vehicles from active assigned jobs (truck + trailers)
     Task<IReadOnlyList<VehicleAsset>> GetActiveAssetsAssignedToUserAsync(Guid ownerUserId, Guid assignedToUserId);
 

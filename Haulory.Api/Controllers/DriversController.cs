@@ -1,10 +1,11 @@
-﻿using System.Security.Claims;
-using Haulory.Api.Contracts.Drivers;
+﻿using Haulory.Api.Contracts.Drivers;
 using Haulory.Api.Extensions;
 using Haulory.Application.Features.Drivers;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Haulory.Api.Controllers;
 
@@ -131,13 +132,74 @@ public sealed class DriversController : ControllerBase
     private Guid GetOwnerUserId()
     {
         var value =
+            User.FindFirstValue("owner_id") ??
+            User.FindFirstValue("ownerId") ??
             User.FindFirstValue(ClaimTypes.NameIdentifier) ??
             User.FindFirstValue("sub") ??
             User.FindFirstValue("userId");
 
         if (!Guid.TryParse(value, out var ownerUserId))
-            throw new UnauthorizedAccessException("Authenticated user id is missing or invalid.");
+            throw new UnauthorizedAccessException("Authenticated owner id is missing or invalid.");
 
         return ownerUserId;
+    }
+
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(DriverDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DriverDto>> Update(Guid id, [FromBody] UpdateDriverRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.FirstName))
+            ModelState.AddModelError(nameof(request.FirstName), "First name is required.");
+
+        if (string.IsNullOrWhiteSpace(request.LastName))
+            ModelState.AddModelError(nameof(request.LastName), "Last name is required.");
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            ModelState.AddModelError(nameof(request.Email), "Email is required.");
+
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var ownerUserId = GetOwnerUserId();
+
+        var driver = await _driverRepository.GetByIdForOwnerAsync(ownerUserId, id);
+        if (driver is null)
+            return NotFound();
+
+        driver.UpdateIdentity(request.FirstName, request.LastName, request.Email);
+        driver.UpdatePhone(request.PhoneNumber);
+        driver.UpdateDateOfBirthUtc(request.DateOfBirthUtc);
+
+        driver.UpdateLicenceNumber(request.LicenceNumber);
+        driver.UpdateLicenceVersion(request.LicenceVersion);
+        driver.UpdateLicenceClassOrEndorsements(request.LicenceClassOrEndorsements);
+        driver.UpdateLicenceIssuedOnUtc(request.LicenceIssuedOnUtc);
+        driver.UpdateLicenceExpiryUtc(request.LicenceExpiresOnUtc);
+        driver.UpdateLicenceConditionsNotes(request.LicenceConditionsNotes);
+
+        driver.UpdateAddress(
+            request.Line1,
+            request.Line2,
+            request.Suburb,
+            request.City,
+            request.Region,
+            request.Postcode,
+            request.Country
+        );
+
+        driver.UpdateEmergencyContact(new EmergencyContact(
+            request.EmergencyContact?.FirstName ?? string.Empty,
+            request.EmergencyContact?.LastName ?? string.Empty,
+            request.EmergencyContact?.Relationship ?? string.Empty,
+            request.EmergencyContact?.Email ?? string.Empty,
+            request.EmergencyContact?.PhoneNumber ?? string.Empty,
+            request.EmergencyContact?.SecondaryPhoneNumber
+        ));
+
+        await _driverRepository.SaveAsync(driver);
+
+        return Ok(driver.ToDto());
     }
 }

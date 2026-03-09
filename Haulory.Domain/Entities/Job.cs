@@ -15,30 +15,21 @@ public class Job
 
     #region Ownership / Assignment
 
-    // MAIN owner (tenant boundary)
     public Guid OwnerUserId { get; private set; }
-
-    // Assigned to sub-user account (optional)
     public Guid? AssignedToUserId { get; private set; }
 
-    // Optional linkage to driver and vehicle assets
     public Guid? DriverId { get; private set; }
     public Guid? VehicleAssetId { get; private set; } // Power unit asset id
 
-    // ✅ Trailer assignments (max 2) stored via join table
-    public IReadOnlyCollection<JobTrailerAssignment> TrailerAssignments => _trailerAssignments;
     private readonly List<JobTrailerAssignment> _trailerAssignments = new();
+    public IReadOnlyCollection<JobTrailerAssignment> TrailerAssignments => _trailerAssignments.AsReadOnly();
 
     public JobStatus Status { get; private set; } = JobStatus.Active;
 
-    // Sub-user completion inputs
     public int? WaitTimeMinutes { get; private set; }
     public string? DamageNotes { get; private set; }
-
-    // Optional: who completed it (useful for audit)
     public Guid? DeliveredByUserId { get; private set; }
 
-    // Derived
     public bool RequiresReview =>
         (WaitTimeMinutes.HasValue && WaitTimeMinutes.Value > 0)
         || !string.IsNullOrWhiteSpace(DamageNotes);
@@ -83,12 +74,9 @@ public class Job
 
     public RateType RateType { get; private set; }
     public decimal RateValue { get; private set; }
-
-    // Quantity is decimal to support fractional hours/tonnes/etc.
     public decimal Quantity { get; private set; }
     public QuantityUnit QuantityUnit { get; private set; } = QuantityUnit.None;
 
-    // Calculated total (derived at runtime from rate + quantity)
     public decimal Total => RateType switch
     {
         RateType.FixedFee => RateValue,
@@ -99,16 +87,13 @@ public class Job
 
     #region Signatures / Delivery Confirmation
 
-    // Delivery signature (POD)
     public string? ReceiverName { get; private set; }
     public DateTime? DeliveredAtUtc { get; private set; }
     public string? DeliverySignatureJson { get; private set; }
 
-    // Delivered only when we have both a timestamp and signature data
     public bool IsDelivered =>
         DeliveredAtUtc != null && !string.IsNullOrWhiteSpace(DeliverySignatureJson);
 
-    // Pickup signature (optional - safe to include now even if UI doesn’t use it yet)
     public string? PickupSignatureJson { get; private set; }
     public string? PickupSignedByName { get; private set; }
     public DateTime? PickupSignedAtUtc { get; private set; }
@@ -129,14 +114,12 @@ public class Job
 
     #region Constructors
 
-    // Required by EF Core
     private Job() { }
 
     public Job(
         Guid jobId,
         Guid ownerUserId,
 
-        // Client (Bill To)
         string clientCompanyName,
         string? clientContactName,
         string? clientEmail,
@@ -144,23 +127,19 @@ public class Job
         string clientCity,
         string clientCountry,
 
-        // Pickup / Delivery (operational)
         string pickupCompany,
         string pickupAddress,
         string deliveryCompany,
         string deliveryAddress,
 
-        // Job
         string referenceNumber,
         string loadDescription,
         string invoiceNumber,
 
-        // Pricing
         RateType rateType,
         decimal rateValue,
         decimal quantity,
 
-        // Ordering / Allocation
         int sortOrder,
         Guid? driverId = null,
         Guid? vehicleAssetId = null)
@@ -174,7 +153,6 @@ public class Job
         Id = jobId;
         OwnerUserId = ownerUserId;
 
-        // Client (Bill To)
         ClientCompanyName = clientCompanyName?.Trim() ?? string.Empty;
         ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
         ClientEmail = string.IsNullOrWhiteSpace(clientEmail) ? null : clientEmail.Trim();
@@ -182,20 +160,15 @@ public class Job
         ClientCity = clientCity?.Trim() ?? string.Empty;
         ClientCountry = clientCountry?.Trim() ?? string.Empty;
 
-        // Pickup / Delivery
         PickupCompany = pickupCompany?.Trim() ?? string.Empty;
         PickupAddress = pickupAddress?.Trim() ?? string.Empty;
         DeliveryCompany = deliveryCompany?.Trim() ?? string.Empty;
         DeliveryAddress = deliveryAddress?.Trim() ?? string.Empty;
 
-        // Load
         ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
         LoadDescription = loadDescription?.Trim() ?? string.Empty;
-
-        // Invoice
         InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
-        // Pricing
         SetRateInternal(rateType, rateValue, quantity);
 
         SortOrder = sortOrder;
@@ -227,7 +200,6 @@ public class Job
             : quantity;
     }
 
-    // Keep public method if older code calls it
     public void SetRate(RateType rateType, decimal rateValue, decimal quantity)
         => SetRateInternal(rateType, rateValue, quantity);
 
@@ -239,24 +211,30 @@ public class Job
 
     public void AssignVehicle(Guid? vehicleAssetId) => VehicleAssetId = vehicleAssetId;
 
-    // Later workflow: job assigned to a sub-user account
     public void AssignToSubUser(Guid? subUserId) => AssignedToUserId = subUserId;
 
-    // ✅ Max 2 trailers
     public void SetTrailers(IEnumerable<Guid>? trailerAssetIds)
     {
         _trailerAssignments.Clear();
 
-        if (trailerAssetIds == null) return;
+        if (trailerAssetIds == null)
+            return;
 
         var distinct = trailerAssetIds
             .Where(id => id != Guid.Empty)
             .Distinct()
-            .Take(2) // max two trailers
             .ToList();
 
+        if (distinct.Count > 2)
+            throw new InvalidOperationException("A maximum of 2 trailers can be assigned to a job.");
+
         for (int i = 0; i < distinct.Count; i++)
-            _trailerAssignments.Add(new JobTrailerAssignment(Id, distinct[i], i + 1));
+        {
+            _trailerAssignments.Add(new JobTrailerAssignment(
+                Id,
+                distinct[i],
+                i + 1));
+        }
     }
 
     #endregion
@@ -288,13 +266,13 @@ public class Job
         WaitTimeMinutes = waitTimeMinutes;
         DamageNotes = string.IsNullOrWhiteSpace(damageNotes) ? null : damageNotes.Trim();
 
-        // Your rule:
         Status = RequiresReview
             ? JobStatus.DeliveredPendingReview
             : JobStatus.Completed;
     }
 
     #endregion
+
 }
 
 #endregion

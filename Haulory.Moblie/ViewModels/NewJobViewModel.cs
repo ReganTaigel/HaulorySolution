@@ -1,16 +1,11 @@
-﻿using Haulory.Application.Features.Jobs;
-using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Contracts.Jobs;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
-using Microsoft.Maui.Controls;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
@@ -53,6 +48,8 @@ public class NewJobViewModel : BaseViewModel
     public string ClientAddressLine1 { get; set; } = string.Empty;
     public string ClientCity { get; set; } = string.Empty;
     public string ClientCountry { get; set; } = "New Zealand";
+
+    public string InvoiceNumber { get; set; } = string.Empty;
 
     public Driver? SelectedDriver
     {
@@ -267,6 +264,54 @@ public class NewJobViewModel : BaseViewModel
             return;
         }
 
+        if (string.IsNullOrWhiteSpace(ClientAddressLine1))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Client address is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ClientCity))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Client city is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ClientCountry))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Client country is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(PickupCompany))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Pickup company is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(PickupAddress))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Pickup address is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(DeliveryCompany))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Delivery company is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(DeliveryAddress))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Delivery address is required.", "OK");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(InvoiceNumber))
+        {
+            await Shell.Current.DisplayAlertAsync("Missing info", "Invoice number is required.", "OK");
+            return;
+        }
+
         if ((SelectedTrailer1 != null || SelectedTrailer2 != null) && SelectedVehicle == null)
         {
             await Shell.Current.DisplayAlertAsync("Missing info", "Select a vehicle (power unit) before assigning trailers.", "OK");
@@ -282,6 +327,12 @@ public class NewJobViewModel : BaseViewModel
         .Select(id => id!.Value)
         .Distinct()
         .ToList();
+
+        if (trailerIds.Count > 2)
+        {
+            await Shell.Current.DisplayAlertAsync("Too many trailers", "A maximum of 2 trailers can be assigned to a job.", "OK");
+            return;
+        }
 
         var request = new CreateJobRequest
         {
@@ -300,6 +351,7 @@ public class NewJobViewModel : BaseViewModel
 
             ReferenceNumber = ReferenceNumber,
             LoadDescription = LoadDescription,
+            InvoiceNumber = InvoiceNumber.Trim(),
 
             RateType = RateType,
             RateValue = RateValue,

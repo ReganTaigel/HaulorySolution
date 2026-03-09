@@ -1,33 +1,27 @@
 ﻿namespace Haulory.Application.Features.Drivers;
 
-#region Command: Create Driver From Existing User
-
-// Command used to create a Driver aggregate
-// from an already existing authenticated User. 
-// This differs from CreateDriverCommand:
-// - UserId is required (driver has login account)
-// - OwnerUserId is inferred from the User context (handled in the handler)
 public record CreateDriverFromUserCommand(
-
-#region Identity
-
-    // The existing authenticated user's Id.
     Guid UserId,
 
-#endregion
-
-#region Basic Profile
-
-    // Driver first name (will be normalized in handler).
     string FirstName,
-
-    // Driver last name (will be normalized in handler).
     string LastName,
+    string Email,
 
-    // Driver email address.
-    string Email
+    string? PhoneNumber,
+    DateTime? DateOfBirthUtc,
 
-#endregion
+    string? LicenceNumber,
+    string? LicenceVersion,
+    string? LicenceClassOrEndorsements,
+    DateTime? LicenceIssuedOnUtc,
+    DateTime? LicenceExpiresOnUtc,
+    string? LicenceConditionsNotes,
+
+    string? Line1,
+    string? Line2,
+    string? Suburb,
+    string? City,
+    string? Region,
+    string? Postcode,
+    string? Country
 );
-
-#endregion

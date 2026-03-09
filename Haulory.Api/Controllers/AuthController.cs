@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.Text;
 using Haulory.Api.Contracts.Auth;
+using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Users;
 using Haulory.Application.Security;
 using Haulory.Core.Security;
@@ -19,11 +20,16 @@ public class AuthController : ControllerBase
 {
     private readonly HauloryDbContext _db;
     private readonly IConfiguration _configuration;
+    private readonly CreateDriverFromUserHandler _createDriverFromUserHandler;
 
-    public AuthController(HauloryDbContext db, IConfiguration configuration)
+    public AuthController(
+        HauloryDbContext db,
+        IConfiguration configuration,
+        CreateDriverFromUserHandler createDriverFromUserHandler)
     {
         _db = db;
         _configuration = configuration;
+        _createDriverFromUserHandler = createDriverFromUserHandler;
     }
 
     [HttpPost("register")]
@@ -66,6 +72,32 @@ public class AuthController : ControllerBase
         _db.UserAccounts.Add(user);
         await _db.SaveChangesAsync();
 
+        await _createDriverFromUserHandler.HandleAsync(
+            new CreateDriverFromUserCommand(
+                UserId: user.Id,
+                FirstName: user.FirstName,
+                LastName: user.LastName,
+                Email: user.Email,
+
+                PhoneNumber: null,
+                DateOfBirthUtc: null,
+
+                LicenceNumber: null,
+                LicenceVersion: null,
+                LicenceClassOrEndorsements: null,
+                LicenceIssuedOnUtc: null,
+                LicenceExpiresOnUtc: null,
+                LicenceConditionsNotes: null,
+
+                Line1: null,
+                Line2: null,
+                Suburb: null,
+                City: null,
+                Region: null,
+                Postcode: null,
+                Country: null
+            ));
+
         return Ok(new
         {
             accountId = user.Id,
@@ -85,6 +117,38 @@ public class AuthController : ControllerBase
 
         if (user is null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
             return Unauthorized("Invalid email or password.");
+
+        var existingDriver = await _db.Drivers
+            .FirstOrDefaultAsync(x => x.UserId == user.Id);
+
+        if (existingDriver == null)
+        {
+            await _createDriverFromUserHandler.HandleAsync(
+                new CreateDriverFromUserCommand(
+                    UserId: user.Id,
+                    FirstName: user.FirstName,
+                    LastName: user.LastName,
+                    Email: user.Email,
+
+                    PhoneNumber: null,
+                    DateOfBirthUtc: null,
+
+                    LicenceNumber: null,
+                    LicenceVersion: null,
+                    LicenceClassOrEndorsements: null,
+                    LicenceIssuedOnUtc: null,
+                    LicenceExpiresOnUtc: null,
+                    LicenceConditionsNotes: null,
+
+                    Line1: null,
+                    Line2: null,
+                    Suburb: null,
+                    City: null,
+                    Region: null,
+                    Postcode: null,
+                    Country: null
+                ));
+        }
 
         var ownerId = user.OwnerUserId;
 

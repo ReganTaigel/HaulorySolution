@@ -77,7 +77,7 @@
                                   VerticalOptions="Center">
 
                                 <Label Grid.Column="0"
-                                       Text="{Binding Driver.DisplayName}"
+                                        Text="{Binding DisplayName}"
                                        FontAttributes="Bold"
                                        FontSize="16"
                                        TextColor="{StaticResource BrandTitle}"
@@ -89,7 +89,7 @@
                                         BackgroundColor="{StaticResource BrandTileFill}"
                                         StrokeShape="RoundRectangle 12"
                                         Padding="10,4"
-                                        IsVisible="{Binding Driver.IsMainProfile}">
+                                        IsVisible="{Binding IsMainProfile}">
                                     <Label Text="MAIN"
                                            FontSize="12"
                                            FontAttributes="Bold"
@@ -174,119 +174,119 @@
                                 <VerticalStackLayout Spacing="6">
 
                                     <!-- Email -->
-                                    <Label Text="{Binding Driver.Email, StringFormat='Email: {0}'}"
+                                    <Label Text="{Binding Email, StringFormat='Email: {0}'}"                                                
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.Email}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.Email}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- Licence number -->
-                                    <Label Text="{Binding Driver.LicenceNumber, StringFormat='Licence: {0}'}"
+                                    <Label Text="{Binding LicenceNumber, StringFormat='Licence: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceNumber}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceNumber}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceNumber}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceNumber}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- NEW: Class / endorsements -->
-                                    <Label Text="{Binding Driver.LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
+                                    <Label Text="{Binding LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceClassOrEndorsements}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceClassOrEndorsements}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceClassOrEndorsements}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceClassOrEndorsements}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- NEW: Version (optional) -->
-                                    <Label Text="{Binding Driver.LicenceVersion, StringFormat='Version: {0}'}"
+                                    <Label Text="{Binding LicenceVersion, StringFormat='Version: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceVersion}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceVersion}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceVersion}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceVersion}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- NEW: Issued date (optional) -->
-                                    <Label Text="{Binding Driver.LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
+                                    <Label Text="{Binding LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceIssuedOnUtc}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceIssuedOnUtc}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- Phone -->
-                                    <Label Text="{Binding Driver.PhoneNumber, StringFormat='Phone: {0}'}"
+                                    <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.PhoneNumber}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding PhoneNumber}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.PhoneNumber}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding PhoneNumber}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- DOB -->
-                                    <Label Text="{Binding Driver.DateOfBirthUtc, StringFormat='DOB: {0:yyyy-MM-dd}'}"
+                                    <Label Text="{Binding DateOfBirthUtc, StringFormat='DOB: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.DateOfBirthUtc}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding DateOfBirthUtc}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- Licence expiry -->
-                                    <Label Text="{Binding Driver.LicenceExpiresOnUtc, StringFormat='Licence expires: {0:yyyy-MM-dd}'}"
+                                    <Label Text="{Binding LicenceExpiresOnUtc, StringFormat='Licence expires: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.LicenceExpiresOnUtc}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceExpiresOnUtc}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
                                     <!-- Address -->
-                                    <Label Text="{Binding Driver.AddressSummary, StringFormat='Address: {0}'}"
+                                    <Label Text="{Binding AddressSummary, StringFormat='Address: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}"
                                            LineBreakMode="TailTruncation"
                                            MaxLines="2">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.AddressSummary}" Value="{x:Null}">
+                                            <DataTrigger TargetType="Label" Binding="{Binding AddressSummary}" Value="{x:Null}">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Driver.AddressSummary}" Value="">
+                                            <DataTrigger TargetType="Label" Binding="{Binding AddressSummary}" Value="">
                                                 <Setter Property="IsVisible" Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
@@ -301,7 +301,7 @@
                                     BackgroundColor="{StaticResource BrandTileFill}"
                                     StrokeShape="RoundRectangle 14"
                                     Padding="12"
-                                    IsVisible="{Binding Driver.EmergencyContact.IsSet}">
+                                    IsVisible="{Binding HasEmergencyContact}">
 
                                 <VerticalStackLayout Spacing="6">
                                     <Label Text="Emergency contact"
@@ -309,22 +309,22 @@
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
 
-                                    <Label Text="{Binding Driver.EmergencyContact.FirstName, StringFormat='Name: {0}'}"
+                                    <Label Text="{Binding EmergencyContactName, StringFormat='Name: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}" />
 
-                                    <Label Text="{Binding Driver.EmergencyContact.PhoneNumber, StringFormat='Phone: {0}'}"
+                                    <Label Text="{Binding EmergencyContactPhone, StringFormat='Phone: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}" />
 
-                                    <Label Text="{Binding Driver.EmergencyContact.Email, StringFormat='Email: {0}'}"
+                                    <Label Text="{Binding EmergencyContactEmail, StringFormat='Email: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}" />
                                 </VerticalStackLayout>
                             </Border>
 
                             <!-- Status -->
-                            <Label Text="{Binding Driver.EmergencyStatus}"
+                            <Label Text="{Binding EmergencyStatus}"
                                    FontSize="12"
                                    TextColor="{StaticResource BrandInk}"/>
 

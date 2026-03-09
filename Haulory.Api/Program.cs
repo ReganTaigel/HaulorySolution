@@ -62,6 +62,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
 builder.Services.AddScoped<CreateDriverHandler>();
+builder.Services.AddScoped<CreateDriverFromUserHandler>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("JWT key is missing.");

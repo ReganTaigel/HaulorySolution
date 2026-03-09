@@ -1,6 +1,7 @@
-﻿using Haulory.Api.Contracts.Jobs;
+﻿
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -14,13 +15,16 @@ public sealed class JobsController : ControllerBase
 {
     private readonly IJobRepository _jobRepository;
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly IVehicleAssetRepository _vehicleAssetRepository;
 
     public JobsController(
         IJobRepository jobRepository,
-        IDeliveryReceiptRepository deliveryReceiptRepository)
+        IDeliveryReceiptRepository deliveryReceiptRepository,
+        IVehicleAssetRepository vehicleAssetRepository)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
+        _vehicleAssetRepository = vehicleAssetRepository;
     }
 
     [HttpGet]
@@ -45,7 +49,11 @@ public sealed class JobsController : ControllerBase
             j.ReceiverName,
             j.DeliveredAtUtc,
             j.DriverId,
-            j.VehicleAssetId
+            j.VehicleAssetId,
+            TrailerAssetIds = j.TrailerAssignments
+                .OrderBy(t => t.Position)
+                .Select(t => t.TrailerAssetId)
+                .ToList()
         });
 
         return Ok(result);
@@ -69,7 +77,11 @@ public sealed class JobsController : ControllerBase
             j.DeliveryAddress,
             Status = j.Status.ToString(),
             j.DriverId,
-            j.VehicleAssetId
+            j.VehicleAssetId,
+            TrailerAssetIds = j.TrailerAssignments
+                .OrderBy(t => t.Position)
+                .Select(t => t.TrailerAssetId)
+                .ToList()
         });
 
         return Ok(result);
@@ -124,10 +136,29 @@ public sealed class JobsController : ControllerBase
         });
     }
 
+    [HttpGet("trailers")]
+    [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<object>>> GetAvailableTrailers()
+    {
+        var ownerUserId = GetOwnerUserId();
+
+        var trailers = await _vehicleAssetRepository.GetTrailerAssetsByOwnerAsync(ownerUserId);
+
+        var result = trailers.Select(t => new
+        {
+            t.Id,
+            t.Rego,
+            t.OdometerKm,
+            DisplayName = $"{t.TitlePrefix} - {t.Rego} ({t.OdometerKm?.ToString("N0") ?? "—"} km)"
+        });
+
+        return Ok(result);
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> Create([FromBody] CreateJobRequest request)
+    public async Task<ActionResult> Create([FromBody] Contracts.Jobs.CreateJobRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.ClientCompanyName))
             ModelState.AddModelError(nameof(request.ClientCompanyName), "Client company name is required.");
@@ -162,6 +193,14 @@ public sealed class JobsController : ControllerBase
         if (request.Quantity < 0)
             ModelState.AddModelError(nameof(request.Quantity), "Quantity cannot be negative.");
 
+        var trailerIds = request.TrailerAssetIds
+            .Where(x => x != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (trailerIds.Count > 2)
+            ModelState.AddModelError(nameof(request.TrailerAssetIds), "A maximum of 2 trailers can be assigned to a job.");
+
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
@@ -173,6 +212,20 @@ public sealed class JobsController : ControllerBase
 
         if (invoiceExists)
             return BadRequest($"Invoice number already exists: {request.InvoiceNumber}");
+
+        if (trailerIds.Count > 0)
+        {
+            var trailerAssets = await _vehicleAssetRepository.GetByIdsAsync(trailerIds);
+
+            if (trailerAssets.Count != trailerIds.Count)
+                return BadRequest("One or more selected trailers were not found.");
+
+            if (trailerAssets.Any(x => x.OwnerUserId != ownerUserId))
+                return BadRequest("One or more selected trailers do not belong to this owner.");
+
+            if (trailerAssets.Any(x => x.Kind != AssetKind.Trailer))
+                return BadRequest("Only trailer assets can be assigned to a job.");
+        }
 
         var sortOrder = await _jobRepository.GetNextSortOrderAsync(ownerUserId);
 
@@ -194,7 +247,7 @@ public sealed class JobsController : ControllerBase
 
             referenceNumber: request.ReferenceNumber,
             loadDescription: request.LoadDescription,
-            invoiceNumber: request.InvoiceNumber,
+            invoiceNumber: request.InvoiceNumber.Trim(),
 
             rateType: request.RateType,
             rateValue: request.RateValue,
@@ -205,7 +258,8 @@ public sealed class JobsController : ControllerBase
             vehicleAssetId: request.VehicleAssetId
         );
 
-        job.SetTrailers(request.TrailerAssetIds);
+        job.AssignToSubUser(request.AssignedToUserId);
+        job.SetTrailers(trailerIds);
 
         await _jobRepository.AddAsync(job);
 
@@ -226,7 +280,7 @@ public sealed class JobsController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Complete(Guid id, [FromBody] CompleteJobRequest request)
+    public async Task<ActionResult> Complete(Guid id, [FromBody] Contracts.Jobs.CompleteJobRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.ReceiverName))
             ModelState.AddModelError(nameof(request.ReceiverName), "Receiver name is required.");

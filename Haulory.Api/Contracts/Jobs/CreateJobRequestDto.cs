@@ -1,8 +1,8 @@
 ﻿using Haulory.Domain.Enums;
 
-namespace Haulory.Mobile.Contracts.Jobs;
+namespace Haulory.Api.Contracts.Jobs;
 
-public sealed class CreateJobRequest
+public class CreateJobRequestDto
 {
     public string ClientCompanyName { get; set; } = string.Empty;
     public string? ClientContactName { get; set; }
@@ -19,8 +19,6 @@ public sealed class CreateJobRequest
 
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
-
-    public string InvoiceNumber { get; set; } = string.Empty;
 
     public RateType RateType { get; set; }
     public decimal RateValue { get; set; }

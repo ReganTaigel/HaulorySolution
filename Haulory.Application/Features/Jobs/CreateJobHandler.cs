@@ -1,22 +1,57 @@
 ﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
+using Haulory.Domain.Enums;
 
 namespace Haulory.Application.Features.Jobs;
 
 public class CreateJobHandler
 {
     private readonly IJobRepository _jobRepository;
+    private readonly IVehicleAssetRepository _vehicleAssetRepository;
 
-    public CreateJobHandler(IJobRepository jobRepository)
+    public CreateJobHandler(
+        IJobRepository jobRepository,
+        IVehicleAssetRepository vehicleAssetRepository)
     {
         _jobRepository = jobRepository;
+        _vehicleAssetRepository = vehicleAssetRepository;
     }
 
     public async Task HandleAsync(CreateJobCommand command)
     {
+        if (command.OwnerUserId == Guid.Empty)
+            throw new InvalidOperationException("Owner user is required.");
+
+        var trailerIds = command.TrailerAssetIds?
+            .Where(x => x != Guid.Empty)
+            .Distinct()
+            .ToList() ?? new List<Guid>();
+
+        if (trailerIds.Count > 2)
+            throw new InvalidOperationException("A maximum of 2 trailers can be assigned to a job.");
+
+        if (trailerIds.Count > 0)
+        {
+            var trailerAssets = await _vehicleAssetRepository.GetByIdsAsync(trailerIds);
+
+            if (trailerAssets.Count != trailerIds.Count)
+                throw new InvalidOperationException("One or more selected trailers were not found.");
+
+            if (trailerAssets.Any(x => x.OwnerUserId != command.OwnerUserId))
+                throw new InvalidOperationException("One or more selected trailers do not belong to this owner.");
+
+            if (trailerAssets.Any(x => x.Kind != AssetKind.Trailer))
+                throw new InvalidOperationException("Only trailer assets can be assigned to a job.");
+        }
+
         var nextOrder = await _jobRepository.GetNextSortOrderAsync(command.OwnerUserId);
 
-        var invoiceNumber = Guid.NewGuid().ToString("N")[..8];
+        string invoiceNumber;
+        do
+        {
+            invoiceNumber = Guid.NewGuid().ToString("N")[..8];
+        }
+        while (await _jobRepository.InvoiceNumberExistsAsync(command.OwnerUserId, invoiceNumber));
 
         var job = new Job(
             jobId: command.JobId,
@@ -48,17 +83,7 @@ public class CreateJobHandler
         );
 
         job.AssignToSubUser(command.AssignedToUserId);
-
-        if (command.TrailerAssetIds != null && command.TrailerAssetIds.Count > 0)
-        {
-            job.SetTrailers(command.TrailerAssetIds);
-        }
-        else
-        {
-            job.SetTrailers(new Guid?[] { command.TrailerAssetId1, command.TrailerAssetId2 }
-                .Where(x => x.HasValue)
-                .Select(x => x!.Value));
-        }
+        job.SetTrailers(trailerIds);
 
         await _jobRepository.AddAsync(job);
     }

@@ -75,12 +75,29 @@ public class RegisterUserHandler
 
         await _createDriverFromUserHandler.HandleAsync(
             new CreateDriverFromUserCommand(
-                user.Id,
-                user.FirstName ?? string.Empty,
-                user.LastName ?? string.Empty,
-                user.Email ?? string.Empty
-            )
-        );
+                UserId: user.Id,
+                FirstName: user.FirstName,
+                LastName: user.LastName,
+                Email: user.Email,
+
+                PhoneNumber: null,
+                DateOfBirthUtc: null,
+
+                LicenceNumber: null,
+                LicenceVersion: null,
+                LicenceClassOrEndorsements: null,
+                LicenceIssuedOnUtc: null,
+                LicenceExpiresOnUtc: null,
+                LicenceConditionsNotes: null,
+
+                Line1: null,
+                Line2: null,
+                Suburb: null,
+                City: null,
+                Region: null,
+                Postcode: null,
+                Country: null
+            ));
 
         return new(true, null);
     }

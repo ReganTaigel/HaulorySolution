@@ -4,17 +4,17 @@ namespace Haulory.Mobile.Views;
 
 public partial class NewJobPage : ContentPage
 {
-    public NewJobPage(NewJobViewModel vm)
+    private readonly NewJobViewModel _viewModel;
+
+    public NewJobPage(NewJobViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = vm;
+        BindingContext = _viewModel = viewModel;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        if (BindingContext is NewJobViewModel vm)
-            await vm.LoadAsync();
+        await _viewModel.LoadAsync();
     }
 }

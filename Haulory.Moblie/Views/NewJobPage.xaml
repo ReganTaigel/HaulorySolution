@@ -259,7 +259,6 @@
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
-                            <!-- Trailer 1 -->
                             <Label Text="Trailer 1 (optional)"
                                    FontSize="12"
                                    FontAttributes="Bold"
@@ -272,7 +271,6 @@
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
-                            <!-- Trailer 2 -->
                             <Label Text="Trailer 2 (optional)"
                                    FontSize="12"
                                    FontAttributes="Bold"
@@ -285,7 +283,6 @@
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
-                            <!-- Optional: quick summary -->
                             <Label Text="{Binding SelectedTrailerSummary}"
                                    FontSize="12"
                                    TextColor="{StaticResource BrandInk}"
@@ -321,6 +318,12 @@
                             Padding="12">
 
                         <VerticalStackLayout Spacing="10">
+
+                            <Entry Placeholder="Invoice number"
+                                   Text="{Binding InvoiceNumber}"
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
 
                             <Label Text="Rate type"
                                    FontSize="12"

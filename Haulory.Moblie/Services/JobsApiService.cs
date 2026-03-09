@@ -50,6 +50,17 @@ public sealed class JobsApiService
             cancellationToken);
     }
 
+    public async Task<IReadOnlyList<TrailerLookupDto>> GetAvailableTrailersAsync(CancellationToken cancellationToken = default)
+    {
+        await EnsureAuthenticatedAsync();
+
+        var result = await _httpClient.GetFromJsonAsync<List<TrailerLookupDto>>(
+            "api/jobs/trailers",
+            cancellationToken);
+
+        return result ?? new List<TrailerLookupDto>();
+    }
+
     public async Task<CreateJobResponse> CreateJobAsync(
         CreateJobRequest request,
         CancellationToken cancellationToken = default)

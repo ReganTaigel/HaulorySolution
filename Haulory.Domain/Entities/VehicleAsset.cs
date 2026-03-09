@@ -90,7 +90,7 @@ public class VehicleAsset
 
     // Odometer applies to powered vehicles + heavy trailers
     public int? OdometerKm { get; set; }
-
+    public string OdometerFullDisplay => OdometerKm == null ? "—" : $"{OdometerKm.Value:N0} km";
     public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
 
     #endregion

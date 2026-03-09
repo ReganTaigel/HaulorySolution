@@ -39,7 +39,6 @@ public class CreateDriverFromUserHandler
         if (actor == null)
             return null;
 
-        // OwnerUserId must ALWAYS be the main/root account
         var ownerUserId = actor.Role == UserRole.Main
             ? actor.Id
             : (actor.ParentMainUserId ?? Guid.Empty);
@@ -47,12 +46,10 @@ public class CreateDriverFromUserHandler
         if (ownerUserId == Guid.Empty)
             return null;
 
-        // One driver profile per user account
         var existing = await _repository.GetByUserIdAsync(actor.Id);
         if (existing != null)
             return existing;
 
-        // Limits: main user gets 1 "main driver", sub-users count toward sub limit
         if (actor.Role == UserRole.Main)
         {
             var mainCount = await _repository.CountMainDriversAsync(ownerUserId);
@@ -72,6 +69,26 @@ public class CreateDriverFromUserHandler
             firstName: firstName!,
             lastName: lastName!,
             email: email!
+        );
+
+        driver.UpdatePhone(command.PhoneNumber);
+        driver.UpdateDateOfBirthUtc(command.DateOfBirthUtc);
+
+        driver.UpdateLicenceNumber(command.LicenceNumber);
+        driver.UpdateLicenceVersion(command.LicenceVersion);
+        driver.UpdateLicenceClassOrEndorsements(command.LicenceClassOrEndorsements);
+        driver.UpdateLicenceIssuedOnUtc(command.LicenceIssuedOnUtc);
+        driver.UpdateLicenceExpiryUtc(command.LicenceExpiresOnUtc);
+        driver.UpdateLicenceConditionsNotes(command.LicenceConditionsNotes);
+
+        driver.UpdateAddress(
+            line1: command.Line1,
+            line2: command.Line2,
+            suburb: command.Suburb,
+            city: command.City,
+            region: command.Region,
+            postcode: command.Postcode,
+            country: command.Country
         );
 
         await _repository.SaveAsync(driver);

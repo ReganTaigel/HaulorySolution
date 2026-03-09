@@ -15,20 +15,32 @@ public partial class DriverCollectionPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.LoadAsync();
+
+        try
+        {
+            await _vm.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+        }
     }
 
     private async void OnDriverSelected(object sender, SelectionChangedEventArgs e)
     {
-        // Items are DriverListItem now
-        var selectedItem = e.CurrentSelection?.FirstOrDefault() as DriverListItem;
-        var driver = selectedItem?.Driver;
-        if (driver == null) return;
+        try
+        {
+            var selectedItem = e.CurrentSelection?.FirstOrDefault() as DriverListItem;
+            if (selectedItem == null || selectedItem.Id == Guid.Empty)
+                return;
 
-        // clear selection so it can be tapped again
-        ((CollectionView)sender).SelectedItem = null;
+            ((CollectionView)sender).SelectedItem = null;
 
-        // edit main OR sub
-        await Shell.Current.GoToAsync($"{nameof(EditDriverPage)}?driverId={driver.Id}");
+            await Shell.Current.GoToAsync($"{nameof(EditDriverPage)}?driverId={selectedItem.Id}");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Navigation failed", ex.Message, "OK");
+        }
     }
 }

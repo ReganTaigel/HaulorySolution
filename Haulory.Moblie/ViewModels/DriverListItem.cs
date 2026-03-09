@@ -51,11 +51,111 @@ public class DriverListItem
 
     #region Derived Properties
 
-    // Display name works for both domain and DTO
+    public Guid Id =>
+        Driver?.Id ??
+        DriverDto?.Id ??
+        Guid.Empty;
+
     public string DisplayName =>
         Driver?.DisplayName ??
         DriverDto?.DisplayName ??
         $"{DriverDto?.FirstName} {DriverDto?.LastName}".Trim();
+
+    public string? Email =>
+        Driver?.Email ??
+        DriverDto?.Email;
+
+    public string? PhoneNumber =>
+        Driver?.PhoneNumber ??
+        DriverDto?.PhoneNumber;
+
+    public string? LicenceNumber =>
+        Driver?.LicenceNumber ??
+        DriverDto?.LicenceNumber;
+
+    public string? LicenceVersion =>
+        Driver?.LicenceVersion ??
+        DriverDto?.LicenceVersion;
+
+    public string? LicenceClassOrEndorsements =>
+        Driver?.LicenceClassOrEndorsements ??
+        DriverDto?.LicenceClassOrEndorsements;
+
+    public DateTime? LicenceIssuedOnUtc =>
+        Driver?.LicenceIssuedOnUtc ??
+        DriverDto?.LicenceIssuedOnUtc;
+
+    public DateTime? LicenceExpiresOnUtc =>
+        Driver?.LicenceExpiresOnUtc ??
+        DriverDto?.LicenceExpiresOnUtc;
+
+    public DateTime? DateOfBirthUtc =>
+        Driver?.DateOfBirthUtc ??
+        DriverDto?.DateOfBirthUtc;
+
+    public string? AddressSummary =>
+        Driver?.AddressSummary ??
+        DriverDto?.AddressSummary;
+
+    public string EmergencyStatus =>
+        Driver?.EmergencyStatus ??
+        DriverDto?.EmergencyStatus ??
+        string.Empty;
+
+    public bool IsMainProfile =>
+        Driver?.IsMainProfile ??
+        DriverDto?.IsMainProfile ??
+        false;
+
+    public bool HasEmergencyContact
+    {
+        get
+        {
+            if (Driver?.EmergencyContact != null)
+            {
+                return
+                    !string.IsNullOrWhiteSpace(Driver.EmergencyContact.FirstName) ||
+                    !string.IsNullOrWhiteSpace(Driver.EmergencyContact.LastName) ||
+                    !string.IsNullOrWhiteSpace(Driver.EmergencyContact.PhoneNumber) ||
+                    !string.IsNullOrWhiteSpace(Driver.EmergencyContact.Email);
+            }
+
+            if (DriverDto?.EmergencyContact != null)
+            {
+                return
+                    !string.IsNullOrWhiteSpace(DriverDto.EmergencyContact.FirstName) ||
+                    !string.IsNullOrWhiteSpace(DriverDto.EmergencyContact.LastName) ||
+                    !string.IsNullOrWhiteSpace(DriverDto.EmergencyContact.PhoneNumber) ||
+                    !string.IsNullOrWhiteSpace(DriverDto.EmergencyContact.Email);
+            }
+
+            return false;
+        }
+    }
+
+    public string EmergencyContactName
+    {
+        get
+        {
+            var first =
+                Driver?.EmergencyContact?.FirstName ??
+                DriverDto?.EmergencyContact?.FirstName;
+
+            var last =
+                Driver?.EmergencyContact?.LastName ??
+                DriverDto?.EmergencyContact?.LastName;
+
+            return $"{first} {last}".Trim();
+        }
+    }
+
+    public string? EmergencyContactPhone =>
+        Driver?.EmergencyContact?.PhoneNumber ??
+        DriverDto?.EmergencyContact?.PhoneNumber;
+
+    public string? EmergencyContactEmail =>
+        Driver?.EmergencyContact?.Email ??
+        DriverDto?.EmergencyContact?.Email;
 
     // True if driver has any compliance warnings
     public bool HasWarnings =>

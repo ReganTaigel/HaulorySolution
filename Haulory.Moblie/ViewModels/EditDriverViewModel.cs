@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+using Haulory.Mobile.Contracts.Drivers;
+using Haulory.Mobile.Services;
 using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile.ViewModels;
@@ -13,17 +12,14 @@ public class EditDriverViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly IDriverRepository _repo;
+    private readonly DriversApiService _driversApiService;
     private readonly ISessionService _session;
-    private readonly IUserAccountRepository _users;
 
     #endregion
 
     #region State
 
-    private Driver? _driver;
     private bool _isSaving;
-
     private string _driverId = string.Empty;
     private bool _isLoaded;
 
@@ -38,13 +34,11 @@ public class EditDriverViewModel : BaseViewModel
     #region Constructor
 
     public EditDriverViewModel(
-        IDriverRepository repo,
-        ISessionService sessionService,
-        IUserAccountRepository users)
+        DriversApiService driversApiService,
+        ISessionService sessionService)
     {
-        _repo = repo;
+        _driversApiService = driversApiService;
         _session = sessionService;
-        _users = users;
 
         SaveCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
     }
@@ -112,6 +106,7 @@ public class EditDriverViewModel : BaseViewModel
             Refresh();
         }
     }
+
     private string _licenceVersion = string.Empty;
     public string LicenceVersion
     {
@@ -136,7 +131,6 @@ public class EditDriverViewModel : BaseViewModel
         }
     }
 
-    // DatePicker requires a value
     private DateTime _licenceIssuedLocal = DateTime.Today;
     public DateTime LicenceIssuedLocal
     {
@@ -159,6 +153,7 @@ public class EditDriverViewModel : BaseViewModel
             Refresh();
         }
     }
+
     #endregion
 
     #region Editable Fields - Contact + Licence + Address
@@ -175,7 +170,6 @@ public class EditDriverViewModel : BaseViewModel
         }
     }
 
-    // DatePickers require a value; defaults to Today and is replaced on load when available
     private DateTime _dateOfBirthLocal = DateTime.Today;
     public DateTime DateOfBirthLocal
     {
@@ -355,13 +349,11 @@ public class EditDriverViewModel : BaseViewModel
 
     #region Validation
 
-    // Save should be possible even if emergency contact isn't complete
     public bool CanSave
     {
         get
         {
             if (_isSaving) return false;
-            if (_driver == null) return false;
 
             if (string.IsNullOrWhiteSpace(FirstName)) return false;
             if (string.IsNullOrWhiteSpace(LastName)) return false;
@@ -385,59 +377,50 @@ public class EditDriverViewModel : BaseViewModel
         if (!Guid.TryParse(_driverId, out var id))
             return;
 
-        // Must be logged in
-        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (!_session.IsAuthenticated || ownerUserId == Guid.Empty)
+        if (!_session.IsAuthenticated)
+            await _session.RestoreAsync();
+
+        if (!_session.IsAuthenticated)
             return;
 
-        // Only load drivers owned by the current main user
-        var ownedDrivers = await _repo.GetAllByOwnerUserIdAsync(ownerUserId);
-        _driver = ownedDrivers.FirstOrDefault(d => d.Id == id);
-
-        if (_driver == null)
+        var dto = await _driversApiService.GetDriverByIdAsync(id);
+        if (dto == null)
             return;
 
-        // Populate identity fields
-        FirstName = _driver.FirstName ?? string.Empty;
-        LastName = _driver.LastName ?? string.Empty;
-        Email = _driver.Email ?? string.Empty;
-        LicenceNumber = _driver.LicenceNumber ?? string.Empty;
-        LicenceVersion = _driver.LicenceVersion ?? string.Empty;
-        LicenceClassOrEndorsements = _driver.LicenceClassOrEndorsements ?? string.Empty;
-        LicenceConditionsNotes = _driver.LicenceConditionsNotes ?? string.Empty;
+        FirstName = dto.FirstName ?? string.Empty;
+        LastName = dto.LastName ?? string.Empty;
+        Email = dto.Email ?? string.Empty;
 
-        if (_driver.LicenceIssuedOnUtc.HasValue)
-            LicenceIssuedLocal = _driver.LicenceIssuedOnUtc.Value.ToLocalTime().Date;
+        LicenceNumber = dto.LicenceNumber ?? string.Empty;
+        LicenceVersion = dto.LicenceVersion ?? string.Empty;
+        LicenceClassOrEndorsements = dto.LicenceClassOrEndorsements ?? string.Empty;
+        LicenceConditionsNotes = dto.LicenceConditionsNotes ?? string.Empty;
 
-        if (_driver.LicenceExpiresOnUtc.HasValue)
-            LicenceExpiryLocal = _driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
+        if (dto.LicenceIssuedOnUtc.HasValue)
+            LicenceIssuedLocal = dto.LicenceIssuedOnUtc.Value.ToLocalTime().Date;
 
-        // Populate contact/licence fields
-        PhoneNumber = _driver.PhoneNumber ?? string.Empty;
+        if (dto.DateOfBirthUtc.HasValue)
+            DateOfBirthLocal = dto.DateOfBirthUtc.Value.ToLocalTime().Date;
 
-        if (_driver.DateOfBirthUtc.HasValue)
-            DateOfBirthLocal = _driver.DateOfBirthUtc.Value.ToLocalTime().Date;
+        if (dto.LicenceExpiresOnUtc.HasValue)
+            LicenceExpiryLocal = dto.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
 
-        if (_driver.LicenceExpiresOnUtc.HasValue)
-            LicenceExpiryLocal = _driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
+        PhoneNumber = dto.PhoneNumber ?? string.Empty;
 
-        // Populate address fields
-        Line1 = _driver.Line1 ?? string.Empty;
-        Line2 = _driver.Line2 ?? string.Empty;
-        Suburb = _driver.Suburb ?? string.Empty;
-        City = _driver.City ?? string.Empty;
-        Region = _driver.Region ?? string.Empty;
-        Postcode = _driver.Postcode ?? string.Empty;
-        Country = _driver.Country ?? string.Empty;
+        Line1 = dto.Line1 ?? string.Empty;
+        Line2 = dto.Line2 ?? string.Empty;
+        Suburb = dto.Suburb ?? string.Empty;
+        City = dto.City ?? string.Empty;
+        Region = dto.Region ?? string.Empty;
+        Postcode = dto.Postcode ?? string.Empty;
+        Country = dto.Country ?? string.Empty;
 
-        // Populate emergency contact
-        var ec = _driver.EmergencyContact ?? new EmergencyContact();
-        EmergencyFirstName = ec.FirstName ?? string.Empty;
-        EmergencyLastName = ec.LastName ?? string.Empty;
-        EmergencyRelationship = ec.Relationship ?? string.Empty;
-        EmergencyEmail = ec.Email ?? string.Empty;
-        EmergencyPhoneNumber = ec.PhoneNumber ?? string.Empty;
-        EmergencySecondaryPhoneNumber = ec.SecondaryPhoneNumber ?? string.Empty;
+        EmergencyFirstName = dto.EmergencyContact?.FirstName ?? string.Empty;
+        EmergencyLastName = dto.EmergencyContact?.LastName ?? string.Empty;
+        EmergencyRelationship = dto.EmergencyContact?.Relationship ?? string.Empty;
+        EmergencyEmail = dto.EmergencyContact?.Email ?? string.Empty;
+        EmergencyPhoneNumber = dto.EmergencyContact?.PhoneNumber ?? string.Empty;
+        EmergencySecondaryPhoneNumber = dto.EmergencyContact?.SecondaryPhoneNumber ?? string.Empty;
 
         _isLoaded = true;
         Refresh();
@@ -449,7 +432,7 @@ public class EditDriverViewModel : BaseViewModel
 
     private async Task ExecuteSaveAsync()
     {
-        if (_driver == null)
+        if (!Guid.TryParse(_driverId, out var id))
             return;
 
         if (!CanSave)
@@ -460,59 +443,44 @@ public class EditDriverViewModel : BaseViewModel
             _isSaving = true;
             Refresh();
 
-            // Update identity fields
-            _driver.UpdateIdentity(FirstName, LastName, Email);
-            _driver.UpdateLicenceNumber(string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber);
-            _driver.UpdateLicenceVersion(string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion);
-            _driver.UpdateLicenceClassOrEndorsements(string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements);
-            _driver.UpdateLicenceConditionsNotes(string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes);
-
-            var licIssuedUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime();
-            _driver.UpdateLicenceIssuedOnUtc(licIssuedUtc);
-            // Update contact/licence fields
-            _driver.UpdatePhone(string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber);
-
-            var dobUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime();
-            _driver.UpdateDateOfBirthUtc(dobUtc);
-
-            var licExpUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime();
-            _driver.UpdateLicenceExpiryUtc(licExpUtc);
-
-            // Update address
-            _driver.UpdateAddress(
-                string.IsNullOrWhiteSpace(Line1) ? null : Line1,
-                string.IsNullOrWhiteSpace(Line2) ? null : Line2,
-                string.IsNullOrWhiteSpace(Suburb) ? null : Suburb,
-                string.IsNullOrWhiteSpace(City) ? null : City,
-                string.IsNullOrWhiteSpace(Region) ? null : Region,
-                string.IsNullOrWhiteSpace(Postcode) ? null : Postcode,
-                string.IsNullOrWhiteSpace(Country) ? null : Country
-            );
-
-            // Update emergency contact
-            var ec = new EmergencyContact(
-                EmergencyFirstName,
-                EmergencyLastName,
-                EmergencyRelationship,
-                EmergencyEmail,
-                EmergencyPhoneNumber,
-                string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber) ? null : EmergencySecondaryPhoneNumber
-            );
-
-            _driver.UpdateEmergencyContact(ec);
-
-            await _repo.SaveAsync(_driver);
-
-            // If this driver is the MAIN user's profile, sync UserAccount identity too
-            if (_driver.UserId.HasValue && (_session.CurrentOwnerId == _driver.UserId.Value))
+            var request = new UpdateDriverRequest
             {
-                var account = await _users.GetByIdAsync(_driver.UserId.Value);
-                if (account != null)
+                FirstName = FirstName.Trim(),
+                LastName = LastName.Trim(),
+                Email = Email.Trim(),
+
+                PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
+                DateOfBirthUtc = DateTime.SpecifyKind(DateOfBirthLocal.Date, DateTimeKind.Local).ToUniversalTime(),
+
+                LicenceNumber = string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
+                LicenceVersion = string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
+                LicenceClassOrEndorsements = string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
+                LicenceIssuedOnUtc = DateTime.SpecifyKind(LicenceIssuedLocal.Date, DateTimeKind.Local).ToUniversalTime(),
+                LicenceExpiresOnUtc = DateTime.SpecifyKind(LicenceExpiryLocal.Date, DateTimeKind.Local).ToUniversalTime(),
+                LicenceConditionsNotes = string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
+
+                Line1 = string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
+                Line2 = string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
+                Suburb = string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
+                City = string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
+                Region = string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
+                Postcode = string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
+                Country = string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
+
+                EmergencyContact = new EmergencyContactRequest
                 {
-                    account.UpdateIdentity(FirstName, LastName, Email);
-                    await _users.UpdateAsync(account);
+                    FirstName = string.IsNullOrWhiteSpace(EmergencyFirstName) ? null : EmergencyFirstName.Trim(),
+                    LastName = string.IsNullOrWhiteSpace(EmergencyLastName) ? null : EmergencyLastName.Trim(),
+                    Relationship = string.IsNullOrWhiteSpace(EmergencyRelationship) ? null : EmergencyRelationship.Trim(),
+                    Email = string.IsNullOrWhiteSpace(EmergencyEmail) ? null : EmergencyEmail.Trim(),
+                    PhoneNumber = string.IsNullOrWhiteSpace(EmergencyPhoneNumber) ? null : EmergencyPhoneNumber.Trim(),
+                    SecondaryPhoneNumber = string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
+                        ? null
+                        : EmergencySecondaryPhoneNumber.Trim()
                 }
-            }
+            };
+
+            await _driversApiService.UpdateDriverAsync(id, request);
 
             await Shell.Current.DisplayAlertAsync("Saved", "Driver updated.", "OK");
             await Shell.Current.GoToAsync("..");

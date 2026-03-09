@@ -230,6 +230,7 @@ public class HauloryDbContext : DbContext
             entity.Property(x => x.Position).IsRequired();
 
             entity.HasIndex(x => new { x.JobId, x.Position }).IsUnique();
+            entity.HasIndex(x => new { x.JobId, x.TrailerAssetId }).IsUnique();
 
             entity.HasIndex(x => x.JobId);
             entity.HasIndex(x => x.TrailerAssetId);
@@ -237,7 +238,7 @@ public class HauloryDbContext : DbContext
             entity.HasOne<Job>()
                   .WithMany(j => j.TrailerAssignments)
                   .HasForeignKey(x => x.JobId)
-                  .OnDelete(DeleteBehavior.NoAction);
+                  .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<VehicleAsset>()
                   .WithMany()

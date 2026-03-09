@@ -30,7 +30,5 @@ public record CreateJobCommand(
     Guid? VehicleAssetId,
     Guid? AssignedToUserId,
 
-    Guid? TrailerAssetId1,
-    Guid? TrailerAssetId2,
     IReadOnlyList<Guid>? TrailerAssetIds
 );
