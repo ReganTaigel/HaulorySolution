@@ -3,6 +3,7 @@ using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Contracts.Jobs;
+using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using System.Collections.ObjectModel;
@@ -33,33 +34,31 @@ public class NewJobViewModel : BaseViewModel
     private decimal _quantity = 1m;
     private decimal _rateValue;
 
-    public string PickupCompany { get; set; } = string.Empty;
-    public string PickupAddress { get; set; } = string.Empty;
+    private string _pickupCompany = string.Empty;
+    private string _pickupAddress = string.Empty;
 
-    public string DeliveryCompany { get; set; } = string.Empty;
-    public string DeliveryAddress { get; set; } = string.Empty;
+    private string _deliveryCompany = string.Empty;
+    private string _deliveryAddress = string.Empty;
 
-    public string ReferenceNumber { get; set; } = string.Empty;
-    public string LoadDescription { get; set; } = string.Empty;
+    private string _referenceNumber = string.Empty;
+    private string _loadDescription = string.Empty;
 
-    public string ClientCompanyName { get; set; } = string.Empty;
-    public string? ClientContactName { get; set; }
-    public string? ClientEmail { get; set; }
-    public string ClientAddressLine1 { get; set; } = string.Empty;
-    public string ClientCity { get; set; } = string.Empty;
-    public string ClientCountry { get; set; } = "New Zealand";
+    private string _clientCompanyName = string.Empty;
+    private string? _clientContactName;
+    private string? _clientEmail;
+    private string _clientAddressLine1 = string.Empty;
+    private string _clientCity = string.Empty;
+    private string _clientCountry = "New Zealand";
 
-    public string InvoiceNumber { get; set; } = string.Empty;
+    private string _invoiceNumber = string.Empty;
+
+    public bool IsAddJobVisible => IsFeatureVisible(AppFeature.AddJob);
+    public bool IsAddJobEnabled => IsFeatureEnabled(AppFeature.AddJob);
 
     public Driver? SelectedDriver
     {
         get => _selectedDriver;
-        set
-        {
-            if (_selectedDriver == value) return;
-            _selectedDriver = value;
-            OnPropertyChanged();
-        }
+        set => SetProperty(ref _selectedDriver, value);
     }
 
     public VehicleAsset? SelectedVehicle
@@ -67,11 +66,7 @@ public class NewJobViewModel : BaseViewModel
         get => _selectedVehicle;
         set
         {
-            if (_selectedVehicle == value) return;
-            _selectedVehicle = value;
-            OnPropertyChanged();
-
-            if (_selectedVehicle == null)
+            if (SetProperty(ref _selectedVehicle, value) && _selectedVehicle == null)
             {
                 SelectedTrailer1 = null;
                 SelectedTrailer2 = null;
@@ -84,7 +79,8 @@ public class NewJobViewModel : BaseViewModel
         get => _selectedTrailer1;
         set
         {
-            if (_selectedTrailer1 == value) return;
+            if (_selectedTrailer1 == value)
+                return;
 
             if (value != null && SelectedTrailer2?.Id == value.Id)
                 SelectedTrailer2 = null;
@@ -100,7 +96,8 @@ public class NewJobViewModel : BaseViewModel
         get => _selectedTrailer2;
         set
         {
-            if (_selectedTrailer2 == value) return;
+            if (_selectedTrailer2 == value)
+                return;
 
             if (value != null && SelectedTrailer1?.Id == value.Id)
                 return;
@@ -109,6 +106,84 @@ public class NewJobViewModel : BaseViewModel
             OnPropertyChanged();
             OnPropertyChanged(nameof(SelectedTrailerSummary));
         }
+    }
+
+    public string PickupCompany
+    {
+        get => _pickupCompany;
+        set => SetProperty(ref _pickupCompany, value);
+    }
+
+    public string PickupAddress
+    {
+        get => _pickupAddress;
+        set => SetProperty(ref _pickupAddress, value);
+    }
+
+    public string DeliveryCompany
+    {
+        get => _deliveryCompany;
+        set => SetProperty(ref _deliveryCompany, value);
+    }
+
+    public string DeliveryAddress
+    {
+        get => _deliveryAddress;
+        set => SetProperty(ref _deliveryAddress, value);
+    }
+
+    public string ReferenceNumber
+    {
+        get => _referenceNumber;
+        set => SetProperty(ref _referenceNumber, value);
+    }
+
+    public string LoadDescription
+    {
+        get => _loadDescription;
+        set => SetProperty(ref _loadDescription, value);
+    }
+
+    public string ClientCompanyName
+    {
+        get => _clientCompanyName;
+        set => SetProperty(ref _clientCompanyName, value);
+    }
+
+    public string? ClientContactName
+    {
+        get => _clientContactName;
+        set => SetProperty(ref _clientContactName, value);
+    }
+
+    public string? ClientEmail
+    {
+        get => _clientEmail;
+        set => SetProperty(ref _clientEmail, value);
+    }
+
+    public string ClientAddressLine1
+    {
+        get => _clientAddressLine1;
+        set => SetProperty(ref _clientAddressLine1, value);
+    }
+
+    public string ClientCity
+    {
+        get => _clientCity;
+        set => SetProperty(ref _clientCity, value);
+    }
+
+    public string ClientCountry
+    {
+        get => _clientCountry;
+        set => SetProperty(ref _clientCountry, value);
+    }
+
+    public string InvoiceNumber
+    {
+        get => _invoiceNumber;
+        set => SetProperty(ref _invoiceNumber, value);
     }
 
     public string SelectedTrailerSummary
@@ -136,7 +211,8 @@ public class NewJobViewModel : BaseViewModel
         get => _rateType;
         set
         {
-            if (_rateType == value) return;
+            if (_rateType == value)
+                return;
 
             _rateType = value;
             OnPropertyChanged();
@@ -156,7 +232,9 @@ public class NewJobViewModel : BaseViewModel
             if (_rateType is RateType.FixedFee or RateType.Percentage)
                 value = 1m;
 
-            if (_quantity == value) return;
+            if (_quantity == value)
+                return;
+
             _quantity = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
@@ -168,7 +246,9 @@ public class NewJobViewModel : BaseViewModel
         get => _rateValue;
         set
         {
-            if (_rateValue == value) return;
+            if (_rateValue == value)
+                return;
+
             _rateValue = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(Total));
@@ -201,7 +281,9 @@ public class NewJobViewModel : BaseViewModel
         JobsApiService jobsApiService,
         IDriverRepository driverRepo,
         IVehicleAssetRepository vehicleRepo,
-        ISessionService session)
+        ISessionService session,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _jobsApiService = jobsApiService;
         _driverRepo = driverRepo;
@@ -210,16 +292,28 @@ public class NewJobViewModel : BaseViewModel
 
         SaveJobCommand = new Command(async () => await SaveAsync());
         CancelCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(DashboardPage)));
+            await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
 
         RateType = RateType.PerLoad;
     }
 
     public async Task LoadAsync()
     {
+        if (!IsFeatureEnabled(AppFeature.AddJob))
+        {
+            RefreshFeatureBindings();
+            return;
+        }
+
+        if (!_session.IsAuthenticated)
+            await _session.RestoreAsync();
+
         var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
+        {
+            RefreshFeatureBindings();
             return;
+        }
 
         Drivers.Clear();
         var drivers = await _driverRepo.GetAllByOwnerUserIdAsync(ownerUserId);
@@ -235,13 +329,17 @@ public class NewJobViewModel : BaseViewModel
                      .Where(a => a.OwnerUserId == ownerUserId)
                      .Where(a => a.Kind == AssetKind.PowerUnit)
                      .OrderBy(a => a.Rego))
+        {
             Vehicles.Add(v);
+        }
 
         foreach (var t in allAssets
                      .Where(a => a.OwnerUserId == ownerUserId)
                      .Where(a => a.Kind == AssetKind.Trailer)
                      .OrderBy(a => a.Rego))
+        {
             Trailers.Add(t);
+        }
 
         if (Drivers.Count == 1 && SelectedDriver == null)
             SelectedDriver = Drivers[0];
@@ -250,10 +348,14 @@ public class NewJobViewModel : BaseViewModel
             SelectedVehicle = Vehicles[0];
 
         OnPropertyChanged(nameof(SelectedTrailerSummary));
+        RefreshFeatureBindings();
     }
 
     private async Task SaveAsync()
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.AddJob))
+            return;
+
         var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         if (ownerUserId == Guid.Empty)
             return;
@@ -314,7 +416,10 @@ public class NewJobViewModel : BaseViewModel
 
         if ((SelectedTrailer1 != null || SelectedTrailer2 != null) && SelectedVehicle == null)
         {
-            await Shell.Current.DisplayAlertAsync("Missing info", "Select a vehicle (power unit) before assigning trailers.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Missing info",
+                "Select a vehicle (power unit) before assigning trailers.",
+                "OK");
             return;
         }
 
@@ -330,7 +435,10 @@ public class NewJobViewModel : BaseViewModel
 
         if (trailerIds.Count > 2)
         {
-            await Shell.Current.DisplayAlertAsync("Too many trailers", "A maximum of 2 trailers can be assigned to a job.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Too many trailers",
+                "A maximum of 2 trailers can be assigned to a job.",
+                "OK");
             return;
         }
 
@@ -372,5 +480,11 @@ public class NewJobViewModel : BaseViewModel
             "OK");
 
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
+    }
+
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsAddJobVisible));
+        OnPropertyChanged(nameof(IsAddJobEnabled));
     }
 }

@@ -12,7 +12,8 @@
         <VerticalStackLayout Padding="24" Spacing="14">
 
             <!-- Header -->
-            <VerticalStackLayout Spacing="2">
+            <VerticalStackLayout Spacing="2"
+                                 IsVisible="{Binding IsReportsVisible}">
                 <Label Text="Reports"
                        FontSize="24"
                        FontAttributes="Bold"
@@ -25,7 +26,9 @@
             </VerticalStackLayout>
 
             <!-- Stats row -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+            <Grid ColumnDefinitions="*,*"
+                  ColumnSpacing="12"
+                  IsVisible="{Binding IsReportsVisible}">
 
                 <Border Grid.Column="0"
                         StrokeThickness="1"
@@ -82,7 +85,8 @@
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
                     BackgroundColor="{StaticResource BrandSurface}"
-                    Padding="16">
+                    Padding="16"
+                    IsVisible="{Binding IsReportsVisible}">
 
                 <VerticalStackLayout Spacing="12">
 
@@ -103,6 +107,7 @@
 
                     <Button Text="Refresh"
                             Command="{Binding RefreshCommand}"
+                            IsEnabled="{Binding IsReportsEnabled}"
                             HeightRequest="46"
                             CornerRadius="14"
                             BackgroundColor="{StaticResource Primary}"
@@ -114,7 +119,8 @@
             <!-- Receipts list -->
             <CollectionView ItemsSource="{Binding Receipts}"
                             SelectionMode="None"
-                            Margin="0,2,0,0">
+                            Margin="0,2,0,0"
+                            IsVisible="{Binding IsReportsVisible}">
 
                 <CollectionView.EmptyView>
                     <VerticalStackLayout HorizontalOptions="Center"
@@ -148,8 +154,10 @@
                             <VerticalStackLayout Spacing="10">
 
                                 <!-- Top row -->
-                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                <Grid ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="10">
+                                    <VerticalStackLayout Grid.Column="0"
+                                                         Spacing="2">
                                         <Label Text="{Binding ReferenceNumber}"
                                                FontSize="16"
                                                FontAttributes="Bold"
@@ -184,10 +192,26 @@
                                         BackgroundColor="{StaticResource BrandTileFill}"
                                         Padding="12">
                                     <VerticalStackLayout Spacing="6">
+
                                         <Label Text="{Binding ReceiverName, StringFormat='Signed by {0}'}"
                                                FontSize="12"
                                                TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation" />
+                                               LineBreakMode="TailTruncation">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding ReceiverName}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding ReceiverName}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
                                         <Label Text="{Binding DeliveredAtUtc, StringFormat='Delivered {0:dd MMM yyyy HH:mm}'}"
                                                FontSize="12"
@@ -196,13 +220,29 @@
                                 </Border>
 
                                 <!-- Actions -->
-                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                                <Grid ColumnDefinitions="*,Auto,Auto"
+                                      ColumnSpacing="10">
+
                                     <Label Text="{Binding InvoiceNumber, StringFormat='Invoice #{0}'}"
                                            FontSize="12"
                                            TextColor="{StaticResource Gray600}"
-                                           VerticalOptions="Center" />
+                                           VerticalOptions="Center">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding InvoiceNumber}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding InvoiceNumber}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
 
-                                    <!-- Invoice (neutral dark) -->
                                     <Button Grid.Column="1"
                                             Text="Invoice"
                                             HeightRequest="38"
@@ -210,10 +250,11 @@
                                             CornerRadius="12"
                                             BackgroundColor="{StaticResource BrandTitle}"
                                             TextColor="{StaticResource White}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsExportInvoiceVisible}"
+                                            IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsExportInvoiceEnabled}"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ExportInvoiceCommand}"
                                             CommandParameter="{Binding Id}" />
 
-                                    <!-- POD (primary) -->
                                     <Button Grid.Column="2"
                                             Text="POD"
                                             HeightRequest="38"
@@ -221,9 +262,12 @@
                                             CornerRadius="12"
                                             BackgroundColor="{StaticResource Primary}"
                                             TextColor="{StaticResource White}"
+                                            IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsExportPodVisible}"
+                                            IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsExportPodEnabled}"
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ExportPodCommand}"
                                             CommandParameter="{Binding Id}" />
                                 </Grid>
+
                             </VerticalStackLayout>
 
                         </Border>
@@ -233,7 +277,8 @@
 
             </CollectionView>
 
-            <BoxView HeightRequest="6" Opacity="0" />
+            <BoxView HeightRequest="6"
+                     Opacity="0" />
 
         </VerticalStackLayout>
     </ScrollView>

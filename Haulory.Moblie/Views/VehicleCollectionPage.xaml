@@ -10,17 +10,21 @@
 
     <Grid RowDefinitions="Auto,*"
           Padding="20"
-          RowSpacing="14">
+          RowSpacing="14"
+          IsVisible="{Binding IsVehiclesVisible}">
 
         <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Spacing="10">
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
                 <VerticalStackLayout Grid.Column="0" Spacing="2">
                     <Label Text="Vehicles"
                            FontSize="28"
                            FontAttributes="Bold"
                            TextColor="{StaticResource BrandTitle}" />
+
                     <Label Text="Keep your fleet compliant and ready"
                            FontSize="13"
                            TextColor="{StaticResource BrandInk}" />
@@ -29,13 +33,14 @@
                 <Button Grid.Column="1"
                         Text="Add"
                         Command="{Binding GoToNewVehicleCommand}"
-                        IsVisible="{Binding IsMainUser}"
+                        IsVisible="{Binding IsAddVehicleVisible}"
+                        IsEnabled="{Binding IsAddVehicleEnabled}"
                         HeightRequest="44"
                         Padding="16,0"
                         CornerRadius="14"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
-                        VerticalOptions="Center"/>
+                        VerticalOptions="Center" />
             </Grid>
 
             <!-- Guidance -->
@@ -69,7 +74,9 @@
         <!-- List and Pull to refresh -->
         <RefreshView Grid.Row="1"
                      Command="{Binding RefreshCommand}"
-                     IsRefreshing="{Binding IsBusy}">
+                     IsRefreshing="{Binding IsBusy}"
+                     IsEnabled="{Binding IsVehiclesEnabled}"
+                     IsVisible="{Binding IsVehiclesVisible}">
 
             <CollectionView ItemsSource="{Binding Assets}"
                             SelectionMode="None"
@@ -83,19 +90,33 @@
                                FontAttributes="Bold"
                                FontSize="16"
                                TextColor="{StaticResource BrandTitle}"
-                               HorizontalTextAlignment="Center"/>
+                               HorizontalTextAlignment="Center" />
 
                         <Label Text="Tap Add to create your first vehicle"
                                FontSize="13"
                                TextColor="{StaticResource BrandInk}"
-                               HorizontalTextAlignment="Center"
-                               IsVisible="{Binding IsMainUser}"/>
+                               HorizontalTextAlignment="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsMainUser}"
+                                             Value="False">
+                                    <Setter Property="IsVisible"
+                                            Value="False" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsAddVehicleVisible}"
+                                             Value="False">
+                                    <Setter Property="IsVisible"
+                                            Value="False" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
 
                         <Label Text="No vehicles are assigned to your active jobs right now"
                                FontSize="13"
                                TextColor="{StaticResource BrandInk}"
                                HorizontalTextAlignment="Center"
-                               IsVisible="{Binding IsSubUser}"/>
+                               IsVisible="{Binding IsSubUser}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
 
@@ -159,12 +180,15 @@
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Rego: " />
-                                                    <Span Text="{Binding Rego}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding Rego}"
+                                                          FontAttributes="Bold" />
                                                     <Span Text="  " />
                                                     <Span Text="Expires: " />
-                                                    <Span Text="{Binding RegoExpiryDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding RegoExpiryDisplay}"
+                                                          FontAttributes="Bold" />
                                                     <Span Text=" " />
-                                                    <Span Text="{Binding RegoStatusInlineDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding RegoStatusInlineDisplay}"
+                                                          FontAttributes="Bold" />
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
@@ -177,15 +201,18 @@
                                                 <FormattedString>
                                                     <Span Text="{Binding CertificateNameDisplay}" />
                                                     <Span Text=" expiry: " />
-                                                    <Span Text="{Binding CertificateExpiryDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding CertificateExpiryDisplay}"
+                                                          FontAttributes="Bold" />
                                                     <Span Text=" " />
-                                                    <Span Text="{Binding CertStatusInlineDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding CertStatusInlineDisplay}"
+                                                          FontAttributes="Bold" />
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
 
                                     </VerticalStackLayout>
                                 </Border>
+
                                 <!-- Odometer section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
@@ -211,7 +238,7 @@
                                         </Label>
                                     </VerticalStackLayout>
                                 </Border>
-                                
+
                                 <!-- RUC section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
@@ -231,9 +258,11 @@
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Licence: " />
-                                                    <Span Text="{Binding RucLicenceStartDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding RucLicenceStartDisplay}"
+                                                          FontAttributes="Bold" />
                                                     <Span Text=" to " />
-                                                    <Span Text="{Binding RucLicenceEndDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding RucLicenceEndDisplay}"
+                                                          FontAttributes="Bold" />
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
@@ -244,10 +273,12 @@
                                             <Label.FormattedText>
                                                 <FormattedString>
                                                     <Span Text="Remaining: " />
-                                                    <Span Text="{Binding RucRemainingDisplay}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding RucRemainingDisplay}"
+                                                          FontAttributes="Bold" />
                                                     <Span Text="  " />
                                                     <Span Text="Overdue: " />
-                                                    <Span Text="{Binding IsRucOverdueYesNo}" FontAttributes="Bold" />
+                                                    <Span Text="{Binding IsRucOverdueYesNo}"
+                                                          FontAttributes="Bold" />
                                                 </FormattedString>
                                             </Label.FormattedText>
                                         </Label>
@@ -265,4 +296,4 @@
         </RefreshView>
 
     </Grid>
-</ContentPage> 
+</ContentPage>

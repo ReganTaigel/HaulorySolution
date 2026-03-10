@@ -2,6 +2,7 @@
 using Haulory.Mobile.Contracts.Drivers;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
+using Haulory.Mobile.Features;
 using Microsoft.Maui.Controls;
 using System;
 using System.Collections.ObjectModel;
@@ -34,7 +35,28 @@ public class DriverCollectionViewModel : BaseViewModel
         _sessionService.CurrentOwnerId.HasValue &&
         _sessionService.CurrentAccountId.Value == _sessionService.CurrentOwnerId.Value;
 
-    public bool ShowAddDriver => _isMainComplete && IsMainUser;
+    public bool IsDriversVisible => IsFeatureVisible(AppFeature.Drivers);
+    public bool IsDriversEnabled => IsFeatureEnabled(AppFeature.Drivers);
+
+    public bool IsAddDriverVisible =>
+        _isMainComplete &&
+        IsMainUser &&
+        IsFeatureVisible(AppFeature.AddDriver);
+
+    public bool IsAddDriverEnabled =>
+        _isMainComplete &&
+        IsMainUser &&
+        IsFeatureEnabled(AppFeature.AddDriver);
+
+    public bool ShowInductionWarnings =>
+        IsFeatureVisible(AppFeature.Inductions) &&
+        IsFeatureEnabled(AppFeature.Inductions);
+
+    public bool IsInductionsVisible =>
+        IsFeatureVisible(AppFeature.Inductions);
+
+    public bool IsInductionsEnabled =>
+        IsFeatureEnabled(AppFeature.Inductions);
 
     public ObservableCollection<DriverListItem> Drivers { get; } = new();
 
@@ -52,16 +74,18 @@ public class DriverCollectionViewModel : BaseViewModel
 
     public DriverCollectionViewModel(
         DriversApiService driversApiService,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _driversApiService = driversApiService;
         _sessionService = sessionService;
 
         AddDriverCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(NewDriverPage)));
+            await NavigateToFeatureAsync(AppFeature.AddDriver, nameof(NewDriverPage)));
 
         ManageInductionsCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(ManageInductionsPage)));
+            await NavigateToFeatureAsync(AppFeature.Inductions, nameof(ManageInductionsPage)));
 
         RefreshCommand = new Command(async () => await LoadAsync());
     }
@@ -80,6 +104,12 @@ public class DriverCollectionViewModel : BaseViewModel
             IsBusy = true;
 
             Drivers.Clear();
+
+            if (!IsFeatureEnabled(AppFeature.Drivers))
+            {
+                RaiseGate();
+                return;
+            }
 
             if (!_sessionService.IsAuthenticated)
                 await _sessionService.RestoreAsync();
@@ -105,9 +135,7 @@ public class DriverCollectionViewModel : BaseViewModel
                 .ToList();
 
             foreach (var d in orderedDrivers)
-            {
                 Drivers.Add(new DriverListItem(d));
-            }
 
             _mainDriver = drivers.FirstOrDefault(d =>
                 d.UserId.HasValue && d.UserId.Value == ownerUserId);
@@ -135,8 +163,25 @@ public class DriverCollectionViewModel : BaseViewModel
 
     private void RaiseGate()
     {
-        OnPropertyChanged(nameof(ShowAddDriver));
         OnPropertyChanged(nameof(IsMainUser));
+
+        OnPropertyChanged(nameof(IsDriversVisible));
+        OnPropertyChanged(nameof(IsDriversEnabled));
+
+        OnPropertyChanged(nameof(IsAddDriverVisible));
+        OnPropertyChanged(nameof(IsAddDriverEnabled));
+
+        OnPropertyChanged(nameof(ShowInductionWarnings));
+        OnPropertyChanged(nameof(IsInductionsVisible));
+        OnPropertyChanged(nameof(IsInductionsEnabled));
+    }
+
+    private async Task NavigateToFeatureAsync(AppFeature feature, string route)
+    {
+        if (!await EnsureFeatureEnabledAsync(feature))
+            return;
+
+        await Shell.Current.GoToAsync(route);
     }
 
     #endregion

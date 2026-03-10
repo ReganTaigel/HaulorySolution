@@ -440,6 +440,17 @@ public class HauloryDbContext : DbContext
 
             entity.Property(x => x.IssueDateUtc).IsRequired();
 
+            entity.Property(x => x.EvidenceFileName)
+                  .HasMaxLength(260);
+
+            entity.Property(x => x.EvidenceContentType)
+                  .HasMaxLength(150);
+
+            entity.Property(x => x.EvidenceFilePath)
+                  .HasMaxLength(1000);
+
+            entity.Property(x => x.EvidenceUploadedOnUtc);
+
             entity.HasIndex(x => new { x.OwnerUserId, x.DriverId, x.WorkSiteId, x.RequirementId })
                   .IsUnique();
 

@@ -1,5 +1,4 @@
-﻿using System;
-using Haulory.Application.Interfaces.Repositories;
+﻿using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

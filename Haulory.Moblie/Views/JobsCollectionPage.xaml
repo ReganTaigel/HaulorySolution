@@ -10,12 +10,15 @@
 
     <Grid RowDefinitions="Auto,*"
           Padding="20"
-          RowSpacing="14">
+          RowSpacing="14"
+          IsVisible="{Binding IsJobsVisible}">
 
         <!-- HEADER -->
         <VerticalStackLayout Grid.Row="0" Spacing="10">
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
                 <VerticalStackLayout Grid.Column="0" Spacing="2">
                     <Label Text="Jobs"
                            FontSize="28"
@@ -30,7 +33,8 @@
                 <Button Grid.Column="1"
                         Text="Add"
                         Command="{Binding AddJobCommand}"
-                        IsVisible="{Binding IsMainUser}"
+                        IsVisible="{Binding IsAddJobVisible}"
+                        IsEnabled="{Binding IsAddJobEnabled}"
                         HeightRequest="44"
                         Padding="16,0"
                         CornerRadius="14"
@@ -176,7 +180,9 @@
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
 
-                                    <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                                    <VerticalStackLayout Grid.Row="0"
+                                                         Grid.Column="1"
+                                                         Spacing="2">
                                         <Label Text="{Binding PickupCompany}"
                                                FontSize="13"
                                                FontAttributes="Bold"
@@ -196,7 +202,9 @@
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}" />
 
-                                    <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                                    <VerticalStackLayout Grid.Row="1"
+                                                         Grid.Column="1"
+                                                         Spacing="2">
                                         <Label Text="{Binding DeliveryCompany}"
                                                FontSize="13"
                                                FontAttributes="Bold"
@@ -216,6 +224,8 @@
                                     CornerRadius="14"
                                     BackgroundColor="{StaticResource Primary}"
                                     TextColor="{StaticResource White}"
+                                    IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsDeliverySignatureVisible}"
+                                    IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsDeliverySignatureEnabled}"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
                                     CommandParameter="{Binding .}" />
 
@@ -247,7 +257,15 @@
                         <Label Text="Use Add to create your first job."
                                FontSize="13"
                                TextColor="{StaticResource BrandInk}"
-                               HorizontalTextAlignment="Center" />
+                               HorizontalTextAlignment="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label"
+                                             Binding="{Binding IsAddJobVisible}"
+                                             Value="False">
+                                    <Setter Property="IsVisible" Value="False" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
                     </VerticalStackLayout>
                 </Grid>
             </CollectionView.EmptyView>
@@ -335,6 +353,7 @@
                                                                 Padding="0"
                                                                 BackgroundColor="{StaticResource Gray200}"
                                                                 TextColor="{StaticResource BrandInk}"
+                                                                IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsJobsEnabled}"
                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveUpCommand}"
                                                                 CommandParameter="{Binding .}" />
 
@@ -346,6 +365,7 @@
                                                                 Padding="0"
                                                                 BackgroundColor="{StaticResource Gray200}"
                                                                 TextColor="{StaticResource BrandInk}"
+                                                                IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsJobsEnabled}"
                                                                 Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.MoveDownCommand}"
                                                                 CommandParameter="{Binding .}" />
                                                     </VerticalStackLayout>
@@ -409,7 +429,9 @@
                                                                FontAttributes="Bold"
                                                                TextColor="{StaticResource BrandTitle}" />
 
-                                                        <VerticalStackLayout Grid.Row="0" Grid.Column="1" Spacing="2">
+                                                        <VerticalStackLayout Grid.Row="0"
+                                                                             Grid.Column="1"
+                                                                             Spacing="2">
                                                             <Label Text="{Binding PickupCompany}"
                                                                    FontSize="13"
                                                                    FontAttributes="Bold"
@@ -429,7 +451,9 @@
                                                                FontAttributes="Bold"
                                                                TextColor="{StaticResource BrandTitle}" />
 
-                                                        <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                                                        <VerticalStackLayout Grid.Row="1"
+                                                                             Grid.Column="1"
+                                                                             Spacing="2">
                                                             <Label Text="{Binding DeliveryCompany}"
                                                                    FontSize="13"
                                                                    FontAttributes="Bold"
@@ -464,6 +488,8 @@
                                                         CornerRadius="14"
                                                         BackgroundColor="{StaticResource Primary}"
                                                         TextColor="{StaticResource White}"
+                                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsDeliverySignatureVisible}"
+                                                        IsEnabled="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsDeliverySignatureEnabled}"
                                                         Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SignDeliveryCommand}"
                                                         CommandParameter="{Binding .}" />
 

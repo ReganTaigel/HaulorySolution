@@ -2,15 +2,16 @@ using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Application.Services;
 using Haulory.Infrastructure.Persistence;
 using Haulory.Infrastructure.Persistence.Repositories;
 using Haulory.Infrastructure.Persistence.Services;
+using Haulory.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
+using Haulory.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,9 @@ builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
 builder.Services.AddScoped<CreateDriverHandler>();
 builder.Services.AddScoped<CreateDriverFromUserHandler>();
+builder.Services.AddScoped<IInductionEvidenceFileStorage, InductionEvidenceFileStorage>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("JWT key is missing.");
@@ -81,12 +85,14 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
+            ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
-
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -100,7 +106,7 @@ else
 {
     app.UseHttpsRedirection();
 }
-
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

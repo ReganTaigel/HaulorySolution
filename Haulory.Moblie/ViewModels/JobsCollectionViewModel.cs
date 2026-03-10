@@ -1,9 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+using Haulory.Mobile.Contracts.Drivers;
 using Haulory.Mobile.Contracts.Jobs;
+using Haulory.Mobile.Contracts.Vehicles;
+using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
@@ -13,8 +14,8 @@ namespace Haulory.Mobile.ViewModels;
 public class JobsCollectionViewModel : BaseViewModel
 {
     private readonly JobsApiService _jobsApiService;
-    private readonly IDriverRepository _driverRepository;
-    private readonly IVehicleAssetRepository _vehicleAssetRepository;
+    private readonly DriversApiService _driversApiService;
+    private readonly VehiclesApiService _vehiclesApiService;
     private readonly ISessionService _session;
 
     public ObservableCollection<JobListItemViewModel> Jobs { get; } = new();
@@ -35,26 +36,43 @@ public class JobsCollectionViewModel : BaseViewModel
         _session.CurrentOwnerId.HasValue &&
         _session.CurrentOwnerId.Value == _session.CurrentAccountId.Value;
 
+    public bool IsJobsVisible => IsFeatureVisible(AppFeature.Jobs);
+    public bool IsJobsEnabled => IsFeatureEnabled(AppFeature.Jobs);
+
+    public bool IsAddJobVisible => IsFeatureVisible(AppFeature.AddJob);
+    public bool IsAddJobEnabled => IsFeatureEnabled(AppFeature.AddJob) && IsMainUser;
+
+    public bool IsDeliverySignatureVisible => IsFeatureVisible(AppFeature.DeliverySignature);
+    public bool IsDeliverySignatureEnabled => IsFeatureEnabled(AppFeature.DeliverySignature);
+
     public JobsCollectionViewModel(
         JobsApiService jobsApiService,
-        IDriverRepository driverRepository,
-        IVehicleAssetRepository vehicleAssetRepository,
-        ISessionService session)
+        DriversApiService driversApiService,
+        VehiclesApiService vehiclesApiService,
+        ISessionService session,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _jobsApiService = jobsApiService;
-        _driverRepository = driverRepository;
-        _vehicleAssetRepository = vehicleAssetRepository;
+        _driversApiService = driversApiService;
+        _vehiclesApiService = vehiclesApiService;
         _session = session;
 
         AddJobCommand = new Command(async () =>
         {
-            if (!IsMainUser) return;
-            await Shell.Current.GoToAsync(nameof(NewJobPage));
+            if (!IsMainUser)
+                return;
+
+            await NavigateToFeatureAsync(AppFeature.AddJob, nameof(NewJobPage));
         });
 
         SignDeliveryCommand = new Command<JobListItemViewModel>(async item =>
         {
-            if (item?.Job == null) return;
+            if (item?.Job == null)
+                return;
+
+            if (!await EnsureFeatureEnabledAsync(AppFeature.DeliverySignature))
+                return;
 
             await Shell.Current.GoToAsync(
                 $"{nameof(DeliverySignaturePage)}?jobId={item.Job.Id}");
@@ -62,19 +80,29 @@ public class JobsCollectionViewModel : BaseViewModel
 
         MoveUpCommand = new Command<JobListItemViewModel>(async item =>
         {
-            if (!IsMainUser) return;
+            if (!IsMainUser)
+                return;
+
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Jobs))
+                return;
+
             await Shell.Current.DisplayAlertAsync(
                 "Not moved",
-                "Job reordering is still using the local repository flow and has not been moved to the API yet.",
+                "Job reordering has not been moved to the API yet.",
                 "OK");
         });
 
         MoveDownCommand = new Command<JobListItemViewModel>(async item =>
         {
-            if (!IsMainUser) return;
+            if (!IsMainUser)
+                return;
+
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Jobs))
+                return;
+
             await Shell.Current.DisplayAlertAsync(
                 "Not moved",
-                "Job reordering is still using the local repository flow and has not been moved to the API yet.",
+                "Job reordering has not been moved to the API yet.",
                 "OK");
         });
     }
@@ -84,22 +112,35 @@ public class JobsCollectionViewModel : BaseViewModel
         Jobs.Clear();
         JobGroups.Clear();
 
+        if (!IsFeatureEnabled(AppFeature.Jobs))
+        {
+            RefreshFeatureBindings();
+            return;
+        }
+
+        if (!_session.IsAuthenticated)
+            await _session.RestoreAsync();
+
         var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
         var accountId = _session.CurrentAccountId ?? Guid.Empty;
 
         if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
+        {
+            RefreshFeatureBindings();
             return;
+        }
 
         var jobs = (await _jobsApiService.GetActiveJobsAsync()).ToList();
-
         jobs = jobs.OrderBy(j => j.SortOrder).ToList();
 
-        var driverIds = jobs.Where(j => j.DriverId.HasValue)
+        var driverIds = jobs
+            .Where(j => j.DriverId.HasValue)
             .Select(j => j.DriverId!.Value)
             .Distinct()
             .ToList();
 
-        var vehicleIds = jobs.Where(j => j.VehicleAssetId.HasValue)
+        var vehicleIds = jobs
+            .Where(j => j.VehicleAssetId.HasValue)
             .Select(j => j.VehicleAssetId!.Value)
             .Distinct()
             .ToList();
@@ -109,42 +150,43 @@ public class JobsCollectionViewModel : BaseViewModel
             .Distinct()
             .ToList();
 
-        var driversById = new Dictionary<Guid, Driver>();
+        var driversById = new Dictionary<Guid, DriverDto>();
         foreach (var id in driverIds)
         {
-            var d = await _driverRepository.GetByIdAsync(id);
-            if (d != null)
-                driversById[id] = d;
+            var driver = await _driversApiService.GetDriverByIdAsync(id);
+            if (driver != null)
+                driversById[id] = driver;
         }
 
-        var assetsById = new Dictionary<Guid, VehicleAsset>();
+        var assetsById = new Dictionary<Guid, VehicleDto>();
         foreach (var id in vehicleIds.Concat(trailerIds).Distinct())
         {
-            var a = await _vehicleAssetRepository.GetByIdAsync(id);
-            if (a != null)
-                assetsById[id] = a;
+            var asset = await _vehiclesApiService.GetVehicleByIdAsync(id);
+            if (asset != null)
+                assetsById[id] = asset;
         }
 
         var showPricing = IsMainUser;
-
         var items = new List<JobListItemViewModel>();
 
         foreach (var job in jobs)
         {
             var driverName = "—";
             if (job.DriverId is Guid did &&
-                driversById.TryGetValue(did, out var d) &&
-                d != null)
+                driversById.TryGetValue(did, out var driver) &&
+                driver != null)
             {
-                driverName = $"{d.FirstName} {d.LastName}".Trim();
+                driverName = string.IsNullOrWhiteSpace(driver.DisplayName)
+                    ? $"{driver.FirstName} {driver.LastName}".Trim()
+                    : driver.DisplayName!;
             }
 
             var truck = "—";
             if (job.VehicleAssetId is Guid vid &&
-                assetsById.TryGetValue(vid, out var v) &&
-                v != null)
+                assetsById.TryGetValue(vid, out var vehicle) &&
+                vehicle != null)
             {
-                truck = $"{v.Make} {v.Model} • {v.Rego}".Trim();
+                truck = $"{vehicle.Make} {vehicle.Model} • {vehicle.Rego}".Trim();
             }
 
             items.Add(new JobListItemViewModel(job, driverName, truck, showPricing));
@@ -152,8 +194,12 @@ public class JobsCollectionViewModel : BaseViewModel
 
         if (IsSubUser)
         {
-            foreach (var item in items)
+            foreach (var item in items
+                         .Where(x => x.Job.AssignedToUserId == accountId)
+                         .OrderBy(x => x.Job.SortOrder))
+            {
                 Jobs.Add(item);
+            }
         }
         else
         {
@@ -162,6 +208,7 @@ public class JobsCollectionViewModel : BaseViewModel
 
         OnPropertyChanged(nameof(IsMainUser));
         OnPropertyChanged(nameof(IsSubUser));
+        RefreshFeatureBindings();
     }
 
     private void BuildMainUserGroups(List<JobListItemViewModel> items, Guid currentAccountId)
@@ -185,7 +232,9 @@ public class JobsCollectionViewModel : BaseViewModel
         foreach (var g in subGroups)
         {
             var first = g.First();
-            var title = string.IsNullOrWhiteSpace(first.DriverName) ? "Assigned Driver" : first.DriverName;
+            var title = string.IsNullOrWhiteSpace(first.DriverName)
+                ? "Assigned Driver"
+                : first.DriverName;
 
             var group = new JobGroupViewModel(title);
 
@@ -194,5 +243,23 @@ public class JobsCollectionViewModel : BaseViewModel
 
             JobGroups.Add(group);
         }
+    }
+
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsJobsVisible));
+        OnPropertyChanged(nameof(IsJobsEnabled));
+        OnPropertyChanged(nameof(IsAddJobVisible));
+        OnPropertyChanged(nameof(IsAddJobEnabled));
+        OnPropertyChanged(nameof(IsDeliverySignatureVisible));
+        OnPropertyChanged(nameof(IsDeliverySignatureEnabled));
+    }
+
+    private async Task NavigateToFeatureAsync(AppFeature feature, string route)
+    {
+        if (!await EnsureFeatureEnabledAsync(feature))
+            return;
+
+        await Shell.Current.GoToAsync(route);
     }
 }

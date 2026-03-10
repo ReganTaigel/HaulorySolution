@@ -1,10 +1,9 @@
-﻿
+﻿using Haulory.Api.Extensions;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Haulory.Api.Controllers;
 
@@ -31,30 +30,57 @@ public sealed class JobsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<object>>> GetAll()
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var jobs = await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
 
-        var result = jobs.Select(j => new
-        {
-            j.Id,
-            j.ReferenceNumber,
-            j.ClientCompanyName,
-            j.PickupCompany,
-            j.PickupAddress,
-            j.DeliveryCompany,
-            j.DeliveryAddress,
-            Status = j.Status.ToString(),
-            j.InvoiceNumber,
-            j.ReceiverName,
-            j.DeliveredAtUtc,
-            j.DriverId,
-            j.VehicleAssetId,
-            TrailerAssetIds = j.TrailerAssignments
-                .OrderBy(t => t.Position)
-                .Select(t => t.TrailerAssetId)
-                .ToList()
-        });
+        var result = jobs
+            .OrderBy(j => j.SortOrder)
+            .Select(j => new
+            {
+                j.Id,
+                j.OwnerUserId,
+                j.AssignedToUserId,
+                j.SortOrder,
+
+                j.ReferenceNumber,
+                j.LoadDescription,
+
+                j.ClientCompanyName,
+                j.ClientContactName,
+                j.ClientEmail,
+                j.ClientAddressLine1,
+                j.ClientCity,
+                j.ClientCountry,
+
+                j.PickupCompany,
+                j.PickupAddress,
+                j.DeliveryCompany,
+                j.DeliveryAddress,
+
+                j.InvoiceNumber,
+                RateType = j.RateType.ToString(),
+                j.RateValue,
+                j.Quantity,
+                Total = j.Total,
+
+                Status = j.Status.ToString(),
+
+                j.DriverId,
+                j.VehicleAssetId,
+
+                TrailerAssetIds = j.TrailerAssignments
+                    .OrderBy(t => t.Position)
+                    .Select(t => t.TrailerAssetId)
+                    .ToList(),
+
+                j.ReceiverName,
+                j.DeliveredAtUtc,
+                j.DeliverySignatureJson,
+                j.WaitTimeMinutes,
+                j.DamageNotes,
+                j.RequiresReview
+            });
 
         return Ok(result);
     }
@@ -63,26 +89,57 @@ public sealed class JobsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<object>>> GetActive()
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var jobs = await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
 
-        var result = jobs.Select(j => new
-        {
-            j.Id,
-            j.ReferenceNumber,
-            j.PickupCompany,
-            j.PickupAddress,
-            j.DeliveryCompany,
-            j.DeliveryAddress,
-            Status = j.Status.ToString(),
-            j.DriverId,
-            j.VehicleAssetId,
-            TrailerAssetIds = j.TrailerAssignments
-                .OrderBy(t => t.Position)
-                .Select(t => t.TrailerAssetId)
-                .ToList()
-        });
+        var result = jobs
+            .OrderBy(j => j.SortOrder)
+            .Select(j => new
+            {
+                j.Id,
+                j.OwnerUserId,
+                j.AssignedToUserId,
+                j.SortOrder,
+
+                j.ReferenceNumber,
+                j.LoadDescription,
+
+                j.ClientCompanyName,
+                j.ClientContactName,
+                j.ClientEmail,
+                j.ClientAddressLine1,
+                j.ClientCity,
+                j.ClientCountry,
+
+                j.PickupCompany,
+                j.PickupAddress,
+                j.DeliveryCompany,
+                j.DeliveryAddress,
+
+                j.InvoiceNumber,
+                RateType = j.RateType.ToString(),
+                j.RateValue,
+                j.Quantity,
+                Total = j.Total,
+
+                Status = j.Status.ToString(),
+
+                j.DriverId,
+                j.VehicleAssetId,
+
+                TrailerAssetIds = j.TrailerAssignments
+                    .OrderBy(t => t.Position)
+                    .Select(t => t.TrailerAssetId)
+                    .ToList(),
+
+                j.ReceiverName,
+                j.DeliveredAtUtc,
+                j.DeliverySignatureJson,
+                j.WaitTimeMinutes,
+                j.DamageNotes,
+                j.RequiresReview
+            });
 
         return Ok(result);
     }
@@ -92,7 +149,7 @@ public sealed class JobsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<object>> GetById(Guid id)
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var job = await _jobRepository.GetByIdAsync(id);
 
@@ -103,30 +160,40 @@ public sealed class JobsController : ControllerBase
         {
             job.Id,
             job.OwnerUserId,
+            job.AssignedToUserId,
+            job.SortOrder,
+
             job.ReferenceNumber,
             job.LoadDescription,
+
             job.ClientCompanyName,
             job.ClientContactName,
             job.ClientEmail,
             job.ClientAddressLine1,
             job.ClientCity,
             job.ClientCountry,
+
             job.PickupCompany,
             job.PickupAddress,
             job.DeliveryCompany,
             job.DeliveryAddress,
+
             job.InvoiceNumber,
             RateType = job.RateType.ToString(),
             job.RateValue,
             job.Quantity,
             Total = job.Total,
+
             Status = job.Status.ToString(),
+
             job.DriverId,
             job.VehicleAssetId,
+
             TrailerAssetIds = job.TrailerAssignments
                 .OrderBy(t => t.Position)
                 .Select(t => t.TrailerAssetId)
                 .ToList(),
+
             job.ReceiverName,
             job.DeliveredAtUtc,
             job.DeliverySignatureJson,
@@ -140,7 +207,7 @@ public sealed class JobsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<object>>> GetAvailableTrailers()
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var trailers = await _vehicleAssetRepository.GetTrailerAssetsByOwnerAsync(ownerUserId);
 
@@ -193,7 +260,7 @@ public sealed class JobsController : ControllerBase
         if (request.Quantity < 0)
             ModelState.AddModelError(nameof(request.Quantity), "Quantity cannot be negative.");
 
-        var trailerIds = request.TrailerAssetIds
+        var trailerIds = (request.TrailerAssetIds ?? Array.Empty<Guid>())
             .Where(x => x != Guid.Empty)
             .Distinct()
             .ToList();
@@ -204,7 +271,7 @@ public sealed class JobsController : ControllerBase
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var invoiceExists = await _jobRepository.InvoiceNumberExistsAsync(
             ownerUserId,
@@ -291,8 +358,8 @@ public sealed class JobsController : ControllerBase
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        var ownerUserId = GetOwnerUserId();
-        var deliveredByUserId = GetDeliveredByUserId();
+        var ownerUserId = User.GetOwnerUserId();
+        var deliveredByUserId = User.GetAccountUserId();
 
         var job = await _jobRepository.GetByIdForUpdateAsync(id);
 
@@ -349,31 +416,5 @@ public sealed class JobsController : ControllerBase
             requiresReview = job.RequiresReview,
             receiptId = receipt.Id
         });
-    }
-
-    private Guid GetOwnerUserId()
-    {
-        var value =
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub") ??
-            User.FindFirstValue("userId");
-
-        if (!Guid.TryParse(value, out var ownerUserId))
-            throw new UnauthorizedAccessException("Authenticated user id is missing or invalid.");
-
-        return ownerUserId;
-    }
-
-    private Guid GetDeliveredByUserId()
-    {
-        var value =
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub") ??
-            User.FindFirstValue("userId");
-
-        if (!Guid.TryParse(value, out var deliveredByUserId))
-            throw new UnauthorizedAccessException("Authenticated user id is missing or invalid.");
-
-        return deliveredByUserId;
     }
 }

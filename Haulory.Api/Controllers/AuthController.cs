@@ -159,6 +159,7 @@ public class AuthController : ControllerBase
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new("account_id", user.Id.ToString()),
             new("owner_id", ownerId.ToString()),

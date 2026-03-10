@@ -10,6 +10,7 @@ using Haulory.Infrastructure.Persistence;
 using Haulory.Infrastructure.Persistence.Repositories;
 using Haulory.Infrastructure.Persistence.Services;
 using Haulory.Infrastructure.Services;
+using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.ViewModels;
 using Haulory.Mobile.Views;
@@ -62,15 +63,15 @@ public static class MauiProgram
     // Domain/application-level services and handlers.
     private static void RegisterApplicationServices(MauiAppBuilder builder)
     {
+        builder.Services.AddSingleton<IFeatureAccessService, FeatureAccessService>();
         builder.Services.AddSingleton<AppShell>();
 
         builder.Services.AddTransient<CreateJobHandler>();
         builder.Services.AddTransient<CreateSubUserHandler>();
         builder.Services.AddTransient<CreateDriverFromUserHandler>();
         builder.Services.AddTransient<CreateDriverHandler>();
-
         builder.Services.AddTransient<CreateVehicleHandler>();
-        builder.Services.AddSingleton<JobsApiService>();
+
         builder.Services.AddTransient<InvoiceReportHandler>();
         builder.Services.AddTransient<PodReportHandler>();
 
@@ -86,8 +87,12 @@ public static class MauiProgram
             BaseAddress = new Uri("http://10.0.2.2:5158/")
         });
 
+        // API services
         builder.Services.AddSingleton<AuthApiService>();
         builder.Services.AddSingleton<DriversApiService>();
+        builder.Services.AddSingleton<JobsApiService>();
+        builder.Services.AddSingleton<VehiclesApiService>();
+        builder.Services.AddSingleton<ReportsApiService>();
     }
 
     #endregion

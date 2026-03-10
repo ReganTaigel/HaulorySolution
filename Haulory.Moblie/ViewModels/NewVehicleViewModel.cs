@@ -3,12 +3,15 @@ using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Contracts.Vehicles;
+using Haulory.Mobile.Features;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
-namespace Haulory.Mobile.ViewModels;
 
+namespace Haulory.Mobile.ViewModels;
 
 // Wizard-style ViewModel for creating a "vehicle set" (either a powered vehicle OR trailer-only set).
 // Enforces unit-slot conventions:
@@ -20,25 +23,20 @@ public class NewVehicleViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly IVehicleAssetRepository _vehicleRepository;
-    private readonly CreateVehicleHandler _createVehicleHandler;
-    private readonly ISessionService _session;
-
+    private readonly VehiclesApiService _vehiclesApiService;
     #endregion
 
     #region State Flags
 
-    // Prevents double-submission and disables Save while in-flight.
     private bool _isSaving;
 
     #endregion
 
     #region Unit Slot Constants
 
-    // Slot conventions (important for future trailer swapping / recall)
-    private const int POWER_UNIT_SLOT = 1;   // powered vehicles ALWAYS use Unit 1
-    private const int TRAILER_1_SLOT = 2;    // single trailer ALWAYS uses Unit 2
-    private const int TRAILER_2_SLOT = 3;    // B-Train second trailer uses Unit 3
+    private const int POWER_UNIT_SLOT = 1;
+    private const int TRAILER_1_SLOT = 2;
+    private const int TRAILER_2_SLOT = 3;
 
     #endregion
 
@@ -49,6 +47,7 @@ public class NewVehicleViewModel : BaseViewModel
     private VehicleOption<VehicleConfiguration>? _selectedHeavyConfig;
     private VehicleOption<PowerUnitBodyType>? _selectedPowerUnitBodyType;
     private VehicleOption<FuelType>? _selectedFuelType;
+
     #endregion
 
     #region Backing Fields - Rego
@@ -125,12 +124,18 @@ public class NewVehicleViewModel : BaseViewModel
 
     #endregion
 
+    #region Feature Access
+
+    public bool IsAddVehicleVisible => IsFeatureVisible(AppFeature.AddVehicle);
+    public bool IsAddVehicleEnabled => IsFeatureEnabled(AppFeature.AddVehicle);
+    public bool CanSaveVehicleAction => IsAddVehicleEnabled && CanSaveVehicle;
+
+    #endregion
+
     #region Commands
 
     public ICommand SaveVehicleCommand { get; }
 
-    // Main gatekeeper for the wizard completion. The UI uses this to enable/disable Save.
-    // Important: This is a computed property and depends on many other fields.
     public bool CanSaveVehicle
     {
         get
@@ -138,46 +143,43 @@ public class NewVehicleViewModel : BaseViewModel
             if (_isSaving) return false;
             if (SelectedVehicleType == null) return false;
 
-            // Must finish each step in order
             if (!ReadyForRego) return false;
             if (!RegoComplete) return false;
             if (!RegoExpiryComplete) return false;
             if (!MakeModelComplete) return false;
             if (!CertificateComplete) return false;
 
-            // Fuel required only for powered vehicles
             if (IsPoweredVehicle && SelectedFuelType == null) return false;
 
-            // Odo required only when OdoCount > 0, and only after odo step is visible
             if (OdoCount > 0)
             {
                 if (!ShowOdometers) return false;
 
-                // Powered vehicles: Unit1 odo
                 if (IsPoweredVehicle && PowerUnitOdometerKm == null) return false;
-
-                // Heavy trailers: Unit2 odo, and Unit3 odo if B-train
                 if (IsHeavyTrailer && Trailer1OdometerKm == null) return false;
                 if (IsBTrain && Trailer2OdometerKm == null) return false;
             }
 
-            // RUC must be complete if it applies
             if (!RucComplete) return false;
 
             return true;
         }
     }
 
-    // Controls when the Save button appears (not just enabled).
-    // - If no RUC step, show at end of odo/cert
-    // - If RUC applies, only show after RUC complete
     public bool ShowSaveButton =>
-        (!ShowRucStep && ((OdoCount == 0 && CertificateComplete) || (OdoCount > 0 && ShowOdometers)))
-        || (ShowRucStep && RucComplete);
+        IsAddVehicleVisible &&
+        (
+            (!ShowRucStep && ((OdoCount == 0 && CertificateComplete) || (OdoCount > 0 && ShowOdometers)))
+            || (ShowRucStep && RucComplete)
+        );
 
     private async Task ExecuteSaveVehicleAsync()
     {
-        if (!CanSaveVehicle) return;
+        if (!await EnsureFeatureEnabledAsync(AppFeature.AddVehicle))
+            return;
+
+        if (!CanSaveVehicle)
+            return;
 
         try
         {
@@ -200,12 +202,13 @@ public class NewVehicleViewModel : BaseViewModel
         }
     }
 
-    // Central "invalidate + refresh" for Save-related UI.
-    // Call whenever any field changes that could affect CanSaveVehicle / ShowSaveButton.
     private void RefreshSaveState()
     {
         OnPropertyChanged(nameof(CanSaveVehicle));
         OnPropertyChanged(nameof(ShowSaveButton));
+        OnPropertyChanged(nameof(IsAddVehicleVisible));
+        OnPropertyChanged(nameof(IsAddVehicleEnabled));
+        OnPropertyChanged(nameof(CanSaveVehicleAction));
         (SaveVehicleCommand as Command)?.ChangeCanExecute();
     }
 
@@ -214,18 +217,14 @@ public class NewVehicleViewModel : BaseViewModel
     #region Constructor
 
     public NewVehicleViewModel(
-        IVehicleAssetRepository vehicleRepository,
-        CreateVehicleHandler createVehicleHandler,
-        ISessionService session)
+        VehiclesApiService vehiclesApiService,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
-        _vehicleRepository = vehicleRepository;
-        _createVehicleHandler = createVehicleHandler;
-        _session = session;
+        _vehiclesApiService = vehiclesApiService;
 
-        // Command uses CanSaveVehicle as can-execute predicate.
         SaveVehicleCommand = new Command(async () => await ExecuteSaveVehicleAsync(), () => CanSaveVehicle);
 
-        // Ensure initial UI state is consistent
         RefreshSaveState();
     }
 
@@ -233,66 +232,53 @@ public class NewVehicleViewModel : BaseViewModel
 
     #region Pickers (Options)
 
-    // Vehicle type selection (top of wizard).
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
         {
-        // Light / commercial
-        new(VehicleType.LightVehicle, "Light Vehicle"),
-        new(VehicleType.LightCommercial, "Light Commercial Vehicle"),
-
-        // Trucks
-        new(VehicleType.RigidTruckMedium, "Medium Rigid Truck"),
-        new(VehicleType.RigidTruckHeavy, "Heavy Rigid Truck"),
-        new(VehicleType.TractorUnit, "Tractor Unit"),
-
-        // Trailers
-        new(VehicleType.TrailerLight, "Light Trailer"),
-        new(VehicleType.TrailerHeavy, "Heavy Trailer"),
+            new(VehicleType.LightVehicle, "Light Vehicle"),
+            new(VehicleType.LightCommercial, "Light Commercial Vehicle"),
+            new(VehicleType.RigidTruckMedium, "Medium Rigid Truck"),
+            new(VehicleType.RigidTruckHeavy, "Heavy Rigid Truck"),
+            new(VehicleType.TractorUnit, "Tractor Unit"),
+            new(VehicleType.TrailerLight, "Light Trailer"),
+            new(VehicleType.TrailerHeavy, "Heavy Trailer"),
         };
 
-    // Light trailer configurations (only applicable for LightVehicleTrailer).
     public ObservableCollection<VehicleOption<VehicleConfiguration>> LightTrailerConfigurations { get; } =
         new()
         {
-            // Future: consider adding custom/other options
             new(VehicleConfiguration.SingleAxle, "Single axle trailer"),
             new(VehicleConfiguration.TandemAxle, "Tandem axle trailer"),
         };
 
-    // Heavy trailer configurations (Class 5 trailer configurations; includes semi, A-frame, fifth wheel/B-train).
     public ObservableCollection<VehicleOption<VehicleConfiguration>> HeavyConfigurations { get; } =
        new()
        {
-        // Semi trailers
-        new(VehicleConfiguration.SemiCurtainsider, "Semi Trailer (Curtains)"),
-        new(VehicleConfiguration.SemiFlatDeck, "Semi Trailer (Flat Deck)"),
-        new(VehicleConfiguration.SemiRefrigerated, "Semi Trailer (Refrigerated)"), // if you renamed to SemiRefrigerated, use that
-        new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
-        new(VehicleConfiguration.SemiSkeleton, "Semi Trailer (Skeleton)"),
+            new(VehicleConfiguration.SemiCurtainsider, "Semi Trailer (Curtains)"),
+            new(VehicleConfiguration.SemiFlatDeck, "Semi Trailer (Flat Deck)"),
+            new(VehicleConfiguration.SemiRefrigerated, "Semi Trailer (Refrigerated)"),
+            new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
+            new(VehicleConfiguration.SemiSkeleton, "Semi Trailer (Skeleton)"),
 
-        // Drawbar / A-frame
-        new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider Trailer (A-Frame)"),
-        new(VehicleConfiguration.DrawbarFlatDeck, "Flat Deck (A-Frame)"),
-        new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated Trailer (A-Frame)"),
-        new(VehicleConfiguration.DrawbarTanker, "Tanker Trailer (A-Frame)"),
+            new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider Trailer (A-Frame)"),
+            new(VehicleConfiguration.DrawbarFlatDeck, "Flat Deck (A-Frame)"),
+            new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated Trailer (A-Frame)"),
+            new(VehicleConfiguration.DrawbarTanker, "Tanker Trailer (A-Frame)"),
 
-        // B-double / B-train
-        new(VehicleConfiguration.BDblCurtainsider, "Curtainsider Trailer (Fifth Wheel)"),
-        new(VehicleConfiguration.BDblFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
-        new(VehicleConfiguration.BDblRefrigerated, "Refrigerated Trailers (Fifth Wheel)"),
-        new(VehicleConfiguration.BDblTanker, "Tanker Trailer (Fifth Wheel)"),
+            new(VehicleConfiguration.BDblCurtainsider, "Curtainsider Trailer (Fifth Wheel)"),
+            new(VehicleConfiguration.BDblFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
+            new(VehicleConfiguration.BDblRefrigerated, "Refrigerated Trailers (Fifth Wheel)"),
+            new(VehicleConfiguration.BDblTanker, "Tanker Trailer (Fifth Wheel)"),
        };
 
-    // Class 4 power-unit subtypes.
     public ObservableCollection<VehicleOption<PowerUnitBodyType>> PowerUnitBodyTypes { get; } =
         new()
         {
-        new(PowerUnitBodyType.Curtainsider, "Rigid Truck (Curtains)"),
-        new(PowerUnitBodyType.FlatDeck, "Rigid Truck (Flat Deck)"),
-        new(PowerUnitBodyType.Refrigerated, "Rigid Truck (Refrigerated)"),
-        new(PowerUnitBodyType.Tanker, "Rigid Truck (Tanker)"),
-        new(PowerUnitBodyType.Tractor, "Tractor"),
+            new(PowerUnitBodyType.Curtainsider, "Rigid Truck (Curtains)"),
+            new(PowerUnitBodyType.FlatDeck, "Rigid Truck (Flat Deck)"),
+            new(PowerUnitBodyType.Refrigerated, "Rigid Truck (Refrigerated)"),
+            new(PowerUnitBodyType.Tanker, "Rigid Truck (Tanker)"),
+            new(PowerUnitBodyType.Tractor, "Tractor"),
         };
 
     public ObservableCollection<VehicleOption<FuelType>> FuelTypes { get; } =
@@ -314,13 +300,12 @@ public class NewVehicleViewModel : BaseViewModel
         set
         {
             _selectedVehicleType = value;
-            // Reset downstream selections whenever vehicle type changes.
+
             SelectedLightConfig = null;
             SelectedHeavyConfig = null;
-            SelectedPowerUnitBodyType = null; 
+            SelectedPowerUnitBodyType = null;
             SelectedFuelType = null;
 
-            // Clear all fields (we’ll use only the correct slots depending on selection)
             Unit1Rego = Unit2Rego = Unit3Rego = string.Empty;
             Unit1RegoExpiry = Unit2RegoExpiry = Unit3RegoExpiry = null;
 
@@ -367,7 +352,6 @@ public class NewVehicleViewModel : BaseViewModel
         {
             _selectedHeavyConfig = value;
 
-            // If you switch away from B-Train, clear Unit3 details (including RUC)
             if (!IsBTrain)
             {
                 Unit3Rego = string.Empty;
@@ -393,8 +377,6 @@ public class NewVehicleViewModel : BaseViewModel
         {
             _selectedFuelType = value;
 
-            // If powered vehicle fuel does NOT require RUC, clear ONLY Unit1 RUC.
-            // Trailer RUC is independent of fuel.
             if (!RequiresRuc)
                 ResetUnit1Ruc();
 
@@ -405,7 +387,6 @@ public class NewVehicleViewModel : BaseViewModel
         }
     }
 
-    // Clears odometers. Called when the wizard "rewinds" due to upstream changes.
     private void ResetOdometers()
     {
         PowerUnitOdometerKm = null;
@@ -517,10 +498,8 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit3Year = value; OnPropertyChanged(); RaiseAllVisibility(); }
     }
 
-    // Make/Model step only appears after rego expiry is provided.
     public bool ShowMakeModel => RegoExpiryComplete;
 
-    // Completeness check for Make/Model step.
     public bool MakeModelComplete
     {
         get
@@ -602,53 +581,40 @@ public class NewVehicleViewModel : BaseViewModel
 
     #endregion
 
-    #region RUC (Road User Charges) - Slot Based
-
-    // RUC applies to:
-    // - Powered vehicles only when fuel RequiresRuc (Diesel/Electric)
-    // - Heavy trailers always (Class 3 + Class 5)
+    #region RUC
 
     public bool RequiresRuc =>
         SelectedFuelType?.Value == FuelType.Diesel ||
         SelectedFuelType?.Value == FuelType.Electric;
 
-    // NZ-specific rule (still supported): Heavy trailers require RUC
     public bool TrailerRequiresRuc => IsHeavyTrailer;
 
-    // How many RUC entries this wizard needs (mirrors unit slot rules).
     public int RucCount
     {
         get
         {
             if (!HasVehicleType) return 0;
 
-            // Powered vehicles: only if fuel requires it
             if (IsPoweredVehicle)
                 return (SelectedFuelType != null && RequiresRuc) ? 1 : 0;
 
-            // Heavy trailers: always require it, per trailer unit (Unit2 + Unit3 if B-train)
             if (IsHeavyTrailer)
                 return IsBTrain ? 2 : 1;
 
-            // Light trailers: none
             return 0;
         }
     }
 
     public bool ShowRucStep => ShowOdometers && RucCount > 0;
 
-    // Per-slot visibility
     public bool ShowUnit1Ruc => ShowRucStep && IsPoweredVehicle && RucCount == 1;
-    public bool ShowUnit2Ruc => ShowRucStep && !IsPoweredVehicle && IsHeavyTrailer; // trailer-only wizard uses Unit2 (+Unit3)
+    public bool ShowUnit2Ruc => ShowRucStep && !IsPoweredVehicle && IsHeavyTrailer;
     public bool ShowUnit3Ruc => ShowRucStep && IsBTrain;
 
-    // Labels
     public string Unit1RucLabel => "Unit 1 distance-based road tax";
     public string Unit2RucLabel => "Unit 2 distance-based road tax";
     public string Unit3RucLabel => "Unit 3 distance-based road tax";
 
-
-    // Basic validation for licence range.
     private bool IsValidRange(int? start, int? end) =>
         start != null && end != null && start >= 0 && end > start;
 
@@ -663,7 +629,6 @@ public class NewVehicleViewModel : BaseViewModel
 
     public bool RucComplete => Unit1RucComplete && Unit2RucComplete && Unit3RucComplete;
 
-    // Unit 1 RUC
     public DateTime? Unit1RucPurchasedDate
     {
         get => _unit1RucPurchasedDate;
@@ -676,7 +641,6 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit1RucDistancePurchasedKm = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
-    // Unit 1 licence range
     public int? Unit1RucLicenceStartKm
     {
         get => _unit1RucLicenceStartKm;
@@ -689,7 +653,6 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit1RucLicenceEndKm = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
-    // Unit 2 RUC
     public DateTime? Unit2RucPurchasedDate
     {
         get => _unit2RucPurchasedDate;
@@ -702,7 +665,6 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit2RucDistancePurchasedKm = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
-    // Unit 2 licence range
     public int? Unit2RucLicenceStartKm
     {
         get => _unit2RucLicenceStartKm;
@@ -715,7 +677,6 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit2RucLicenceEndKm = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
-    // Unit 3 RUC
     public DateTime? Unit3RucPurchasedDate
     {
         get => _unit3RucPurchasedDate;
@@ -728,7 +689,6 @@ public class NewVehicleViewModel : BaseViewModel
         set { _unit3RucDistancePurchasedKm = value; OnPropertyChanged(); RefreshSaveState(); }
     }
 
-    // Unit 3 licence range
     public int? Unit3RucLicenceStartKm
     {
         get => _unit3RucLicenceStartKm;
@@ -781,11 +741,10 @@ public class NewVehicleViewModel : BaseViewModel
 
     #endregion
 
-    #region Flow / Visibility (Wizard Rules)
+    #region Flow / Visibility
 
     public bool HasVehicleType => SelectedVehicleType != null;
 
-    // Powered assets (need fuel + odo)
     public bool IsPoweredVehicle =>
         SelectedVehicleType?.Value == VehicleType.LightVehicle ||
         SelectedVehicleType?.Value == VehicleType.LightCommercial ||
@@ -797,13 +756,11 @@ public class NewVehicleViewModel : BaseViewModel
         SelectedVehicleType?.Value == VehicleType.TrailerLight ||
         SelectedVehicleType?.Value == VehicleType.TrailerHeavy;
 
-
     public bool IsLightTrailer => SelectedVehicleType?.Value == VehicleType.TrailerLight;
 
     public bool IsHeavyTrailer =>
         SelectedVehicleType?.Value == VehicleType.TrailerHeavy;
 
-    // B-double/B-train is a CONFIG thing now, not “TrailerClass5”
     public bool IsBTrain =>
         IsHeavyTrailer &&
         SelectedHeavyConfig != null &&
@@ -815,13 +772,13 @@ public class NewVehicleViewModel : BaseViewModel
         );
 
     public bool ShowLightTrailerConfig => IsLightTrailer;
-    // Power unit body type applies to rigid trucks; tractor unit doesn’t need it
+
     public bool ShowPowerUnitBodyType =>
         SelectedVehicleType?.Value == VehicleType.RigidTruckMedium ||
         SelectedVehicleType?.Value == VehicleType.RigidTruckHeavy;
+
     public bool ShowHeavyConfig => IsHeavyTrailer;
 
-    // User must complete any configuration picker that applies before entering rego.
     public bool ReadyForRego =>
         HasVehicleType &&
         (!ShowLightTrailerConfig || SelectedLightConfig != null) &&
@@ -836,27 +793,21 @@ public class NewVehicleViewModel : BaseViewModel
     public ComplianceCertificateType RequiredCertificate =>
       IsHeavyVehicle ? ComplianceCertificateType.Cof : ComplianceCertificateType.Wof;
 
-    // UI wording (global)
     public string CertificateName => "Inspection";
     public string CertificatePluralName => "Inspection / certification";
 
-    // How many regos/certs this screen is collecting (by slot rule).
     public int RegoCount
     {
         get
         {
             if (!HasVehicleType) return 0;
 
-            if (IsPoweredVehicle) return 1; // Unit1
-            if (IsBTrain) return 2;         // Unit2 + Unit3
-            return 1;                       // Unit2 only
+            if (IsPoweredVehicle) return 1;
+            if (IsBTrain) return 2;
+            return 1;
         }
     }
 
-    // Odometer rules:
-    // - Powered vehicles: 1 odo (Unit1)
-    // - Light trailers: 0
-    // - Heavy trailers: 1 odo per trailer => Unit2 (and Unit3 if B-train)
     public int OdoCount
     {
         get
@@ -920,6 +871,7 @@ public class NewVehicleViewModel : BaseViewModel
     public string Unit1CertLabel => "Unit 1 inspection/certification expiry";
     public string Unit2CertLabel => "Unit 2 inspection/certification expiry";
     public string Unit3CertLabel => "Unit 3 inspection/certification expiry";
+
     public bool CertificateComplete
     {
         get
@@ -936,12 +888,8 @@ public class NewVehicleViewModel : BaseViewModel
         }
     }
 
-    // Fuel only for powered vehicles
     public bool ShowFuelType => CertificateComplete && IsPoweredVehicle;
 
-    // Odometers:
-    // - Powered vehicles: after fuel
-    // - Heavy trailers: after certificate (no fuel step)
     public bool ShowOdometers =>
         CertificateComplete &&
         (
@@ -949,12 +897,10 @@ public class NewVehicleViewModel : BaseViewModel
             (IsHeavyTrailer)
         );
 
-    // Rego slot visibility
     public bool ShowUnit1Rego => ReadyForRego && IsPoweredVehicle;
     public bool ShowUnit2Rego => ReadyForRego && IsTrailerAsset;
     public bool ShowUnit3Rego => ReadyForRego && IsBTrain;
 
-    // Odo slot visibility
     public bool ShowPowerUnitOdo => ShowOdometers && IsPoweredVehicle;
     public bool ShowTrailer1Odo => ShowOdometers && IsHeavyTrailer;
     public bool ShowTrailer2Odo => ShowOdometers && IsBTrain;
@@ -963,11 +909,8 @@ public class NewVehicleViewModel : BaseViewModel
     public string Trailer1OdoLabel => "Odometer (unit 2)";
     public string Trailer2OdoLabel => "Odometer (unit 3)";
 
-    // Notifies UI for all derived "flow" properties that depend on upstream fields.
-    // This is the single place to keep the wizard UI consistent.
     private void RaiseAllVisibility()
     {
-        // Core selection + gating
         OnPropertyChanged(nameof(HasVehicleType));
         OnPropertyChanged(nameof(IsPoweredVehicle));
         OnPropertyChanged(nameof(IsTrailerAsset));
@@ -975,17 +918,14 @@ public class NewVehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(IsHeavyTrailer));
         OnPropertyChanged(nameof(IsBTrain));
 
-        // Pickers / next-step sections
         OnPropertyChanged(nameof(ShowLightTrailerConfig));
         OnPropertyChanged(nameof(ShowPowerUnitBodyType));
         OnPropertyChanged(nameof(ShowHeavyConfig));
         OnPropertyChanged(nameof(ReadyForRego));
 
-        // Counts that drive how many fields appear
         OnPropertyChanged(nameof(RegoCount));
         OnPropertyChanged(nameof(OdoCount));
 
-        // Rego slot visibility + labels
         OnPropertyChanged(nameof(ShowUnit1Rego));
         OnPropertyChanged(nameof(ShowUnit2Rego));
         OnPropertyChanged(nameof(ShowUnit3Rego));
@@ -993,19 +933,16 @@ public class NewVehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(Unit2Label));
         OnPropertyChanged(nameof(Unit3Label));
 
-        // Rego flow
         OnPropertyChanged(nameof(RegoComplete));
         OnPropertyChanged(nameof(ShowRegoExpiry));
         OnPropertyChanged(nameof(RegoExpiryComplete));
 
-        // Make/Model flow
         OnPropertyChanged(nameof(ShowMakeModel));
         OnPropertyChanged(nameof(MakeModelComplete));
         OnPropertyChanged(nameof(Unit1MakeModelLabel));
         OnPropertyChanged(nameof(Unit2MakeModelLabel));
         OnPropertyChanged(nameof(Unit3MakeModelLabel));
 
-        // Certificate flow
         OnPropertyChanged(nameof(IsHeavyVehicle));
         OnPropertyChanged(nameof(RequiredCertificate));
         OnPropertyChanged(nameof(CertificateName));
@@ -1021,7 +958,6 @@ public class NewVehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(Unit3CertLabel));
         OnPropertyChanged(nameof(CertificateComplete));
 
-        // Fuel + Odo flow
         OnPropertyChanged(nameof(ShowFuelType));
         OnPropertyChanged(nameof(ShowOdometers));
 
@@ -1032,12 +968,10 @@ public class NewVehicleViewModel : BaseViewModel
         OnPropertyChanged(nameof(Trailer1OdoLabel));
         OnPropertyChanged(nameof(Trailer2OdoLabel));
 
-        // Fuel info
         OnPropertyChanged(nameof(RequiresRuc));
         OnPropertyChanged(nameof(TrailerRequiresRuc));
         OnPropertyChanged(nameof(FuelInfoText));
 
-        // RUC flow
         OnPropertyChanged(nameof(RucCount));
         OnPropertyChanged(nameof(ShowRucStep));
         OnPropertyChanged(nameof(ShowUnit1Ruc));
@@ -1053,180 +987,110 @@ public class NewVehicleViewModel : BaseViewModel
 
     #endregion
 
-    #region Save (Assets) - Enforces Unit Slot Rules + Slot RUC Licence Range
+    #region Save (Assets)
 
-    // Persists a new VehicleSet (VehicleSetId) and its VehicleAsset rows, using unit slot rules.
-    // - Powered vehicle path writes exactly 1 asset in Unit 1.
-    // - Trailer-only path writes trailer assets into Unit 2 (+ Unit 3 if B-train).
     public async Task SaveVehicleAsync()
     {
-        if (SelectedVehicleType == null)
-            throw new InvalidOperationException("Vehicle type is required.");
-
-        // Active main account (OwnerUserId) for FK
-        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
-            throw new InvalidOperationException("No active account. Please log in again.");
-
-        var setId = Guid.NewGuid();
-        var certType = RequiredCertificate;
-
-        var assets = new List<VehicleAsset>();
+        var units = new List<CreateVehicleUnitRequest>();
 
         if (IsPoweredVehicle)
         {
-            if (SelectedFuelType == null)
-                throw new InvalidOperationException("Fuel type is required for powered vehicles.");
-
-            if (Unit1Year == null)
-                throw new InvalidOperationException("Year is required.");
-
-            var asset = new VehicleAsset
+            units.Add(new CreateVehicleUnitRequest
             {
-                OwnerUserId = ownerUserId,
-                VehicleSetId = setId,
-                UnitNumber = POWER_UNIT_SLOT,
+                UnitNumber = 1,
+                Kind = "PowerUnit",
+                VehicleType = SelectedVehicleType?.Value.ToString() ?? "",
 
-                Kind = AssetKind.PowerUnit,
-                VehicleType = SelectedVehicleType.Value,
-                FuelType = SelectedFuelType.Value,
-
-                Year = Unit1Year.Value,
-                Rego = Unit1Rego.Trim(),
+                Rego = Unit1Rego,
                 RegoExpiry = Unit1RegoExpiry,
 
-                Make = Unit1Make.Trim(),
-                Model = Unit1Model.Trim(),
+                Make = Unit1Make,
+                Model = Unit1Model,
+                Year = Unit1Year ?? 0,
 
-                CertificateType = certType,
+                FuelType = SelectedFuelType?.Value.ToString(),
+                Configuration = SelectedPowerUnitBodyType?.Value.ToString(),
+
+                CertificateType = RequiredCertificate.ToString(),
                 CertificateExpiry = Unit1CertExpiry,
 
-                OdometerKm = PowerUnitOdometerKm
-            };
+                OdometerKm = PowerUnitOdometerKm,
 
-            // Slot-based RUC (Unit 1 only) when it applies
-            if (RucCount == 1)
-            {
-                asset.RucPurchasedDate = Unit1RucPurchasedDate;
-                asset.RucDistancePurchasedKm = Unit1RucDistancePurchasedKm;
-
-                asset.RucLicenceStartKm = Unit1RucLicenceStartKm;
-                asset.RucLicenceEndKm = Unit1RucLicenceEndKm;
-
-                asset.RucOdometerAtPurchaseKm = null;
-                asset.RucNextDueOdometerKm = Unit1RucLicenceEndKm;
-            }
-
-            assets.Add(asset);
+                RucPurchasedDate = Unit1RucPurchasedDate,
+                RucDistancePurchasedKm = Unit1RucDistancePurchasedKm,
+                RucLicenceStartKm = Unit1RucLicenceStartKm,
+                RucLicenceEndKm = Unit1RucLicenceEndKm
+            });
         }
         else
         {
-            // -------- Trailer-only path --------
-
-            if (Unit2Year == null)
-                throw new InvalidOperationException("Trailer year is required.");
-
-            var trailer1 = new VehicleAsset
+            units.Add(new CreateVehicleUnitRequest
             {
-                OwnerUserId = ownerUserId,
-                VehicleSetId = setId,
-                UnitNumber = TRAILER_1_SLOT,
+                UnitNumber = 2,
+                Kind = "Trailer",
+                VehicleType = SelectedVehicleType?.Value.ToString() ?? "",
 
-                Kind = AssetKind.Trailer,
-                VehicleType = SelectedVehicleType.Value,
-
-                Configuration =
-                    IsHeavyTrailer ? SelectedHeavyConfig?.Value
-                    : IsLightTrailer ? SelectedLightConfig?.Value
-                    : null,
-
-                Year = Unit2Year.Value,
-                Rego = Unit2Rego.Trim(),
+                Rego = Unit2Rego,
                 RegoExpiry = Unit2RegoExpiry,
 
-                Make = Unit2Make.Trim(),
-                Model = Unit2Model.Trim(),
+                Make = Unit2Make,
+                Model = Unit2Model,
+                Year = Unit2Year ?? 0,
 
-                CertificateType = certType,
+                Configuration = IsHeavyTrailer
+                    ? SelectedHeavyConfig?.Value.ToString()
+                    : SelectedLightConfig?.Value.ToString(),
+
+                CertificateType = RequiredCertificate.ToString(),
                 CertificateExpiry = Unit2CertExpiry,
 
-                OdometerKm = IsHeavyTrailer ? Trailer1OdometerKm : null
-            };
+                OdometerKm = Trailer1OdometerKm,
 
-            // Heavy trailers always have RUC
-            if (IsHeavyTrailer)
-            {
-                trailer1.RucPurchasedDate = Unit2RucPurchasedDate;
-                trailer1.RucDistancePurchasedKm = Unit2RucDistancePurchasedKm;
+                RucPurchasedDate = Unit2RucPurchasedDate,
+                RucDistancePurchasedKm = Unit2RucDistancePurchasedKm,
+                RucLicenceStartKm = Unit2RucLicenceStartKm,
+                RucLicenceEndKm = Unit2RucLicenceEndKm
+            });
 
-                trailer1.RucLicenceStartKm = Unit2RucLicenceStartKm;
-                trailer1.RucLicenceEndKm = Unit2RucLicenceEndKm;
-
-                trailer1.RucOdometerAtPurchaseKm = null;
-                trailer1.RucNextDueOdometerKm = Unit2RucLicenceEndKm;
-            }
-
-            assets.Add(trailer1);
-
-            // B-Train adds Unit 3 trailer
             if (IsBTrain)
             {
-                if (Unit3Year == null)
-                    throw new InvalidOperationException("Trailer 2 year is required.");
-
-                var trailer2 = new VehicleAsset
+                units.Add(new CreateVehicleUnitRequest
                 {
-                    OwnerUserId = ownerUserId,
-                    VehicleSetId = setId,
-                    UnitNumber = TRAILER_2_SLOT,
+                    UnitNumber = 3,
+                    Kind = "Trailer",
+                    VehicleType = SelectedVehicleType?.Value.ToString() ?? "",
 
-                    Kind = AssetKind.Trailer,
-                    VehicleType = SelectedVehicleType.Value,
-                    Configuration = SelectedHeavyConfig?.Value,
-
-                    Year = Unit3Year.Value,
-                    Rego = Unit3Rego.Trim(),
+                    Rego = Unit3Rego,
                     RegoExpiry = Unit3RegoExpiry,
 
-                    Make = Unit3Make.Trim(),
-                    Model = Unit3Model.Trim(),
+                    Make = Unit3Make,
+                    Model = Unit3Model,
+                    Year = Unit3Year ?? 0,
 
-                    CertificateType = certType,
+                    Configuration = SelectedHeavyConfig?.Value.ToString(),
+
+                    CertificateType = RequiredCertificate.ToString(),
                     CertificateExpiry = Unit3CertExpiry,
 
-                    OdometerKm = Trailer2OdometerKm
-                };
+                    OdometerKm = Trailer2OdometerKm,
 
-                trailer2.RucPurchasedDate = Unit3RucPurchasedDate;
-                trailer2.RucDistancePurchasedKm = Unit3RucDistancePurchasedKm;
-
-                trailer2.RucLicenceStartKm = Unit3RucLicenceStartKm;
-                trailer2.RucLicenceEndKm = Unit3RucLicenceEndKm;
-
-                trailer2.RucOdometerAtPurchaseKm = null;
-                trailer2.RucNextDueOdometerKm = Unit3RucLicenceEndKm;
-
-                assets.Add(trailer2);
+                    RucPurchasedDate = Unit3RucPurchasedDate,
+                    RucDistancePurchasedKm = Unit3RucDistancePurchasedKm,
+                    RucLicenceStartKm = Unit3RucLicenceStartKm,
+                    RucLicenceEndKm = Unit3RucLicenceEndKm
+                });
             }
         }
 
-        // Safety net
-        foreach (var a in assets)
+        var request = new CreateVehicleSetRequest
         {
-            a.OwnerUserId = ownerUserId;
-            if (a.VehicleSetId == Guid.Empty)
-                a.VehicleSetId = setId;
-        }
+            Units = units
+        };
 
-        // IMPORTANT: pass OwnerUserId so handler doesn't return "Owner required"
-        var result = await _createVehicleHandler.HandleAsync(new CreateVehicleCommand
-        {
-            OwnerUserId = ownerUserId,
-            Assets = assets
-        });
+        var result = await _vehiclesApiService.CreateVehicleSetAsync(request);
 
-        if (!result.Success)
-            throw new InvalidOperationException(result.Message);
+        if (result.AssetsCreated <= 0)
+            throw new Exception("Vehicle set was not created.");
     }
 
     #endregion

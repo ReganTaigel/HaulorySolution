@@ -4,9 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Haulory.Application.Features.Reports;
-using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+using Haulory.Mobile.Contracts.Reports;
+using Haulory.Mobile.Features;
+using Haulory.Mobile.Services;
 using Microsoft.Maui.ApplicationModel;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
 using Microsoft.Maui.Controls;
@@ -18,7 +19,7 @@ public class ReportsViewModel : BaseViewModel
 {
     #region Dependencies
 
-    private readonly IDeliveryReceiptRepository _receiptRepository;
+    private readonly ReportsApiService _reportsApiService;
     private readonly ISessionService _session;
 
     private readonly InvoiceReportHandler _invoiceReport;
@@ -34,14 +35,13 @@ public class ReportsViewModel : BaseViewModel
     private bool _isLoading;
     private DateTime _selectedDate = DateTime.Today;
     private Guid? _focusJobId;
-
     private bool _includeGst = true;
 
     #endregion
 
     #region Collections
 
-    public ObservableCollection<DeliveryReceipt> Receipts { get; } = new();
+    public ObservableCollection<DeliveryReceiptDto> Receipts { get; } = new();
 
     #endregion
 
@@ -52,20 +52,27 @@ public class ReportsViewModel : BaseViewModel
 
     #endregion
 
+    #region Feature Access
+
+    public bool IsReportsVisible => IsFeatureVisible(AppFeature.Reports);
+    public bool IsReportsEnabled => IsFeatureEnabled(AppFeature.Reports);
+
+    public bool IsExportInvoiceVisible => IsFeatureVisible(AppFeature.ExportInvoice);
+    public bool IsExportInvoiceEnabled => IsFeatureEnabled(AppFeature.ExportInvoice);
+
+    public bool IsExportPodVisible => IsFeatureVisible(AppFeature.ExportPod);
+    public bool IsExportPodEnabled => IsFeatureEnabled(AppFeature.ExportPod);
+
+    #endregion
+
     #region Options
 
     public bool IncludeGst
     {
         get => _includeGst;
-        set
-        {
-            if (_includeGst == value) return;
-            _includeGst = value;
-            OnPropertyChanged();
-        }
+        set => SetProperty(ref _includeGst, value);
     }
 
-    // v1 default
     public decimal GstRate { get; set; } = 0.15m;
 
     #endregion
@@ -78,17 +85,19 @@ public class ReportsViewModel : BaseViewModel
 
     #endregion
 
-    #region Ctor
+    #region Constructor
 
     public ReportsViewModel(
-        IDeliveryReceiptRepository receiptRepository,
+        ReportsApiService reportsApiService,
         ISessionService session,
+        IFeatureAccessService featureAccessService,
         InvoiceReportHandler invoiceReport,
         IPdfInvoiceGenerator pdfInvoice,
         PodReportHandler podReport,
         IPdfPodGenerator pdfPod)
+        : base(featureAccessService)
     {
-        _receiptRepository = receiptRepository;
+        _reportsApiService = reportsApiService;
         _session = session;
 
         _invoiceReport = invoiceReport;
@@ -98,8 +107,8 @@ public class ReportsViewModel : BaseViewModel
         _pdfPod = pdfPod;
 
         RefreshCommand = new Command(async () => await LoadAsync());
-        ExportInvoiceCommand = new Command<Guid>(async (receiptId) => await ExportInvoiceAsync(receiptId));
-        ExportPodCommand = new Command<Guid>(async (receiptId) => await ExportPodAsync(receiptId));
+        ExportInvoiceCommand = new Command<Guid>(async receiptId => await ExportInvoiceAsync(receiptId));
+        ExportPodCommand = new Command<Guid>(async receiptId => await ExportPodAsync(receiptId));
     }
 
     #endregion
@@ -144,32 +153,37 @@ public class ReportsViewModel : BaseViewModel
 
     public async Task LoadAsync()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+            return;
+
         _isLoading = true;
 
         try
         {
             Receipts.Clear();
 
+            if (!IsFeatureEnabled(AppFeature.Reports))
+            {
+                RaiseSummaryAndFeatureBindings();
+                return;
+            }
+
+            if (!_session.IsAuthenticated)
+                await _session.RestoreAsync();
+
             var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerUserId == Guid.Empty)
+            {
+                RaiseSummaryAndFeatureBindings();
                 return;
+            }
 
-            // Local day -> UTC range [start, end)
-            var localStart = SelectedDate.Date;
-            var localEnd = localStart.AddDays(1);
-
-            var utcStart = DateTime.SpecifyKind(localStart, DateTimeKind.Local).ToUniversalTime();
-            var utcEnd = DateTime.SpecifyKind(localEnd, DateTimeKind.Local).ToUniversalTime();
-
-            var filtered = await _receiptRepository
-                .GetByOwnerDeliveredBetweenUtcAsync(ownerUserId, utcStart, utcEnd);
+            var filtered = await _reportsApiService.GetReceiptsAsync(SelectedDate);
 
             foreach (var r in filtered.OrderByDescending(r => r.DeliveredAtUtc))
                 Receipts.Add(r);
 
-            OnPropertyChanged(nameof(DeliveredCount));
-            OnPropertyChanged(nameof(TotalRevenue));
+            RaiseSummaryAndFeatureBindings();
         }
         finally
         {
@@ -179,24 +193,30 @@ public class ReportsViewModel : BaseViewModel
 
     private async Task JumpToReceiptDateAndReloadAsync(Guid jobId)
     {
-        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
+        if (!IsFeatureEnabled(AppFeature.Reports))
             return;
 
-        var receipts = await _receiptRepository.GetByJobIdAsync(ownerUserId, jobId);
-        var receipt = receipts.FirstOrDefault();
-
-        if (receipt == null)
-        {
-            await LoadAsync();
-            return;
-        }
-
-        // Set without causing double-load
-        _selectedDate = ToLocalDate(receipt.DeliveredAtUtc);
-        OnPropertyChanged(nameof(SelectedDate));
-
+        // Current API shape is date-based for receipts.
+        // For now we just reload the current selected date.
+        // Later, if you add GET /api/reports/receipts/by-job/{jobId}
+        // this can jump directly to the correct date again.
         await LoadAsync();
+
+        if (_focusJobId == null)
+            return;
+
+        var matchingReceipt = Receipts.FirstOrDefault(r => r.JobId == jobId);
+        if (matchingReceipt == null)
+            return;
+
+        var localDate = ToLocalDate(matchingReceipt.DeliveredAtUtc);
+
+        if (_selectedDate.Date != localDate)
+        {
+            _selectedDate = localDate;
+            OnPropertyChanged(nameof(SelectedDate));
+            await LoadAsync();
+        }
     }
 
     #endregion
@@ -205,6 +225,9 @@ public class ReportsViewModel : BaseViewModel
 
     private async Task ExportInvoiceAsync(Guid receiptId)
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.ExportInvoice))
+            return;
+
         try
         {
             var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
@@ -213,10 +236,12 @@ public class ReportsViewModel : BaseViewModel
 
             var dto = await _invoiceReport.HandleAsync(ownerUserId, receiptId, IncludeGst, GstRate);
 
-            // Signature optional (you can wire this later if you want invoice signature)
             var pdfBytes = _pdfInvoice.GenerateInvoicePdf(dto, Array.Empty<byte>());
 
-            var safeInvoice = string.IsNullOrWhiteSpace(dto.InvoiceNumber) ? "invoice" : dto.InvoiceNumber.Trim();
+            var safeInvoice = string.IsNullOrWhiteSpace(dto.InvoiceNumber)
+                ? "invoice"
+                : dto.InvoiceNumber.Trim();
+
             var filename = $"Invoice_{safeInvoice}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
             var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
@@ -240,6 +265,9 @@ public class ReportsViewModel : BaseViewModel
 
     private async Task ExportPodAsync(Guid receiptId)
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.ExportPod))
+            return;
+
         try
         {
             var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
@@ -249,7 +277,10 @@ public class ReportsViewModel : BaseViewModel
             var dto = await _podReport.HandleAsync(ownerUserId, receiptId);
             var pdfBytes = _pdfPod.GeneratePodPdf(dto);
 
-            var safeRef = string.IsNullOrWhiteSpace(dto.ReferenceNumber) ? "pod" : dto.ReferenceNumber.Trim();
+            var safeRef = string.IsNullOrWhiteSpace(dto.ReferenceNumber)
+                ? "pod"
+                : dto.ReferenceNumber.Trim();
+
             var filename = $"POD_{safeRef}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
             var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
@@ -270,6 +301,25 @@ public class ReportsViewModel : BaseViewModel
     #endregion
 
     #region Helpers
+
+    private void RaiseSummaryAndFeatureBindings()
+    {
+        OnPropertyChanged(nameof(DeliveredCount));
+        OnPropertyChanged(nameof(TotalRevenue));
+        RefreshFeatureBindings();
+    }
+
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsReportsVisible));
+        OnPropertyChanged(nameof(IsReportsEnabled));
+
+        OnPropertyChanged(nameof(IsExportInvoiceVisible));
+        OnPropertyChanged(nameof(IsExportInvoiceEnabled));
+
+        OnPropertyChanged(nameof(IsExportPodVisible));
+        OnPropertyChanged(nameof(IsExportPodEnabled));
+    }
 
     private static DateTime ToLocalDate(DateTime utc)
     {

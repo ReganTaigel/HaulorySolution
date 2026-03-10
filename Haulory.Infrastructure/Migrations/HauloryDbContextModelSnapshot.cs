@@ -238,8 +238,20 @@ namespace Haulory.Infrastructure.Migrations
                     b.Property<Guid>("DriverId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("EvidenceContentType")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("EvidenceFileName")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
                     b.Property<string>("EvidenceFilePath")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("EvidenceUploadedOnUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ExpiresOnUtc")
                         .HasColumnType("datetime2");

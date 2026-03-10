@@ -43,23 +43,36 @@
 
                     <Label Text="Day Status"
                            FontSize="16"
-                           FontAttributes="Bold" />
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}" />
 
                     <Label Text="{Binding AssignedVehicleDisplay}"
-                            FontSize="13" />
+                           FontSize="13"
+                           TextColor="{StaticResource BrandInk}" />
 
                     <Label Text="{Binding DayStatusText}"
-                            FontSize="13" />
+                           FontSize="13"
+                           TextColor="{StaticResource BrandInk}" />
 
                     <Button Text="Start Day"
                             Command="{Binding StartDayCommand}"
-                            IsVisible="{Binding CanStartDay}" />
+                            IsVisible="{Binding IsStartDayVisible}"
+                            IsEnabled="{Binding CanStartDayAction}"
+                            HeightRequest="44"
+                            CornerRadius="14"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="{StaticResource White}" />
 
                     <Button Text="End Day"
                             Command="{Binding EndDayCommand}"
-                            IsVisible="{Binding CanEndDay}" />
+                            IsVisible="{Binding IsEndDayVisible}"
+                            IsEnabled="{Binding CanEndDayAction}"
+                            HeightRequest="44"
+                            CornerRadius="14"
+                            BackgroundColor="{StaticResource BrandTitle}"
+                            TextColor="{StaticResource White}" />
                 </VerticalStackLayout>
-                
+
             </Border>
 
             <!-- STATS (Main only) -->
@@ -76,7 +89,7 @@
                            FontAttributes="Bold"
                            TextColor="{StaticResource BrandTitle}" />
 
-                    <!-- Delivered count moved here -->
+                    <!-- Delivered -->
                     <Border StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 14"
@@ -168,7 +181,8 @@
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
                     BackgroundColor="{StaticResource BrandSurface}"
-                    Padding="14">
+                    Padding="14"
+                    IsVisible="{Binding IsJobsVisible}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Jobs"
@@ -187,7 +201,8 @@
                             TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
-                            Padding="16,0" />
+                            Padding="16,0"
+                            IsEnabled="{Binding IsJobsEnabled}" />
                 </Grid>
 
                 <Border.GestureRecognizers>
@@ -200,7 +215,8 @@
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
                     BackgroundColor="{StaticResource BrandSurface}"
-                    Padding="14">
+                    Padding="14"
+                    IsVisible="{Binding IsVehiclesVisible}">
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Vehicles"
@@ -219,7 +235,8 @@
                             TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
-                            Padding="16,0" />
+                            Padding="16,0"
+                            IsEnabled="{Binding IsVehiclesEnabled}" />
                 </Grid>
 
                 <Border.GestureRecognizers>
@@ -233,7 +250,16 @@
                     StrokeShape="RoundRectangle 18"
                     BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14"
-                    IsVisible="{Binding IsMainUser}">
+                    IsVisible="{Binding IsDriversVisible}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsMainUser}"
+                                 Value="False">
+                        <Setter Property="IsVisible"
+                                Value="False" />
+                    </DataTrigger>
+                </Border.Triggers>
+
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Drivers"
@@ -252,7 +278,8 @@
                             TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
-                            Padding="16,0" />
+                            Padding="16,0"
+                            IsEnabled="{Binding IsDriversEnabled}" />
                 </Grid>
 
                 <Border.GestureRecognizers>
@@ -266,7 +293,16 @@
                     StrokeShape="RoundRectangle 18"
                     BackgroundColor="{StaticResource BrandSurface}"
                     Padding="14"
-                    IsVisible="{Binding IsMainUser}">
+                    IsVisible="{Binding IsReportsVisible}">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border"
+                                 Binding="{Binding IsMainUser}"
+                                 Value="False">
+                        <Setter Property="IsVisible"
+                                Value="False" />
+                    </DataTrigger>
+                </Border.Triggers>
+
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="Reports"
@@ -285,7 +321,8 @@
                             TextColor="{StaticResource White}"
                             CornerRadius="14"
                             HeightRequest="44"
-                            Padding="16,0" />
+                            Padding="16,0"
+                            IsEnabled="{Binding IsReportsEnabled}" />
                 </Grid>
 
                 <Border.GestureRecognizers>
@@ -308,7 +345,7 @@
                                TextColor="{StaticResource White}" />
                         <Label Text="Sign out of Haulory on this device"
                                FontSize="12"
-                                 TextColor="{StaticResource Gray200}" />
+                               TextColor="{StaticResource Gray200}" />
                     </VerticalStackLayout>
 
                     <Button Grid.Column="1"

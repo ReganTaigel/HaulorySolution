@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewDriverPage"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding ShowAddDriver}">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
@@ -68,7 +69,6 @@
                                    TextColor="{StaticResource BrandInk}"
                                    PlaceholderColor="{StaticResource Gray600}" />
 
-                            <!-- ✅ NEW: Optional login account -->
                             <Border StrokeThickness="1"
                                     Stroke="{StaticResource Gray200}"
                                     StrokeShape="RoundRectangle 14"
@@ -94,7 +94,6 @@
                                                 VerticalOptions="Center" />
                                     </Grid>
 
-                                    <!-- Password row (only visible when CreateLoginAccount = true) -->
                                     <VerticalStackLayout Spacing="6">
                                         <VerticalStackLayout.Triggers>
                                             <DataTrigger TargetType="VerticalStackLayout"
@@ -151,7 +150,6 @@
 
                         <VerticalStackLayout Spacing="12">
 
-                            <!-- Phone -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Phone number"
                                        FontSize="12"
@@ -165,7 +163,6 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
-                            <!-- DOB + Licence Expiry -->
                             <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                 <VerticalStackLayout Grid.Column="0" Spacing="6">
                                     <Label Text="Date of birth"
@@ -198,7 +195,6 @@
                                 </VerticalStackLayout>
                             </Grid>
 
-                            <!-- Licence Version -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Licence version"
                                        FontSize="12"
@@ -211,7 +207,6 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
-                            <!-- Class / endorsements -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Class / endorsements"
                                        FontSize="12"
@@ -224,7 +219,6 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
-                            <!-- Issued date -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Issued date"
                                        FontSize="12"
@@ -240,7 +234,6 @@
                                 </Border>
                             </VerticalStackLayout>
 
-                            <!-- Conditions / notes -->
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="Conditions / notes"
                                        FontSize="12"
@@ -279,7 +272,7 @@
 
                     <Label Text="Optional"
                            FontSize="12"
-                           TextColor="{StaticResource BrandInk}"/>
+                           TextColor="{StaticResource BrandInk}" />
 
                     <Border StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -301,7 +294,8 @@
                                    TextColor="{StaticResource BrandInk}"
                                    PlaceholderColor="{StaticResource Gray600}" />
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
                                 <Entry Grid.Column="0"
                                        Placeholder="Suburb"
                                        Text="{Binding Suburb}"
@@ -316,7 +310,8 @@
                                        PlaceholderColor="{StaticResource Gray600}" />
                             </Grid>
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
                                 <Entry Grid.Column="0"
                                        Placeholder="Region"
                                        Text="{Binding Region}"
@@ -357,7 +352,7 @@
 
                     <Label Text="Required for compliance and safety"
                            FontSize="12"
-                           TextColor="{StaticResource BrandInk}"/>
+                           TextColor="{StaticResource BrandInk}" />
 
                     <Border StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -367,7 +362,8 @@
 
                         <VerticalStackLayout Spacing="10">
 
-                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
                                 <Entry Grid.Column="0"
                                        Placeholder="First name"
                                        Text="{Binding EmergencyFirstName}"
@@ -418,6 +414,7 @@
             <!-- SAVE -->
             <Button Text="Save driver"
                     Command="{Binding SaveDriverCommand}"
+                    IsVisible="{Binding ShowAddDriver}"
                     IsEnabled="{Binding CanSave}"
                     HeightRequest="50"
                     CornerRadius="14"

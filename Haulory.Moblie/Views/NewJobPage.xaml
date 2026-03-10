@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewJobPage"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding IsAddJobVisible}">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
@@ -387,6 +389,8 @@
             <!-- SAVE -->
             <Button Text="Save job"
                     Command="{Binding SaveJobCommand}"
+                    IsVisible="{Binding IsAddJobVisible}"
+                    IsEnabled="{Binding IsAddJobEnabled}"
                     HeightRequest="50"
                     CornerRadius="14"
                     BackgroundColor="{StaticResource Primary}"

@@ -11,13 +11,11 @@
 
     <Grid Padding="16" RowDefinitions="Auto,Auto,*" RowSpacing="12">
 
-        <!-- Top row: Driver picker + actions -->
         <Grid Grid.Row="0"
               ColumnDefinitions="*,Auto,Auto"
               ColumnSpacing="10"
               RowDefinitions="Auto">
 
-            <!-- Driver picker -->
             <Border Grid.Column="0"
                     StrokeThickness="1"
                     Stroke="{StaticResource Gray300}"
@@ -32,7 +30,6 @@
                         TextColor="{StaticResource BrandInk}" />
             </Border>
 
-            <!-- Templates -->
             <Button Grid.Column="1"
                     Text="Templates"
                     Padding="14,0"
@@ -42,7 +39,6 @@
                     TextColor="{StaticResource BrandInk}"
                     Command="{Binding GoToTemplatesCommand}" />
 
-            <!-- Add Induction -->
             <Button Grid.Column="2"
                     Text="Add"
                     Padding="14,0"
@@ -53,13 +49,11 @@
                     Command="{Binding AddInductionCommand}" />
         </Grid>
 
-        <!-- Hint -->
         <Label Grid.Row="1"
-               Text="Tap an item to update status, completion date and expiry (per driver)."
+               Text="Tap Edit to update status. Attach PDF or document proof to each induction."
                FontSize="12"
                TextColor="{StaticResource BrandInk}" />
 
-        <!-- Inductions list -->
         <CollectionView Grid.Row="2"
                         ItemsSource="{Binding Inductions}"
                         EmptyView="No inductions for this driver yet. Tap 'Add'.">
@@ -73,20 +67,17 @@
                             Padding="12"
                             Margin="0,0,0,10">
 
-                        <!-- CHANGED: added a row for Company -->
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                               ColumnDefinitions="*,Auto"
                               RowSpacing="6"
                               ColumnSpacing="10">
 
-                            <!-- Worksite -->
                             <Label Grid.Row="0"
                                    Grid.Column="0"
                                    Text="{Binding WorkSiteName}"
                                    FontSize="12"
                                    TextColor="{StaticResource BrandInk}" />
 
-                            <!-- Status (top-right) -->
                             <Border Grid.Row="0"
                                     Grid.Column="1"
                                     StrokeThickness="1"
@@ -100,7 +91,6 @@
                                        TextColor="{StaticResource BrandInk}" />
                             </Border>
 
-                            <!-- Requirement title -->
                             <Label Grid.Row="1"
                                    Grid.Column="0"
                                    Grid.ColumnSpan="2"
@@ -110,7 +100,6 @@
                                    TextColor="{StaticResource BrandTitle}"
                                    LineBreakMode="TailTruncation" />
 
-                            <!-- NEW: Company (only if not empty) -->
                             <Label Grid.Row="2"
                                    Grid.Column="0"
                                    Grid.ColumnSpan="2"
@@ -118,16 +107,19 @@
                                    FontSize="13"
                                    TextColor="{StaticResource BrandInk}">
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding CompanyName}" Value="{x:Null}">
+                                    <DataTrigger TargetType="Label"
+                                                 Binding="{Binding CompanyName}"
+                                                 Value="{x:Null}">
                                         <Setter Property="IsVisible" Value="False" />
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Label" Binding="{Binding CompanyName}" Value="">
+                                    <DataTrigger TargetType="Label"
+                                                 Binding="{Binding CompanyName}"
+                                                 Value="">
                                         <Setter Property="IsVisible" Value="False" />
                                     </DataTrigger>
                                 </Label.Triggers>
                             </Label>
 
-                            <!-- PPE (only if not empty) -->
                             <Label Grid.Row="3"
                                    Grid.Column="0"
                                    Grid.ColumnSpan="2"
@@ -135,72 +127,159 @@
                                    FontSize="13"
                                    TextColor="{StaticResource BrandInk}">
                                 <Label.Triggers>
-                                    <DataTrigger TargetType="Label" Binding="{Binding PpeRequired}" Value="">
+                                    <DataTrigger TargetType="Label"
+                                                 Binding="{Binding PpeRequired}"
+                                                 Value="">
                                         <Setter Property="IsVisible" Value="False" />
                                     </DataTrigger>
-                                    <DataTrigger TargetType="Label" Binding="{Binding PpeRequired}" Value="{x:Null}">
+                                    <DataTrigger TargetType="Label"
+                                                 Binding="{Binding PpeRequired}"
+                                                 Value="{x:Null}">
                                         <Setter Property="IsVisible" Value="False" />
                                     </DataTrigger>
                                 </Label.Triggers>
                             </Label>
 
-                            <!-- Dates + days-left -->
                             <VerticalStackLayout Grid.Row="4"
                                                  Grid.Column="0"
+                                                 Grid.ColumnSpan="2"
                                                  Spacing="3">
 
-                                <!-- CompletedOnUtc visible only if has value -->
                                 <Label Text="{Binding CompletedOnUtc, StringFormat='Completed: {0:yyyy-MM-dd}'}"
                                        FontSize="13"
                                        TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding CompletedOnUtc}" Value="{x:Null}">
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding CompletedOnUtc}"
+                                                     Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
 
-                                <!-- ExpiresOnUtc visible only if has value -->
                                 <Label Text="{Binding ExpiresOnUtc, StringFormat='Due/Expires: {0:yyyy-MM-dd}'}"
                                        FontSize="13"
                                        TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding ExpiresOnUtc}" Value="{x:Null}">
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding ExpiresOnUtc}"
+                                                     Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
 
-                                <!-- DaysLeft visible only if has value -->
                                 <Label Text="{Binding DaysLeft, StringFormat='Days left: {0}'}"
                                        FontSize="13"
                                        TextColor="{StaticResource BrandInk}">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding DaysLeft}" Value="{x:Null}">
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding DaysLeft}"
+                                                     Value="{x:Null}">
                                             <Setter Property="IsVisible" Value="False" />
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
-
                             </VerticalStackLayout>
 
-                            <!-- Edit button (bottom-right) -->
-                            <Button Grid.Row="4"
-                                    Grid.Column="1"
-                                    Text="Edit"
-                                    Padding="14,0"
-                                    HeightRequest="36"
-                                    CornerRadius="10"
-                                    BackgroundColor="{StaticResource Gray200}"
-                                    TextColor="{StaticResource BrandInk}"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}"
-                                    CommandParameter="{Binding}" />
+                            <Border Grid.Row="5"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="2"
+                                    Padding="10"
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 10"
+                                    BackgroundColor="{StaticResource BrandTileFill}">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Proof document"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource BrandInk}" />
+
+                                    <Label Text="{Binding EvidenceFileName}"
+                                           FontSize="13"
+                                           TextColor="{StaticResource BrandInk}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding EvidenceFileName}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="Text" Value="No proof attached" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding EvidenceFileName}"
+                                                         Value="">
+                                                <Setter Property="Text" Value="No proof attached" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <Label Text="{Binding EvidenceUploadedOnUtc, StringFormat='Uploaded: {0:yyyy-MM-dd}'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray600}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding EvidenceUploadedOnUtc}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Grid Grid.Row="6"
+                                  Grid.Column="0"
+                                  Grid.ColumnSpan="2"
+                                  ColumnDefinitions="Auto,Auto,Auto,*"
+                                  ColumnSpacing="8">
+
+                                <Button Grid.Column="0"
+                                        Text="Edit"
+                                        Padding="14,0"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        BackgroundColor="{StaticResource Gray200}"
+                                        TextColor="{StaticResource BrandInk}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditCommand}"
+                                        CommandParameter="{Binding}" />
+
+                                <Button Grid.Column="1"
+                                        Text="Attach"
+                                        Padding="14,0"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="{StaticResource White}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.UploadProofCommand}"
+                                        CommandParameter="{Binding}" />
+
+                                <Button Grid.Column="2"
+                                        Text="Open"
+                                        Padding="14,0"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        BackgroundColor="{StaticResource Gray200}"
+                                        TextColor="{StaticResource BrandInk}"
+                                        IsVisible="{Binding HasEvidence}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.OpenProofCommand}"
+                                        CommandParameter="{Binding}" />
+
+                                <Button Grid.Column="3"
+                                        HorizontalOptions="End"
+                                        Text="Remove"
+                                        Padding="14,0"
+                                        HeightRequest="36"
+                                        CornerRadius="10"
+                                        BackgroundColor="{StaticResource Gray200}"
+                                        TextColor="{StaticResource BrandInk}"
+                                        IsVisible="{Binding HasEvidence}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveProofCommand}"
+                                        CommandParameter="{Binding}" />
+                            </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-
         </CollectionView>
-
     </Grid>
 </ContentPage>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Haulory.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialSqlServer : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -323,11 +323,14 @@ namespace Haulory.Infrastructure.Migrations
                     WorkSiteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RequirementId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    IssueDateUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CompletedOnUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ExpiresOnUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    IssueDateUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EvidenceFilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EvidenceFileName = table.Column<string>(type: "nvarchar(260)", maxLength: 260, nullable: true),
+                    EvidenceContentType = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    EvidenceFilePath = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    EvidenceUploadedOnUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -365,7 +368,8 @@ namespace Haulory.Infrastructure.Migrations
                         name: "FK_JobTrailerAssignments_Jobs_JobId",
                         column: x => x.JobId,
                         principalTable: "Jobs",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_JobTrailerAssignments_VehicleAssets_TrailerAssetId",
                         column: x => x.TrailerAssetId,
@@ -481,6 +485,12 @@ namespace Haulory.Infrastructure.Migrations
                 name: "IX_JobTrailerAssignments_JobId_Position",
                 table: "JobTrailerAssignments",
                 columns: new[] { "JobId", "Position" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobTrailerAssignments_JobId_TrailerAssetId",
+                table: "JobTrailerAssignments",
+                columns: new[] { "JobId", "TrailerAssetId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

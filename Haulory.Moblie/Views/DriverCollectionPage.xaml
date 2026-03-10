@@ -11,7 +11,8 @@
 
     <Grid RowDefinitions="Auto,*"
           Padding="20"
-          RowSpacing="14">
+          RowSpacing="14"
+          IsVisible="{Binding IsDriversVisible}">
 
         <!-- HEADER -->
         <VerticalStackLayout Grid.Row="0" Spacing="10">
@@ -37,7 +38,9 @@
                         Padding="14,0"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
-                        Command="{Binding ManageInductionsCommand}" />
+                        Command="{Binding ManageInductionsCommand}"
+                        IsVisible="{Binding IsInductionsVisible}"
+                        IsEnabled="{Binding IsInductionsEnabled}" />
 
                 <Button Grid.Column="1"
                         Text="Add"
@@ -47,7 +50,8 @@
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="{StaticResource White}"
                         Command="{Binding AddDriverCommand}"
-                        IsVisible="{Binding ShowAddDriver}" />
+                        IsVisible="{Binding IsAddDriverVisible}"
+                        IsEnabled="{Binding IsAddDriverEnabled}" />
             </Grid>
 
         </VerticalStackLayout>
@@ -77,7 +81,7 @@
                                   VerticalOptions="Center">
 
                                 <Label Grid.Column="0"
-                                        Text="{Binding DisplayName}"
+                                       Text="{Binding DisplayName}"
                                        FontAttributes="Bold"
                                        FontSize="16"
                                        TextColor="{StaticResource BrandTitle}"
@@ -102,11 +106,11 @@
                                         BackgroundColor="{StaticResource BrandTileFill}"
                                         StrokeShape="RoundRectangle 12"
                                         Padding="10,4"
-                                        IsVisible="{Binding HasWarnings}">
+                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ShowInductionWarnings}">
                                     <Label Text="INDUCTIONS"
                                            FontSize="12"
                                            FontAttributes="Bold"
-                                           TextColor="{StaticResource BrandAccent}"/>
+                                           TextColor="{StaticResource BrandAccent}" />
                                 </Border>
 
                             </Grid>
@@ -114,7 +118,7 @@
                             <!-- Warning detail chips -->
                             <Grid ColumnDefinitions="Auto,Auto,Auto"
                                   ColumnSpacing="10"
-                                  IsVisible="{Binding HasWarnings}">
+                                  IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ShowInductionWarnings}">
 
                                 <Border Grid.Column="0"
                                         StrokeThickness="1"
@@ -123,8 +127,11 @@
                                         StrokeShape="RoundRectangle 12"
                                         Padding="10,4">
                                     <Border.Triggers>
-                                        <DataTrigger TargetType="Border" Binding="{Binding ExpiredCount}" Value="0">
-                                            <Setter Property="IsVisible" Value="False" />
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ExpiredCount}"
+                                                     Value="0">
+                                            <Setter Property="IsVisible"
+                                                    Value="False" />
                                         </DataTrigger>
                                     </Border.Triggers>
                                     <Label Text="{Binding ExpiredCount, StringFormat='Expired: {0}'}"
@@ -140,8 +147,11 @@
                                         StrokeShape="RoundRectangle 12"
                                         Padding="10,4">
                                     <Border.Triggers>
-                                        <DataTrigger TargetType="Border" Binding="{Binding ExpiringSoonCount}" Value="0">
-                                            <Setter Property="IsVisible" Value="False" />
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ExpiringSoonCount}"
+                                                     Value="0">
+                                            <Setter Property="IsVisible"
+                                                    Value="False" />
                                         </DataTrigger>
                                     </Border.Triggers>
                                     <Label Text="{Binding ExpiringSoonCount, StringFormat='Expiring: {0}'}"
@@ -156,8 +166,11 @@
                                        TextColor="{StaticResource BrandInk}"
                                        VerticalOptions="Center">
                                     <Label.Triggers>
-                                        <DataTrigger TargetType="Label" Binding="{Binding ExpiringSoonCount}" Value="0">
-                                            <Setter Property="IsVisible" Value="False" />
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding ExpiringSoonCount}"
+                                                     Value="0">
+                                            <Setter Property="IsVisible"
+                                                    Value="False" />
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
@@ -173,121 +186,157 @@
 
                                 <VerticalStackLayout Spacing="6">
 
-                                    <!-- Email -->
-                                    <Label Text="{Binding Email, StringFormat='Email: {0}'}"                                                
+                                    <Label Text="{Binding Email, StringFormat='Email: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding Email}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding Email}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Licence number -->
                                     <Label Text="{Binding LicenceNumber, StringFormat='Licence: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceNumber}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceNumber}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceNumber}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceNumber}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- NEW: Class / endorsements -->
                                     <Label Text="{Binding LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceClassOrEndorsements}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceClassOrEndorsements}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceClassOrEndorsements}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceClassOrEndorsements}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- NEW: Version (optional) -->
                                     <Label Text="{Binding LicenceVersion, StringFormat='Version: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceVersion}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceVersion}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceVersion}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceVersion}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- NEW: Issued date (optional) -->
                                     <Label Text="{Binding LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceIssuedOnUtc}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceIssuedOnUtc}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Phone -->
                                     <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding PhoneNumber}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding PhoneNumber}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding PhoneNumber}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding PhoneNumber}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- DOB -->
                                     <Label Text="{Binding DateOfBirthUtc, StringFormat='DOB: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding DateOfBirthUtc}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding DateOfBirthUtc}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Licence expiry -->
                                     <Label Text="{Binding LicenceExpiresOnUtc, StringFormat='Licence expires: {0:yyyy-MM-dd}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding LicenceExpiresOnUtc}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding LicenceExpiresOnUtc}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Address -->
                                     <Label Text="{Binding AddressSummary, StringFormat='Address: {0}'}"
                                            FontSize="13"
                                            TextColor="{StaticResource BrandInk}"
                                            LineBreakMode="TailTruncation"
                                            MaxLines="2">
                                         <Label.Triggers>
-                                            <DataTrigger TargetType="Label" Binding="{Binding AddressSummary}" Value="{x:Null}">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding AddressSummary}"
+                                                         Value="{x:Null}">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
-                                            <DataTrigger TargetType="Label" Binding="{Binding AddressSummary}" Value="">
-                                                <Setter Property="IsVisible" Value="False" />
+                                            <DataTrigger TargetType="Label"
+                                                         Binding="{Binding AddressSummary}"
+                                                         Value="">
+                                                <Setter Property="IsVisible"
+                                                        Value="False" />
                                             </DataTrigger>
                                         </Label.Triggers>
                                     </Label>
@@ -326,7 +375,7 @@
                             <!-- Status -->
                             <Label Text="{Binding EmergencyStatus}"
                                    FontSize="12"
-                                   TextColor="{StaticResource BrandInk}"/>
+                                   TextColor="{StaticResource BrandInk}" />
 
                         </VerticalStackLayout>
                     </Border>
@@ -336,4 +385,4 @@
         </CollectionView>
 
     </Grid>
-</ContentPage> 
+</ContentPage>

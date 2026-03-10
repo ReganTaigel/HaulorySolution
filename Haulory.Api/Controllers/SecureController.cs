@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Haulory.Api.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Haulory.Api.Controllers;
@@ -13,7 +14,9 @@ public class SecureController : ControllerBase
     {
         return Ok(new
         {
-            name = User.Identity?.Name,
+            accountId = User.GetAccountUserId(),
+            ownerId = User.GetOwnerUserId(),
+            role = User.GetRoleName(),
             claims = User.Claims.Select(c => new { c.Type, c.Value })
         });
     }

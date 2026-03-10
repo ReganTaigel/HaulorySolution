@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Contracts.Drivers;
+using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Microsoft.Maui.Controls;
 
@@ -50,16 +51,19 @@ public class NewDriverViewModel : BaseViewModel
 
     private bool _createLoginAccount;
     private string _password = string.Empty;
+
     public ICommand SaveDriverCommand { get; }
 
     public NewDriverViewModel(
         DriversApiService driversApiService,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _driversApiService = driversApiService;
         _sessionService = sessionService;
 
-        SaveDriverCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSave);
+        SaveDriverCommand = new Command(async () => await ExecuteSaveAsync(), () => CanSaveDriverAction);
 
         RefreshSaveState();
     }
@@ -67,17 +71,24 @@ public class NewDriverViewModel : BaseViewModel
     public string DriverId
     {
         get => _driverId;
-        set => _driverId = value;
+        set => SetProperty(ref _driverId, value);
     }
+
+    public bool IsMainUser =>
+        _sessionService.CurrentAccountId.HasValue &&
+        _sessionService.CurrentOwnerId.HasValue &&
+        _sessionService.CurrentAccountId.Value == _sessionService.CurrentOwnerId.Value;
+
+    public bool IsAddDriverVisible => IsFeatureVisible(AppFeature.AddDriver) && IsMainUser;
+    public bool IsAddDriverEnabled => IsFeatureEnabled(AppFeature.AddDriver) && IsMainUser;
 
     public bool CreateLoginAccount
     {
         get => _createLoginAccount;
         set
         {
-            if (_createLoginAccount == value) return;
-            _createLoginAccount = value;
-            OnPropertyChanged();
+            if (!SetProperty(ref _createLoginAccount, value))
+                return;
 
             if (!_createLoginAccount && !string.IsNullOrWhiteSpace(Password))
                 Password = string.Empty;
@@ -91,8 +102,9 @@ public class NewDriverViewModel : BaseViewModel
         get => _password;
         set
         {
-            _password = value;
-            OnPropertyChanged();
+            if (!SetProperty(ref _password, value))
+                return;
+
             RefreshSaveState();
         }
     }
@@ -100,111 +112,229 @@ public class NewDriverViewModel : BaseViewModel
     public string FirstName
     {
         get => _firstName;
-        set { _firstName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _firstName, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string LastName
     {
         get => _lastName;
-        set { _lastName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _lastName, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string Email
     {
         get => _email;
-        set { _email = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _email, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string LicenceNumber
     {
         get => _licenceNumber;
-        set { _licenceNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _licenceNumber, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string PhoneNumber
     {
         get => _phoneNumber;
-        set { _phoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _phoneNumber, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public DateTime DateOfBirthLocal
     {
         get => _dateOfBirthLocal;
-        set { _dateOfBirthLocal = value; OnPropertyChanged(); }
+        set => SetProperty(ref _dateOfBirthLocal, value);
     }
 
     public DateTime LicenceExpiryLocal
     {
         get => _licenceExpiryLocal;
-        set { _licenceExpiryLocal = value; OnPropertyChanged(); }
+        set => SetProperty(ref _licenceExpiryLocal, value);
     }
 
     public string LicenceVersion
     {
         get => _licenceVersion;
-        set { _licenceVersion = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _licenceVersion, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string LicenceClassOrEndorsements
     {
         get => _licenceClassOrEndorsements;
-        set { _licenceClassOrEndorsements = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _licenceClassOrEndorsements, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string LicenceConditionsNotes
     {
         get => _licenceConditionsNotes;
-        set { _licenceConditionsNotes = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _licenceConditionsNotes, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public DateTime LicenceIssuedLocal
     {
         get => _licenceIssuedLocal;
-        set { _licenceIssuedLocal = value; OnPropertyChanged(); }
+        set => SetProperty(ref _licenceIssuedLocal, value);
     }
 
-    public string Line1 { get => _line1; set { _line1 = value; OnPropertyChanged(); } }
-    public string Line2 { get => _line2; set { _line2 = value; OnPropertyChanged(); } }
-    public string Suburb { get => _suburb; set { _suburb = value; OnPropertyChanged(); } }
-    public string City { get => _city; set { _city = value; OnPropertyChanged(); } }
-    public string Region { get => _region; set { _region = value; OnPropertyChanged(); } }
-    public string Postcode { get => _postcode; set { _postcode = value; OnPropertyChanged(); } }
-    public string Country { get => _country; set { _country = value; OnPropertyChanged(); } }
+    public string Line1
+    {
+        get => _line1;
+        set => SetProperty(ref _line1, value);
+    }
+
+    public string Line2
+    {
+        get => _line2;
+        set => SetProperty(ref _line2, value);
+    }
+
+    public string Suburb
+    {
+        get => _suburb;
+        set => SetProperty(ref _suburb, value);
+    }
+
+    public string City
+    {
+        get => _city;
+        set => SetProperty(ref _city, value);
+    }
+
+    public string Region
+    {
+        get => _region;
+        set => SetProperty(ref _region, value);
+    }
+
+    public string Postcode
+    {
+        get => _postcode;
+        set => SetProperty(ref _postcode, value);
+    }
+
+    public string Country
+    {
+        get => _country;
+        set => SetProperty(ref _country, value);
+    }
 
     public string EmergencyFirstName
     {
         get => _ecFirstName;
-        set { _ecFirstName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecFirstName, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyLastName
     {
         get => _ecLastName;
-        set { _ecLastName = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecLastName, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyRelationship
     {
         get => _ecRelationship;
-        set { _ecRelationship = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecRelationship, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyEmail
     {
         get => _ecEmail;
-        set { _ecEmail = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecEmail, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string EmergencyPhoneNumber
     {
         get => _ecPhoneNumber;
-        set { _ecPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecPhoneNumber, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public string EmergencySecondaryPhoneNumber
     {
         get => _ecSecondaryPhoneNumber;
-        set { _ecSecondaryPhoneNumber = value; OnPropertyChanged(); RefreshSaveState(); }
+        set
+        {
+            if (!SetProperty(ref _ecSecondaryPhoneNumber, value))
+                return;
+
+            RefreshSaveState();
+        }
     }
 
     public bool CanSave
@@ -212,6 +342,12 @@ public class NewDriverViewModel : BaseViewModel
         get
         {
             if (_isSaving)
+                return false;
+
+            if (!IsFeatureEnabled(AppFeature.AddDriver))
+                return false;
+
+            if (!IsMainUser)
                 return false;
 
             if (!_sessionService.IsAuthenticated)
@@ -254,10 +390,12 @@ public class NewDriverViewModel : BaseViewModel
         }
     }
 
-
+    public bool CanSaveDriverAction => IsAddDriverEnabled && CanSave;
 
     private async Task ExecuteSaveAsync()
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.AddDriver))
+            return;
 
         if (!_sessionService.IsAuthenticated)
             await _sessionService.RestoreAsync();
@@ -268,6 +406,7 @@ public class NewDriverViewModel : BaseViewModel
                 "Cannot save",
                 $"Authenticated: {_sessionService.IsAuthenticated}\n" +
                 $"OwnerId: {_sessionService.CurrentOwnerId}\n" +
+                $"IsMainUser: {IsMainUser}\n" +
                 $"FirstName ok: {!string.IsNullOrWhiteSpace(FirstName)}\n" +
                 $"LastName ok: {!string.IsNullOrWhiteSpace(LastName)}\n" +
                 $"Email ok: {!string.IsNullOrWhiteSpace(Email) && Email.Contains('@')}\n" +
@@ -348,7 +487,11 @@ public class NewDriverViewModel : BaseViewModel
 
     private void RefreshSaveState()
     {
+        OnPropertyChanged(nameof(IsMainUser));
         OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(IsAddDriverVisible));
+        OnPropertyChanged(nameof(IsAddDriverEnabled));
+        OnPropertyChanged(nameof(CanSaveDriverAction));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 
@@ -356,12 +499,17 @@ public class NewDriverViewModel : BaseViewModel
     {
         return DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local).ToUniversalTime();
     }
+
     public async Task InitializeAsync()
     {
         if (!_sessionService.IsAuthenticated)
             await _sessionService.RestoreAsync();
 
+        OnPropertyChanged(nameof(IsMainUser));
         OnPropertyChanged(nameof(CanSave));
+        OnPropertyChanged(nameof(IsAddDriverVisible));
+        OnPropertyChanged(nameof(IsAddDriverEnabled));
+        OnPropertyChanged(nameof(CanSaveDriverAction));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 }

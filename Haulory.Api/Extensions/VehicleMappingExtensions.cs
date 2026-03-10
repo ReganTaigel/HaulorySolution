@@ -12,16 +12,27 @@ public static class VehicleMappingExtensions
             Id = vehicle.Id,
             OwnerUserId = vehicle.OwnerUserId,
             VehicleSetId = vehicle.VehicleSetId,
+
             Rego = vehicle.Rego,
             Make = vehicle.Make,
             Model = vehicle.Model,
             Year = vehicle.Year,
+
             UnitNumber = vehicle.UnitNumber,
+
             Kind = vehicle.Kind.ToString(),
             VehicleType = vehicle.VehicleType?.ToString(),
-            FuelType = vehicle.FuelType?.ToString(),
-            Configuration = vehicle.Configuration?.ToString(),
+
             OdometerKm = vehicle.OdometerKm,
+
+            RegoExpiry = vehicle.RegoExpiry,
+
+            CertificateType = vehicle.CertificateType.ToString(),
+            CertificateExpiry = vehicle.CertificateExpiry,
+
+            RucLicenceStartKm = vehicle.RucLicenceStartKm,
+            RucLicenceEndKm = vehicle.RucLicenceEndKm,
+
             CreatedUtc = vehicle.CreatedUtc
         };
     }

@@ -1,34 +1,57 @@
-﻿using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
+﻿using Haulory.Application.Interfaces.Services;
 using Microsoft.Maui.Controls;
 
 namespace Haulory.Mobile;
 
 public partial class App : Microsoft.Maui.Controls.Application
+
 {
+    private readonly ISessionService _sessionService;
+    private readonly AppShell _shell;
+    private bool _startupNavigationDone;
+
     public App(
         AppShell shell,
-        ISessionService sessionService,
-        IUserAccountRepository userRepository)
+        ISessionService sessionService)
     {
         InitializeComponent();
 
-        MainPage = shell;
+        _shell = shell;
+        _sessionService = sessionService;
 
-        Task.Run(async () =>
+        MainPage = _shell;
+
+        _shell.Loaded += OnShellLoaded;
+    }
+
+    private async void OnShellLoaded(object? sender, EventArgs e)
+    {
+        if (_startupNavigationDone)
+            return;
+
+        _startupNavigationDone = true;
+
+        try
         {
-            var hasMainUser = await userRepository.AnyAsync();
-            await sessionService.RestoreAsync();
+            await _sessionService.RestoreAsync();
 
-            MainThread.BeginInvokeOnMainThread(async () =>
+            if (_sessionService.IsAuthenticated)
+                await _shell.GoToAsync("///DashboardPage");
+            else
+                await _shell.GoToAsync("///LoginPage");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+
+            try
             {
-                if (!hasMainUser)
-                    await Shell.Current.GoToAsync("///RegisterPage");
-                else if (sessionService.IsAuthenticated)
-                    await Shell.Current.GoToAsync("///DashboardPage");
-                else
-                    await Shell.Current.GoToAsync("///LoginPage");
-            });
-        });
+                await _shell.GoToAsync("///LoginPage");
+            }
+            catch (Exception navEx)
+            {
+                System.Diagnostics.Debug.WriteLine(navEx);
+            }
+        }
     }
 }

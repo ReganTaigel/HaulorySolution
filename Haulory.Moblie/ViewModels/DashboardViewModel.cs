@@ -1,9 +1,11 @@
-﻿using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
+﻿using Haulory.Application.Interfaces.Services;
 using Haulory.Application.Services;
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Features;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,9 +18,10 @@ public class DashboardViewModel : BaseViewModel
     #region Dependencies
 
     private readonly ISessionService _sessionService;
-    private readonly IJobRepository _jobRepository;
-    private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly JobsApiService _jobsApiService;
     private readonly IOdometerService _odometerService;
+    private readonly ReportsApiService _reportsApiService;
+
     #endregion
 
     #region State
@@ -42,6 +45,32 @@ public class DashboardViewModel : BaseViewModel
     private string _dayStatusText = "Day not started";
     private string _assignedVehicleDisplay = "No vehicle assigned";
     private Guid? _currentVehicleAssetId;
+
+    #endregion
+
+    #region Feature Access Properties
+
+    public bool IsDriversVisible => IsFeatureVisible(AppFeature.Drivers);
+    public bool IsJobsVisible => IsFeatureVisible(AppFeature.Jobs);
+    public bool IsVehiclesVisible => IsFeatureVisible(AppFeature.Vehicles);
+    public bool IsReportsVisible => IsFeatureVisible(AppFeature.Reports);
+    public bool IsInductionsVisible => IsFeatureVisible(AppFeature.Inductions);
+
+    public bool IsDriversEnabled => IsFeatureEnabled(AppFeature.Drivers);
+    public bool IsJobsEnabled => IsFeatureEnabled(AppFeature.Jobs);
+    public bool IsVehiclesEnabled => IsFeatureEnabled(AppFeature.Vehicles);
+    public bool IsReportsEnabled => IsFeatureEnabled(AppFeature.Reports);
+    public bool IsInductionsEnabled => IsFeatureEnabled(AppFeature.Inductions);
+
+    public bool IsStartDayVisible => IsFeatureVisible(AppFeature.StartDay);
+    public bool IsStartDayEnabled => IsFeatureEnabled(AppFeature.StartDay);
+
+    public bool IsEndDayVisible => IsFeatureVisible(AppFeature.EndDay);
+    public bool IsEndDayEnabled => IsFeatureEnabled(AppFeature.EndDay);
+
+    public bool CanStartDayAction => IsFeatureEnabled(AppFeature.StartDay) && CanStartDay;
+    public bool CanEndDayAction => IsFeatureEnabled(AppFeature.EndDay) && CanEndDay;
+
     #endregion
 
     #region Bindable Properties
@@ -59,7 +88,7 @@ public class DashboardViewModel : BaseViewModel
     public string CurrentJobSummary
     {
         get => _currentJobSummary;
-        private set { _currentJobSummary = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _currentJobSummary, value);
     }
 
     public string ReferenceNumber
@@ -67,34 +96,35 @@ public class DashboardViewModel : BaseViewModel
         get => _referenceNumber;
         private set
         {
-            _referenceNumber = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasActiveJob));
+            if (SetProperty(ref _referenceNumber, value))
+            {
+                OnPropertyChanged(nameof(HasActiveJob));
+            }
         }
     }
 
     public string PickupCompany
     {
         get => _pickupCompany;
-        private set { _pickupCompany = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _pickupCompany, value);
     }
 
     public string DeliveryCompany
     {
         get => _deliveryCompany;
-        private set { _deliveryCompany = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _deliveryCompany, value);
     }
 
     public string DeliveryAddress
     {
         get => _deliveryAddress;
-        private set { _deliveryAddress = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _deliveryAddress, value);
     }
 
     public string LoadDescription
     {
         get => _loadDescription;
-        private set { _loadDescription = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _loadDescription, value);
     }
 
     public bool HasActiveJob => !string.IsNullOrWhiteSpace(ReferenceNumber);
@@ -102,29 +132,33 @@ public class DashboardViewModel : BaseViewModel
     public int CompletedTodayCount
     {
         get => _completedTodayCount;
-        private set { _completedTodayCount = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _completedTodayCount, value);
     }
 
     public decimal RevenueToday
     {
         get => _revenueToday;
-        private set { _revenueToday = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _revenueToday, value);
     }
 
     public string LatestCompletedSummary
     {
         get => _latestCompletedSummary;
-        private set { _latestCompletedSummary = value; OnPropertyChanged(); }
+        private set => SetProperty(ref _latestCompletedSummary, value);
     }
+
     public bool HasStartedDay
     {
         get => _hasStartedDay;
         private set
         {
-            _hasStartedDay = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(CanStartDay));
-            OnPropertyChanged(nameof(CanEndDay));
+            if (SetProperty(ref _hasStartedDay, value))
+            {
+                OnPropertyChanged(nameof(CanStartDay));
+                OnPropertyChanged(nameof(CanEndDay));
+                OnPropertyChanged(nameof(CanStartDayAction));
+                OnPropertyChanged(nameof(CanEndDayAction));
+            }
         }
     }
 
@@ -134,22 +168,15 @@ public class DashboardViewModel : BaseViewModel
     public string DayStatusText
     {
         get => _dayStatusText;
-        private set
-        {
-            _dayStatusText = value;
-            OnPropertyChanged();
-        }
+        private set => SetProperty(ref _dayStatusText, value);
     }
 
     public string AssignedVehicleDisplay
     {
         get => _assignedVehicleDisplay;
-        private set
-        {
-            _assignedVehicleDisplay = value;
-            OnPropertyChanged();
-        }
+        private set => SetProperty(ref _assignedVehicleDisplay, value);
     }
+
     #endregion
 
     #region Commands
@@ -161,35 +188,38 @@ public class DashboardViewModel : BaseViewModel
     public ICommand LogoutCommand { get; }
     public ICommand StartDayCommand { get; }
     public ICommand EndDayCommand { get; }
+
     #endregion
 
     #region Constructor
 
     public DashboardViewModel(
         ISessionService sessionService,
-        IJobRepository jobRepository,
-        IDeliveryReceiptRepository deliveryReceiptRepository,
-        IOdometerService odometerService)
+        JobsApiService jobsApiService,
+        ReportsApiService reportsApiService,
+        IOdometerService odometerService,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _sessionService = sessionService;
-        _jobRepository = jobRepository;
-        _deliveryReceiptRepository = deliveryReceiptRepository;
+        _jobsApiService = jobsApiService;
+        _reportsApiService = reportsApiService;
         _odometerService = odometerService;
 
         StartDayCommand = new Command(async () => await StartDayAsync());
         EndDayCommand = new Command(async () => await EndDayAsync());
 
         GoToJobsCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
+            await NavigateToFeatureAsync(AppFeature.Jobs, nameof(JobsCollectionPage)));
 
         GoToVehiclesCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(VehicleCollectionPage)));
+            await NavigateToFeatureAsync(AppFeature.Vehicles, nameof(VehicleCollectionPage)));
 
         GoToDriversCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(DriverCollectionPage)));
+            await NavigateToFeatureAsync(AppFeature.Drivers, nameof(DriverCollectionPage)));
 
         GoToReportsCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(ReportsPage)));
+            await NavigateToFeatureAsync(AppFeature.Reports, nameof(ReportsPage)));
 
         LogoutCommand = new Command(async () => await LogoutAsync());
 
@@ -202,17 +232,30 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadAsync()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+            return;
+
         _isLoading = true;
 
         try
         {
+            if (!_sessionService.IsAuthenticated)
+                await _sessionService.RestoreAsync();
+
+            OnPropertyChanged(nameof(IsMainUser));
+            OnPropertyChanged(nameof(IsSubUser));
+
             await LoadCurrentJobAsync();
             await LoadCompletedReportSummaryAsync();
             await LoadDayStateAsync();
 
-            OnPropertyChanged(nameof(IsMainUser));
-            OnPropertyChanged(nameof(IsSubUser));
+            RefreshFeatureBindings();
+            System.Diagnostics.Debug.WriteLine(
+            $"[Dashboard After Refresh] " +
+            $"JobsVisible={IsJobsVisible}, " +
+            $"VehiclesVisible={IsVehiclesVisible}, " +
+            $"DriversVisible={IsDriversVisible}, " +
+            $"ReportsVisible={IsReportsVisible}");
         }
         finally
         {
@@ -222,6 +265,9 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadCurrentJobAsync()
     {
+        if (!_sessionService.IsAuthenticated)
+            await _sessionService.RestoreAsync();
+
         var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
         var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;
 
@@ -232,15 +278,8 @@ public class DashboardViewModel : BaseViewModel
             return;
         }
 
-        var jobs = await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
+        var jobs = await _jobsApiService.GetActiveJobsAsync();
 
-        // IMPORTANT:
-        // Main user sees only:
-        // - jobs assigned to main account
-        // - or unassigned jobs
-        //
-        // Sub user sees only:
-        // - jobs assigned to that sub account
         var filteredJobs = IsSubUser
             ? jobs.Where(j => j.AssignedToUserId == accountId)
             : jobs.Where(j => j.AssignedToUserId == null || j.AssignedToUserId == accountId);
@@ -270,41 +309,50 @@ public class DashboardViewModel : BaseViewModel
             $"{nextJob.PickupCompany} → {nextJob.DeliveryCompany}\n" +
             $"{nextJob.DeliveryAddress}\n" +
             $"{nextJob.LoadDescription}";
+
+        if (!_sessionService.IsAuthenticated)
+            await _sessionService.RestoreAsync();
+
+        System.Diagnostics.Debug.WriteLine(
+            $"[Dashboard] Auth={_sessionService.IsAuthenticated}, " +
+            $"AccountId={_sessionService.CurrentAccountId}, " +
+            $"OwnerId={_sessionService.CurrentOwnerId}, " +
+            $"IsMainUser={IsMainUser}, " +
+            $"IsSubUser={IsSubUser}, " +
+            $"JobsVisible={IsJobsVisible}, " +
+            $"JobsEnabled={IsJobsEnabled}, " +
+            $"VehiclesVisible={IsVehiclesVisible}, " +
+            $"VehiclesEnabled={IsVehiclesEnabled}, " +
+            $"DriversVisible={IsDriversVisible}, " +
+            $"DriversEnabled={IsDriversEnabled}, " +
+            $"ReportsVisible={IsReportsVisible}, " +
+            $"ReportsEnabled={IsReportsEnabled}");
     }
 
     public async Task LoadCompletedReportSummaryAsync()
     {
-        var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
-        {
-            CompletedTodayCount = 0;
-            RevenueToday = 0m;
-            LatestCompletedSummary = "Please log in again";
-            return;
-        }
+        var summary = await _reportsApiService.GetTodayAsync();
 
-        var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
+        CompletedTodayCount = summary.CompletedTodayCount;
+        RevenueToday = summary.RevenueToday;
 
-        var todayLocal = DateTime.Now.Date;
-
-        var todayReceipts = receipts
-            .Where(r => ToLocalDate(r.DeliveredAtUtc) == todayLocal)
-            .OrderByDescending(r => r.DeliveredAtUtc)
-            .ToList();
-
-        CompletedTodayCount = todayReceipts.Count;
-        RevenueToday = todayReceipts.Sum(r => r.Total);
-
-        var latest = todayReceipts.FirstOrDefault();
-        LatestCompletedSummary = latest == null
-            ? "No completed jobs yet"
-            : $"{latest.ReferenceNumber} • {latest.ReceiverName} • {latest.Total:C}";
+        LatestCompletedSummary =
+            string.IsNullOrWhiteSpace(summary.LatestReferenceNumber)
+                ? "No completed jobs yet"
+                : $"{summary.LatestReferenceNumber} • {summary.LatestReceiver} • {summary.LatestTotal:C}";
     }
+
+    #endregion
+
+    #region Private Day Workflow
 
     private async Task LoadDayStateAsync()
     {
         _currentVehicleAssetId = null;
         AssignedVehicleDisplay = "No vehicle assigned";
+
+        if (!_sessionService.IsAuthenticated)
+            await _sessionService.RestoreAsync();
 
         var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
         var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;
@@ -316,7 +364,7 @@ public class DashboardViewModel : BaseViewModel
             return;
         }
 
-        var jobs = await _jobRepository.GetActiveByOwnerAsync(ownerUserId);
+        var jobs = await _jobsApiService.GetActiveJobsAsync();
 
         var filteredJobs = IsSubUser
             ? jobs.Where(j => j.AssignedToUserId == accountId)
@@ -334,10 +382,8 @@ public class DashboardViewModel : BaseViewModel
         }
 
         _currentVehicleAssetId = nextJob.VehicleAssetId;
-        AssignedVehicleDisplay = $"Assigned vehicle ready";
+        AssignedVehicleDisplay = "Assigned vehicle ready";
 
-        // Temporary dashboard-only state:
-        // later this should come from a persisted DriverDay table
         HasStartedDay = Preferences.Default.Get($"day_started_{accountId}", false);
 
         DayStatusText = HasStartedDay
@@ -347,11 +393,26 @@ public class DashboardViewModel : BaseViewModel
 
     private async Task StartDayAsync()
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.StartDay))
+            return;
+
         try
         {
             if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
             {
-                await Shell.Current.DisplayAlertAsync("No vehicle", "There is no assigned vehicle for today.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "No vehicle",
+                    "There is no assigned vehicle for today.",
+                    "OK");
+                return;
+            }
+
+            if (HasStartedDay)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Already started",
+                    "The day has already been started.",
+                    "OK");
                 return;
             }
 
@@ -367,12 +428,15 @@ public class DashboardViewModel : BaseViewModel
 
             if (!int.TryParse(result, out var startKm))
             {
-                await Shell.Current.DisplayAlertAsync("Invalid value", "Enter a valid odometer reading.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "Invalid value",
+                    "Enter a valid odometer reading.",
+                    "OK");
                 return;
             }
 
             var currentUserId = _sessionService.CurrentAccountId;
-            var driverId = Guid.Empty as Guid?;
+            Guid? driverId = null;
 
             await _odometerService.RecordReadingAsync(
                 _currentVehicleAssetId.Value,
@@ -388,20 +452,39 @@ public class DashboardViewModel : BaseViewModel
             HasStartedDay = true;
             DayStatusText = $"Day started • {startKm:N0} km";
 
-            await Shell.Current.DisplayAlertAsync("Started", "Day started successfully.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Started",
+                "Day started successfully.",
+                "OK");
         }
         catch (Exception ex)
         {
             await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
         }
     }
+
     private async Task EndDayAsync()
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.EndDay))
+            return;
+
         try
         {
             if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
             {
-                await Shell.Current.DisplayAlertAsync("No vehicle", "There is no assigned vehicle for today.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "No vehicle",
+                    "There is no assigned vehicle for today.",
+                    "OK");
+                return;
+            }
+
+            if (!HasStartedDay)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Cannot end day",
+                    "You need to start the day before ending it.",
+                    "OK");
                 return;
             }
 
@@ -417,12 +500,15 @@ public class DashboardViewModel : BaseViewModel
 
             if (!int.TryParse(result, out var endKm))
             {
-                await Shell.Current.DisplayAlertAsync("Invalid value", "Enter a valid odometer reading.", "OK");
+                await Shell.Current.DisplayAlertAsync(
+                    "Invalid value",
+                    "Enter a valid odometer reading.",
+                    "OK");
                 return;
             }
 
             var currentUserId = _sessionService.CurrentAccountId;
-            var driverId = Guid.Empty as Guid?;
+            Guid? driverId = null;
 
             await _odometerService.RecordReadingAsync(
                 _currentVehicleAssetId.Value,
@@ -438,13 +524,17 @@ public class DashboardViewModel : BaseViewModel
             HasStartedDay = false;
             DayStatusText = $"Day completed • {endKm:N0} km";
 
-            await Shell.Current.DisplayAlertAsync("Completed", "Day ended successfully.", "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Completed",
+                "Day ended successfully.",
+                "OK");
         }
         catch (Exception ex)
         {
             await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
         }
     }
+
     #endregion
 
     #region Private Helpers
@@ -458,10 +548,36 @@ public class DashboardViewModel : BaseViewModel
         LoadDescription = string.Empty;
     }
 
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsDriversVisible));
+        OnPropertyChanged(nameof(IsJobsVisible));
+        OnPropertyChanged(nameof(IsVehiclesVisible));
+        OnPropertyChanged(nameof(IsReportsVisible));
+        OnPropertyChanged(nameof(IsInductionsVisible));
+
+        OnPropertyChanged(nameof(IsDriversEnabled));
+        OnPropertyChanged(nameof(IsJobsEnabled));
+        OnPropertyChanged(nameof(IsVehiclesEnabled));
+        OnPropertyChanged(nameof(IsReportsEnabled));
+        OnPropertyChanged(nameof(IsInductionsEnabled));
+
+        OnPropertyChanged(nameof(IsStartDayVisible));
+        OnPropertyChanged(nameof(IsStartDayEnabled));
+        OnPropertyChanged(nameof(IsEndDayVisible));
+        OnPropertyChanged(nameof(IsEndDayEnabled));
+
+        OnPropertyChanged(nameof(CanStartDayAction));
+        OnPropertyChanged(nameof(CanEndDayAction));
+    }
+
     private void EnsureShellNavigationRefreshHook()
     {
-        if (_isSubscribedToShell) return;
-        if (Shell.Current == null) return;
+        if (_isSubscribedToShell)
+            return;
+
+        if (Shell.Current == null)
+            return;
 
         Shell.Current.Navigated += OnShellNavigated;
         _isSubscribedToShell = true;
@@ -477,13 +593,12 @@ public class DashboardViewModel : BaseViewModel
         await LoadAsync();
     }
 
-    private static DateTime ToLocalDate(DateTime deliveredAtUtc)
+    private async Task NavigateToFeatureAsync(AppFeature feature, string route)
     {
-        var utc = deliveredAtUtc.Kind == DateTimeKind.Utc
-            ? deliveredAtUtc
-            : DateTime.SpecifyKind(deliveredAtUtc, DateTimeKind.Utc);
+        if (!await EnsureFeatureEnabledAsync(feature))
+            return;
 
-        return utc.ToLocalTime().Date;
+        await Shell.Current.GoToAsync(route);
     }
 
     private async Task LogoutAsync()

@@ -1,83 +1,78 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using Haulory.Application.Features.Incductions;
+﻿using Haulory.Application.Features.Incductions;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Entities;
+using Haulory.Mobile.Features;
+using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows.Input;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class ManageInductionsViewModel : BaseViewModel
 {
-    #region Dependencies
-
     private readonly ISessionService _session;
-    private readonly IDriverRepository _drivers;
     private readonly IDriverInductionRepository _driverInductions;
     private readonly IComplianceEnsurer _ensurer;
     private readonly IWorkSiteRepository _sites;
+    private readonly DriversApiService _driversApiService;
 
-    #endregion
+    private DriverPickerItem? _selectedDriver;
 
-    #region State
-
-    private Driver? _selectedDriver;
-
-    #endregion
-
-    #region Bindable Properties
-
-    public ObservableCollection<Driver> Drivers { get; } = new();
+    public ObservableCollection<DriverPickerItem> Drivers { get; } = new();
     public ObservableCollection<DriverInductionListItemDto> Inductions { get; } = new();
 
-    public Driver? SelectedDriver
+    public bool IsInductionsVisible => IsFeatureVisible(AppFeature.Inductions);
+    public bool IsInductionsEnabled => IsFeatureEnabled(AppFeature.Inductions);
+
+    public DriverPickerItem? SelectedDriver
     {
         get => _selectedDriver;
         set
         {
-            _selectedDriver = value;
-            OnPropertyChanged();
+            if (!SetProperty(ref _selectedDriver, value))
+                return;
 
-            // Fire and forget load for inductions list
             _ = LoadInductionsAsync();
         }
     }
-
-    #endregion
-
-    #region Commands
 
     public ICommand RefreshCommand { get; }
     public ICommand GoToTemplatesCommand { get; }
     public ICommand AddInductionCommand { get; }
     public ICommand EditCommand { get; }
-
-    #endregion
-
-    #region Constructor
+    public ICommand UploadProofCommand { get; }
+    public ICommand OpenProofCommand { get; }
+    public ICommand RemoveProofCommand { get; }
 
     public ManageInductionsViewModel(
         ISessionService session,
-        IDriverRepository drivers,
         IDriverInductionRepository driverInductions,
         IWorkSiteRepository sites,
-        IComplianceEnsurer ensurer)
+        IComplianceEnsurer ensurer,
+        DriversApiService driversApiService,
+        IFeatureAccessService featureAccessService)
+        : base(featureAccessService)
     {
         _session = session;
-        _drivers = drivers;
         _driverInductions = driverInductions;
         _sites = sites;
         _ensurer = ensurer;
+        _driversApiService = driversApiService;
 
         RefreshCommand = new Command(async () => await LoadAsync());
 
         GoToTemplatesCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(InductionTemplatesPage)));
+        {
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+                return;
+
+            await Shell.Current.GoToAsync(nameof(InductionTemplatesPage));
+        });
 
         AddInductionCommand = new Command(async () => await AddInductionAsync());
 
@@ -88,11 +83,34 @@ public class ManageInductionsViewModel : BaseViewModel
 
             await EditAsync(item);
         });
+
+        UploadProofCommand = new Command<DriverInductionListItemDto>(async item =>
+        {
+            if (item == null || SelectedDriver == null)
+                return;
+
+            await UploadProofAsync(item);
+        });
+
+        OpenProofCommand = new Command<DriverInductionListItemDto>(async item =>
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.EvidenceUrl))
+                return;
+
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+                return;
+
+            await Launcher.Default.OpenAsync(item.EvidenceUrl);
+        });
+
+        RemoveProofCommand = new Command<DriverInductionListItemDto>(async item =>
+        {
+            if (item == null || SelectedDriver == null)
+                return;
+
+            await RemoveProofAsync(item);
+        });
     }
-
-    #endregion
-
-    #region Load Drivers
 
     public async Task LoadAsync()
     {
@@ -103,21 +121,41 @@ public class ManageInductionsViewModel : BaseViewModel
         {
             IsBusy = true;
 
+            Drivers.Clear();
+            Inductions.Clear();
+
+            if (!IsFeatureEnabled(AppFeature.Inductions))
+            {
+                RefreshFeatureBindings();
+                return;
+            }
+
             await EnsureSessionAsync();
 
             var ownerId = _session.CurrentOwnerId ?? Guid.Empty;
             if (ownerId == Guid.Empty)
+            {
+                RefreshFeatureBindings();
                 return;
+            }
 
-            Drivers.Clear();
-            Inductions.Clear();
+            var drivers = await _driversApiService.GetDriversAsync();
 
-            var drivers = await _drivers.GetAllByOwnerUserIdAsync(ownerId);
-            foreach (var d in drivers.OrderBy(d => d.DisplayName))
-                Drivers.Add(d);
+            foreach (var d in drivers
+                         .OrderBy(x => x.FirstName)
+                         .ThenBy(x => x.LastName))
+            {
+                Drivers.Add(new DriverPickerItem
+                {
+                    Id = d.Id,
+                    DisplayName = $"{d.FirstName} {d.LastName}".Trim()
+                });
+            }
 
             if (SelectedDriver == null && Drivers.Count > 0)
                 SelectedDriver = Drivers[0];
+
+            RefreshFeatureBindings();
         }
         catch (Exception ex)
         {
@@ -129,15 +167,17 @@ public class ManageInductionsViewModel : BaseViewModel
         }
     }
 
-    #endregion
-
-    #region Load Inductions
-
     private async Task LoadInductionsAsync()
     {
         try
         {
             Inductions.Clear();
+
+            if (!IsFeatureEnabled(AppFeature.Inductions))
+            {
+                RefreshFeatureBindings();
+                return;
+            }
 
             if (SelectedDriver == null)
                 return;
@@ -149,8 +189,11 @@ public class ManageInductionsViewModel : BaseViewModel
                 return;
 
             var list = await _driverInductions.GetListItemsByDriverAsync(ownerId, SelectedDriver.Id);
+
             foreach (var x in list)
                 Inductions.Add(x);
+
+            RefreshFeatureBindings();
         }
         catch (Exception ex)
         {
@@ -158,16 +201,14 @@ public class ManageInductionsViewModel : BaseViewModel
         }
     }
 
-    #endregion
-
-    #region Edit Induction
-
     private async Task EditAsync(DriverInductionListItemDto item)
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+            return;
+
         if (SelectedDriver == null)
             return;
 
-        // 1) Status
         var statusText = await Shell.Current.DisplayActionSheetAsync(
             "Set Status",
             "Cancel",
@@ -180,12 +221,10 @@ public class ManageInductionsViewModel : BaseViewModel
         if (statusText == "Cancel" || !Enum.TryParse(statusText, out ComplianceStatus newStatus))
             return;
 
-        // 2) Completion date (only if Completed)
         DateTime? completedOnUtc = item.CompletedOnUtc;
 
         if (newStatus == ComplianceStatus.Completed)
         {
-            // Default to existing completion date or today
             var defaultLocal = (completedOnUtc ?? DateTime.UtcNow).ToLocalTime().Date;
 
             var dateText = await Shell.Current.DisplayPromptAsync(
@@ -197,7 +236,7 @@ public class ManageInductionsViewModel : BaseViewModel
                 keyboard: Keyboard.Text);
 
             if (dateText == null)
-                return; // cancelled
+                return;
 
             if (!DateTime.TryParse(dateText, out var parsedLocal))
             {
@@ -205,17 +244,14 @@ public class ManageInductionsViewModel : BaseViewModel
                 return;
             }
 
-            // Store at midnight local -> convert to UTC
             var localMidnight = parsedLocal.Date;
             completedOnUtc = DateTime.SpecifyKind(localMidnight, DateTimeKind.Local).ToUniversalTime();
         }
         else
         {
-            // If not completed, clear completion date
             completedOnUtc = null;
         }
 
-        // 3) Recalculate expiry (next due == expires)
         DateTime? expiresOnUtc = null;
         if (newStatus == ComplianceStatus.Completed &&
             completedOnUtc.HasValue &&
@@ -239,10 +275,7 @@ public class ManageInductionsViewModel : BaseViewModel
 
         if (entity == null)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Missing",
-                "Tap 'Add Induction' to create missing rows.",
-                "OK");
+            await Shell.Current.DisplayAlertAsync("Missing", "Tap 'Add Induction' to create missing rows.", "OK");
             return;
         }
 
@@ -255,12 +288,92 @@ public class ManageInductionsViewModel : BaseViewModel
         await LoadInductionsAsync();
     }
 
-    #endregion
+    private async Task UploadProofAsync(DriverInductionListItemDto item)
+    {
+        try
+        {
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+                return;
 
-    #region Add Induction (Create Missing Rows)
+            if (SelectedDriver == null)
+                return;
+
+            var fileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.Android, new[] { "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "image/*" } },
+                { DevicePlatform.iOS, new[] { "com.adobe.pdf", "public.image", "com.microsoft.word.doc", "org.openxmlformats.wordprocessingml.document" } },
+                { DevicePlatform.WinUI, new[] { ".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png" } },
+                { DevicePlatform.MacCatalyst, new[] { "pdf", "doc", "docx", "jpg", "jpeg", "png" } }
+            });
+
+            var file = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Choose proof file",
+                FileTypes = fileTypes
+            });
+
+            if (file == null)
+                return;
+
+            if (string.IsNullOrWhiteSpace(file.FullPath))
+            {
+                await Shell.Current.DisplayAlertAsync("File error", "The selected file path could not be read.", "OK");
+                return;
+            }
+
+            await _driversApiService.UploadInductionEvidenceAsync(
+                SelectedDriver.Id,
+                item.WorkSiteId,
+                item.RequirementId,
+                file.FullPath);
+
+            await LoadInductionsAsync();
+
+            await Shell.Current.DisplayAlertAsync("Uploaded", "Proof file uploaded.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Upload failed", ex.Message, "OK");
+        }
+    }
+
+    private async Task RemoveProofAsync(DriverInductionListItemDto item)
+    {
+        try
+        {
+            if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+                return;
+
+            if (SelectedDriver == null || !item.HasEvidence)
+                return;
+
+            var confirm = await Shell.Current.DisplayAlertAsync(
+                "Remove proof",
+                "Remove this proof document?",
+                "Remove",
+                "Cancel");
+
+            if (!confirm)
+                return;
+
+            await _driversApiService.DeleteInductionEvidenceAsync(
+                SelectedDriver.Id,
+                item.WorkSiteId,
+                item.RequirementId);
+
+            await LoadInductionsAsync();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync("Remove failed", ex.Message, "OK");
+        }
+    }
 
     private async Task AddInductionAsync()
     {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.Inductions))
+            return;
+
         if (SelectedDriver == null)
         {
             await Shell.Current.DisplayAlertAsync("Select a driver", "Choose a driver first.", "OK");
@@ -276,10 +389,7 @@ public class ManageInductionsViewModel : BaseViewModel
         var sites = (await _sites.GetAllByOwnerAsync(ownerId)).ToList();
         if (sites.Count == 0)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "No work sites",
-                "Add a work site in Templates first.",
-                "OK");
+            await Shell.Current.DisplayAlertAsync("No work sites", "Add a work site in Templates first.", "OK");
             return;
         }
 
@@ -294,10 +404,8 @@ public class ManageInductionsViewModel : BaseViewModel
 
         var site = sites.First(s => s.Name == chosen);
 
-        // Issue date = today (MVP)
         var issueDateLocal = DateTime.Today;
 
-        // Ensure inductions exist for this driver + site, and set issue date
         await _ensurer.EnsureDriverSiteInductionsExistAsync(
             ownerUserId: ownerId,
             driverId: SelectedDriver.Id,
@@ -307,15 +415,15 @@ public class ManageInductionsViewModel : BaseViewModel
         await LoadInductionsAsync();
     }
 
-    #endregion
-
-    #region Session Helper
-
     private async Task EnsureSessionAsync()
     {
         if (!_session.IsAuthenticated)
             await _session.RestoreAsync();
     }
 
-    #endregion
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsInductionsVisible));
+        OnPropertyChanged(nameof(IsInductionsEnabled));
+    }
 }

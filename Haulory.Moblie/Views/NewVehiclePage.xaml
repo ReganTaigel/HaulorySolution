@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewVehiclePage"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding IsAddVehicleVisible}">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="False" />
@@ -327,12 +328,22 @@
                                        FontSize="12"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource BrandTitle}" />
-                                <Entry Placeholder="Make" Text="{Binding Unit1Make}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Model" Text="{Binding Unit1Model}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Year" Keyboard="Numeric" Text="{Binding Unit1Year}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Make"
+                                       Text="{Binding Unit1Make}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Model"
+                                       Text="{Binding Unit1Model}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Year"
+                                       Keyboard="Numeric"
+                                       Text="{Binding Unit1Year}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                             <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="8">
@@ -340,12 +351,22 @@
                                        FontSize="12"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource BrandTitle}" />
-                                <Entry Placeholder="Make" Text="{Binding Unit2Make}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Model" Text="{Binding Unit2Model}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Year" Keyboard="Numeric" Text="{Binding Unit2Year}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Make"
+                                       Text="{Binding Unit2Make}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Model"
+                                       Text="{Binding Unit2Model}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Year"
+                                       Keyboard="Numeric"
+                                       Text="{Binding Unit2Year}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                             <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="8">
@@ -353,12 +374,22 @@
                                        FontSize="12"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource BrandTitle}" />
-                                <Entry Placeholder="Make" Text="{Binding Unit3Make}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Model" Text="{Binding Unit3Model}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
-                                <Entry Placeholder="Year" Keyboard="Numeric" Text="{Binding Unit3Year}" HeightRequest="44"
-                                       TextColor="{StaticResource BrandInk}" PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Make"
+                                       Text="{Binding Unit3Make}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Model"
+                                       Text="{Binding Unit3Model}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
+                                <Entry Placeholder="Year"
+                                       Keyboard="Numeric"
+                                       Text="{Binding Unit3Year}"
+                                       HeightRequest="44"
+                                       TextColor="{StaticResource BrandInk}"
+                                       PlaceholderColor="{StaticResource Gray600}" />
                             </VerticalStackLayout>
 
                         </VerticalStackLayout>
@@ -475,8 +506,11 @@
                            FontSize="12"
                            TextColor="{StaticResource BrandInk}">
                         <Label.Triggers>
-                            <DataTrigger TargetType="Label" Binding="{Binding SelectedFuelType}" Value="{x:Null}">
-                                <Setter Property="IsVisible" Value="False" />
+                            <DataTrigger TargetType="Label"
+                                         Binding="{Binding SelectedFuelType}"
+                                         Value="{x:Null}">
+                                <Setter Property="IsVisible"
+                                        Value="False" />
                             </DataTrigger>
                         </Label.Triggers>
                     </Label>
@@ -511,7 +545,10 @@
                         <VerticalStackLayout Spacing="12">
 
                             <VerticalStackLayout IsVisible="{Binding ShowPowerUnitOdo}" Spacing="6">
-                                <Label Text="{Binding PowerUnitOdoLabel}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding PowerUnitOdoLabel}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
                                 <Entry Placeholder="e.g., 182340"
                                        Keyboard="Numeric"
                                        Text="{Binding PowerUnitOdometerKm}"
@@ -521,7 +558,10 @@
                             </VerticalStackLayout>
 
                             <VerticalStackLayout IsVisible="{Binding ShowTrailer1Odo}" Spacing="6">
-                                <Label Text="{Binding Trailer1OdoLabel}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding Trailer1OdoLabel}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
                                 <Entry Placeholder="e.g., 90210"
                                        Keyboard="Numeric"
                                        Text="{Binding Trailer1OdometerKm}"
@@ -531,7 +571,10 @@
                             </VerticalStackLayout>
 
                             <VerticalStackLayout IsVisible="{Binding ShowTrailer2Odo}" Spacing="6">
-                                <Label Text="{Binding Trailer2OdoLabel}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding Trailer2OdoLabel}"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource BrandTitle}" />
                                 <Entry Placeholder="e.g., 88120"
                                        Keyboard="Numeric"
                                        Text="{Binding Trailer2OdometerKm}"
@@ -546,7 +589,7 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- DISTANCE-BASED ROAD TAX (NZ RUC for now, global wording) -->
+            <!-- DISTANCE-BASED ROAD TAX -->
             <Border IsVisible="{Binding ShowRucStep}"
                     StrokeThickness="1"
                     Stroke="{StaticResource Gray300}"
@@ -574,11 +617,17 @@
 
                             <!-- UNIT 1 -->
                             <VerticalStackLayout IsVisible="{Binding ShowUnit1Ruc}" Spacing="10">
-                                <Label Text="{Binding Unit1RucLabel}" FontAttributes="Bold" FontSize="14" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding Unit1RucLabel}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource BrandTitle}" />
 
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                        <Label Text="Start distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="Start distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 1000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit1RucLicenceStartKm}"
@@ -588,7 +637,10 @@
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                        <Label Text="End distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="End distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 2000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit1RucLicenceEndKm}"
@@ -601,11 +653,17 @@
 
                             <!-- UNIT 2 -->
                             <VerticalStackLayout IsVisible="{Binding ShowUnit2Ruc}" Spacing="10">
-                                <Label Text="{Binding Unit2RucLabel}" FontAttributes="Bold" FontSize="14" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding Unit2RucLabel}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource BrandTitle}" />
 
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                        <Label Text="Start distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="Start distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 1000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit2RucLicenceStartKm}"
@@ -615,7 +673,10 @@
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                        <Label Text="End distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="End distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 2000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit2RucLicenceEndKm}"
@@ -628,11 +689,17 @@
 
                             <!-- UNIT 3 -->
                             <VerticalStackLayout IsVisible="{Binding ShowUnit3Ruc}" Spacing="10">
-                                <Label Text="{Binding Unit3RucLabel}" FontAttributes="Bold" FontSize="14" TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="{Binding Unit3RucLabel}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource BrandTitle}" />
 
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                                     <VerticalStackLayout Grid.Column="0" Spacing="6">
-                                        <Label Text="Start distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="Start distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 1000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit3RucLicenceStartKm}"
@@ -642,7 +709,10 @@
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Grid.Column="1" Spacing="6">
-                                        <Label Text="End distance" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource BrandTitle}" />
+                                        <Label Text="End distance"
+                                               FontSize="12"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                         <Entry Placeholder="e.g., 2000"
                                                Keyboard="Numeric"
                                                Text="{Binding Unit3RucLicenceEndKm}"
@@ -662,7 +732,7 @@
             <!-- SAVE BUTTON -->
             <Button Text="Save vehicle"
                     Command="{Binding SaveVehicleCommand}"
-                    IsEnabled="{Binding CanSaveVehicle}"
+                    IsEnabled="{Binding CanSaveVehicleAction}"
                     IsVisible="{Binding ShowSaveButton}"
                     HeightRequest="50"
                     CornerRadius="14"
