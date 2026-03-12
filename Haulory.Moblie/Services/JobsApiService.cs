@@ -19,7 +19,8 @@ public sealed class JobsApiService : ApiServiceBase
 
     public Task<CreateJobResponse> CreateJobAsync(CreateJobRequest request, CancellationToken cancellationToken = default)
         => PostAsync<CreateJobResponse>("api/jobs", request, cancellationToken);
-
+    public Task<JobDto> UpdateJobAsync(Guid jobId, UpdateJobRequest request, CancellationToken cancellationToken = default)
+        => PutAsync<JobDto>($"api/jobs/{jobId}", request, cancellationToken);
     public async Task CompleteJobAsync(Guid jobId, CompleteJobRequest request, CancellationToken cancellationToken = default)
     {
         await EnsureAuthenticatedAsync();

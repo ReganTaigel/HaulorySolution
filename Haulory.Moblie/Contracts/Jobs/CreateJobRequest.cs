@@ -20,8 +20,6 @@ public sealed class CreateJobRequest
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
 
-    public string InvoiceNumber { get; set; } = string.Empty;
-
     public RateType RateType { get; set; }
     public decimal RateValue { get; set; }
     public decimal Quantity { get; set; }

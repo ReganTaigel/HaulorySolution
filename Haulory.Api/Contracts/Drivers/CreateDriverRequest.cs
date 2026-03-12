@@ -2,7 +2,6 @@
 
 public sealed class CreateDriverRequest
 {
-    public Guid? UserId { get; set; }
 
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

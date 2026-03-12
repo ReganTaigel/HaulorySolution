@@ -15,12 +15,12 @@
 
             <!-- Page header -->
             <VerticalStackLayout Spacing="2">
-                <Label Text="New job"
+                <Label Text="{Binding PageTitle}"
                        FontSize="24"
                        FontAttributes="Bold"
                        TextColor="{StaticResource BrandTitle}" />
 
-                <Label Text="Enter pickup, delivery, assignment, and billing details"
+                <Label Text="{Binding PageSubtitle}"
                        FontSize="13"
                        Opacity="0.85"
                        TextColor="{StaticResource BrandInk}" />
@@ -245,7 +245,7 @@
                             <Picker Title="Select driver"
                                     ItemsSource="{Binding Drivers}"
                                     ItemDisplayBinding="{Binding DisplayName}"
-                                    SelectedItem="{Binding SelectedDriver}"
+                                    SelectedItem="{Binding SelectedDriver, Mode=TwoWay}"
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
@@ -256,8 +256,8 @@
 
                             <Picker Title="Select vehicle"
                                     ItemsSource="{Binding Vehicles}"
-                                    ItemDisplayBinding="{Binding Rego}"
-                                    SelectedItem="{Binding SelectedVehicle}"
+                                    SelectedItem="{Binding SelectedVehicle, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}" 
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
@@ -268,8 +268,8 @@
 
                             <Picker Title="Select trailer 1"
                                     ItemsSource="{Binding Trailers}"
-                                    ItemDisplayBinding="{Binding Rego}"
-                                    SelectedItem="{Binding SelectedTrailer1}"
+                                    SelectedItem="{Binding SelectedTrailer1, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
@@ -280,8 +280,8 @@
 
                             <Picker Title="Select trailer 2"
                                     ItemsSource="{Binding Trailers}"
-                                    ItemDisplayBinding="{Binding Rego}"
-                                    SelectedItem="{Binding SelectedTrailer2}"
+                                    SelectedItem="{Binding SelectedTrailer2, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
                                     TitleColor="{StaticResource Gray600}"
                                     TextColor="{StaticResource BrandInk}" />
 
@@ -387,7 +387,7 @@
             </Border>
 
             <!-- SAVE -->
-            <Button Text="Save job"
+            <Button Text="{Binding SaveButtonText}"
                     Command="{Binding SaveJobCommand}"
                     IsVisible="{Binding IsAddJobVisible}"
                     IsEnabled="{Binding IsAddJobEnabled}"

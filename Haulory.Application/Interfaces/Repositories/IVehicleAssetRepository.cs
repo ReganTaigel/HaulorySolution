@@ -7,9 +7,9 @@ public interface IVehicleAssetRepository
     // Commands
     Task AddAsync(VehicleAsset asset);
     Task AddRangeAsync(IReadOnlyList<VehicleAsset> assetsToAdd);
-    Task UpdateAsync(VehicleAsset asset);
+    Task UpdateAsync(VehicleAsset vehicle, CancellationToken cancellationToken = default);
     Task DeleteAsync(Guid id);
-
+    Task<IReadOnlyList<VehicleAsset>> GetByOwnerAsync(Guid ownerUserId);
     // Queries
     Task<IReadOnlyList<VehicleAsset>> GetAllAsync();
     Task<VehicleAsset?> GetByIdAsync(Guid id);

@@ -219,9 +219,6 @@ public class JobRepository : IJobRepository
         if (ownerUserId == Guid.Empty)
             throw new ArgumentException("ownerUserId required.");
 
-        if (string.IsNullOrWhiteSpace(invoiceNumber))
-            return false;
-
         var token = invoiceNumber.Trim();
 
         return await _db.Jobs.AnyAsync(j =>

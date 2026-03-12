@@ -4,18 +4,19 @@ namespace Haulory.Mobile.Views;
 
 public partial class VehicleCollectionPage : ContentPage
 {
-    private readonly VehicleCollectionViewModel _vm;
-
-    public VehicleCollectionPage(VehicleCollectionViewModel vm)
+    public VehicleCollectionPage(VehicleCollectionViewModel viewModel)
     {
         InitializeComponent();
-        _vm = vm;
-        BindingContext = vm;
+        BindingContext = viewModel;
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _vm.LoadAsync();
+
+        System.Diagnostics.Debug.WriteLine("[VehicleCollectionPage] OnAppearing fired");
+
+        if (BindingContext is VehicleCollectionViewModel vm)
+            await vm.LoadAsync();
     }
 }

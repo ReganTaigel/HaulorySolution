@@ -3,6 +3,7 @@ using Haulory.Mobile.Contracts.Vehicles;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
+using Microsoft.Maui.ApplicationModel;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -81,14 +82,13 @@ public class VehicleCollectionViewModel : BaseViewModel
         if (IsBusy)
             return;
 
-        try
-        {
             IsBusy = true;
-
             Assets.Clear();
+
 
             if (!IsFeatureEnabled(AppFeature.Vehicles))
             {
+
                 RefreshFeatureBindings();
                 return;
             }
@@ -105,42 +105,10 @@ public class VehicleCollectionViewModel : BaseViewModel
                 return;
             }
 
-            var assets = await _vehiclesApiService.GetVehiclesAsync();
-
-            IEnumerable<VehicleDto> filteredAssets = assets;
-
-            if (IsSubUser)
-            {
-                // For now, sub-users still see owner-scoped vehicles from the API.
-                // Later, if needed, this can be narrowed to assigned vehicles only.
-                filteredAssets = assets;
-            }
-            else if (IsMainUser)
-            {
-                filteredAssets = assets.Where(a => a.OwnerUserId == ownerUserId);
-            }
-
-            foreach (var asset in filteredAssets
-                         .OrderBy(a => a.VehicleSetId)
-                         .ThenBy(a => a.UnitNumber)
-                         .ThenByDescending(a => a.CreatedUtc))
-            {
-                Assets.Add(VehicleListItemViewModel.FromDto(asset));
-            }
-
             OnPropertyChanged(nameof(IsMainUser));
             OnPropertyChanged(nameof(IsSubUser));
             RefreshFeatureBindings();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine(ex);
-            throw;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+
     }
 
     #endregion

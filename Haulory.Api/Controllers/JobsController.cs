@@ -251,8 +251,6 @@ public sealed class JobsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.DeliveryAddress))
             ModelState.AddModelError(nameof(request.DeliveryAddress), "Delivery address is required.");
 
-        if (string.IsNullOrWhiteSpace(request.InvoiceNumber))
-            ModelState.AddModelError(nameof(request.InvoiceNumber), "Invoice number is required.");
 
         if (request.RateValue < 0)
             ModelState.AddModelError(nameof(request.RateValue), "Rate value cannot be negative.");
@@ -273,12 +271,6 @@ public sealed class JobsController : ControllerBase
 
         var ownerUserId = User.GetOwnerUserId();
 
-        var invoiceExists = await _jobRepository.InvoiceNumberExistsAsync(
-            ownerUserId,
-            request.InvoiceNumber.Trim());
-
-        if (invoiceExists)
-            return BadRequest($"Invoice number already exists: {request.InvoiceNumber}");
 
         if (trailerIds.Count > 0)
         {
@@ -295,6 +287,13 @@ public sealed class JobsController : ControllerBase
         }
 
         var sortOrder = await _jobRepository.GetNextSortOrderAsync(ownerUserId);
+
+        string invoiceNumber;
+        do
+        {
+            invoiceNumber = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        }
+        while (await _jobRepository.InvoiceNumberExistsAsync(ownerUserId, invoiceNumber));
 
         var job = new Job(
             jobId: Guid.NewGuid(),
@@ -314,8 +313,7 @@ public sealed class JobsController : ControllerBase
 
             referenceNumber: request.ReferenceNumber,
             loadDescription: request.LoadDescription,
-            invoiceNumber: request.InvoiceNumber.Trim(),
-
+            invoiceNumber: invoiceNumber,
             rateType: request.RateType,
             rateValue: request.RateValue,
             quantity: request.Quantity,
@@ -417,4 +415,115 @@ public sealed class JobsController : ControllerBase
             receiptId = receipt.Id
         });
     }
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Update(Guid id, [FromBody] Contracts.Jobs.UpdateJobRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ClientCompanyName))
+            ModelState.AddModelError(nameof(request.ClientCompanyName), "Client company name is required.");
+
+        if (string.IsNullOrWhiteSpace(request.ClientAddressLine1))
+            ModelState.AddModelError(nameof(request.ClientAddressLine1), "Client address is required.");
+
+        if (string.IsNullOrWhiteSpace(request.ClientCity))
+            ModelState.AddModelError(nameof(request.ClientCity), "Client city is required.");
+
+        if (string.IsNullOrWhiteSpace(request.ClientCountry))
+            ModelState.AddModelError(nameof(request.ClientCountry), "Client country is required.");
+
+        if (string.IsNullOrWhiteSpace(request.PickupCompany))
+            ModelState.AddModelError(nameof(request.PickupCompany), "Pickup company is required.");
+
+        if (string.IsNullOrWhiteSpace(request.PickupAddress))
+            ModelState.AddModelError(nameof(request.PickupAddress), "Pickup address is required.");
+
+        if (string.IsNullOrWhiteSpace(request.DeliveryCompany))
+            ModelState.AddModelError(nameof(request.DeliveryCompany), "Delivery company is required.");
+
+        if (string.IsNullOrWhiteSpace(request.DeliveryAddress))
+            ModelState.AddModelError(nameof(request.DeliveryAddress), "Delivery address is required.");
+
+
+        if (request.RateValue < 0)
+            ModelState.AddModelError(nameof(request.RateValue), "Rate value cannot be negative.");
+
+        if (request.Quantity < 0)
+            ModelState.AddModelError(nameof(request.Quantity), "Quantity cannot be negative.");
+
+        var trailerIds = request.TrailerAssetIds
+            .Where(x => x != Guid.Empty)
+            .Distinct()
+            .ToList();
+
+        if (trailerIds.Count > 2)
+            ModelState.AddModelError(nameof(request.TrailerAssetIds), "A maximum of 2 trailers can be assigned to a job.");
+
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var ownerUserId = User.GetOwnerUserId();
+
+        var job = await _jobRepository.GetByIdForUpdateAsync(id);
+
+        if (job is null || job.OwnerUserId != ownerUserId)
+            return NotFound();
+
+        if (trailerIds.Count > 0)
+        {
+            var trailerAssets = await _vehicleAssetRepository.GetByIdsAsync(trailerIds);
+
+            if (trailerAssets.Count != trailerIds.Count)
+                return BadRequest("One or more selected trailers were not found.");
+
+            if (trailerAssets.Any(x => x.OwnerUserId != ownerUserId))
+                return BadRequest("One or more selected trailers do not belong to this owner.");
+
+            if (trailerAssets.Any(x => x.Kind != AssetKind.Trailer))
+                return BadRequest("Only trailer assets can be assigned to a job.");
+        }
+
+        // Update core details
+        job.UpdateDetails(
+            clientCompanyName: request.ClientCompanyName,
+            clientContactName: request.ClientContactName,
+            clientEmail: request.ClientEmail,
+            clientAddressLine1: request.ClientAddressLine1,
+            clientCity: request.ClientCity,
+            clientCountry: request.ClientCountry,
+
+            pickupCompany: request.PickupCompany,
+            pickupAddress: request.PickupAddress,
+            deliveryCompany: request.DeliveryCompany,
+            deliveryAddress: request.DeliveryAddress,
+
+            referenceNumber: request.ReferenceNumber,
+            loadDescription: request.LoadDescription,
+            invoiceNumber: job.InvoiceNumber,
+
+            rateType: request.RateType,
+            rateValue: request.RateValue,
+            quantity: request.Quantity,
+
+            driverId: request.DriverId,
+            vehicleAssetId: request.VehicleAssetId
+        );
+
+        job.AssignToSubUser(request.AssignedToUserId);
+        job.SetTrailers(trailerIds);
+
+        await _jobRepository.UpdateAsync(job);
+
+        return Ok(new
+        {
+            message = "Job updated.",
+            jobId = job.Id,
+            referenceNumber = job.ReferenceNumber,
+            invoiceNumber = job.InvoiceNumber,
+            status = job.Status.ToString()
+        });
+    }
+
+
 }

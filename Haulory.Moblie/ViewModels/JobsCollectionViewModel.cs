@@ -22,6 +22,7 @@ public class JobsCollectionViewModel : BaseViewModel
     public ObservableCollection<JobGroupViewModel> JobGroups { get; } = new();
 
     public ICommand AddJobCommand { get; }
+    public ICommand EditJobCommand { get; }
     public ICommand MoveUpCommand { get; }
     public ICommand MoveDownCommand { get; }
     public ICommand SignDeliveryCommand { get; }
@@ -64,6 +65,23 @@ public class JobsCollectionViewModel : BaseViewModel
                 return;
 
             await NavigateToFeatureAsync(AppFeature.AddJob, nameof(NewJobPage));
+        });
+
+        EditJobCommand = new Command<JobListItemViewModel>(async item =>
+        {
+            if (!IsMainUser)
+                return;
+
+            if (item?.Job == null)
+                return;
+
+            if (!await EnsureFeatureEnabledAsync(AppFeature.AddJob))
+                return;
+
+            await Shell.Current.GoToAsync(nameof(NewJobPage), new Dictionary<string, object>
+            {
+                ["jobId"] = item.Job.Id
+            });
         });
 
         SignDeliveryCommand = new Command<JobListItemViewModel>(async item =>

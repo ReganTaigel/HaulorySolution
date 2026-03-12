@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Haulory.Infrastructure.Migrations
 {
     [DbContext(typeof(HauloryDbContext))]
-    [Migration("20260310101641_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260311223250_IntitalCreate")]
+    partial class IntitalCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -784,6 +784,65 @@ namespace Haulory.Infrastructure.Migrations
                     b.ToTable("VehicleAssets");
                 });
 
+            modelBuilder.Entity("Haulory.Domain.Entities.VehicleDayRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("EndOdometerKm")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("OwnerUserId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("StartOdometerKm")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("UserId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("VehicleAssetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("VehicleAssetId1")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("OwnerUserId1");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.HasIndex("VehicleAssetId");
+
+                    b.HasIndex("VehicleAssetId1");
+
+                    b.HasIndex("UserId", "VehicleAssetId", "StartedAtUtc");
+
+                    b.ToTable("VehicleDayRuns");
+                });
+
             modelBuilder.Entity("Haulory.Domain.Entities.WorkSite", b =>
                 {
                     b.Property<Guid>("Id")
@@ -990,6 +1049,45 @@ namespace Haulory.Infrastructure.Migrations
                         .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Haulory.Domain.Entities.VehicleDayRun", b =>
+                {
+                    b.HasOne("Haulory.Domain.Entities.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Haulory.Domain.Entities.UserAccount", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId1");
+
+                    b.HasOne("Haulory.Domain.Entities.UserAccount", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Haulory.Domain.Entities.UserAccount", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId1");
+
+                    b.HasOne("Haulory.Domain.Entities.VehicleAsset", null)
+                        .WithMany()
+                        .HasForeignKey("VehicleAssetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Haulory.Domain.Entities.VehicleAsset", "VehicleAsset")
+                        .WithMany()
+                        .HasForeignKey("VehicleAssetId1");
+
+                    b.Navigation("OwnerUser");
+
+                    b.Navigation("User");
+
+                    b.Navigation("VehicleAsset");
                 });
 
             modelBuilder.Entity("Haulory.Domain.Entities.Job", b =>

@@ -1,15 +1,17 @@
-﻿using System.Collections.ObjectModel;
+﻿
+using Haulory.Mobile.Services;
+using Haulory.Domain.Enums;
+using Haulory.Mobile.Contracts.Vehicles;
+using Haulory.Mobile.Models;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Application.Services;
-using Haulory.Domain.Enums;
-using Haulory.Mobile.Models;
 
 namespace Haulory.Mobile.ViewModels;
 
 public class OdometerEntryViewModel : BaseViewModel
 {
-    private readonly IOdometerService _odometerService;
+    private readonly OdometerApiService _odometerApiService;
     private readonly ISessionService _sessionService;
 
     public ObservableCollection<VehicleAssetPickerItem> Assets { get; } = new();
@@ -84,10 +86,10 @@ public class OdometerEntryViewModel : BaseViewModel
     public ICommand SaveCommand { get; }
 
     public OdometerEntryViewModel(
-        IOdometerService odometerService,
+        OdometerApiService odometerApiService,
         ISessionService sessionService)
     {
-        _odometerService = odometerService;
+        _odometerApiService = odometerApiService;
         _sessionService = sessionService;
 
         LoadCommand = new Command(async () => await LoadAsync());
@@ -111,10 +113,17 @@ public class OdometerEntryViewModel : BaseViewModel
                 return;
             }
 
-            var assets = await _odometerService.GetAssetsForOwnerAsync(ownerUserId);
+            var assets = await _odometerApiService.GetAssetsAsync();
 
             foreach (var asset in assets)
-                Assets.Add(VehicleAssetPickerItem.FromEntity(asset));
+            {
+                Assets.Add(new VehicleAssetPickerItem
+                {
+                    Id = asset.Id,
+                    DisplayName = $"{asset.UnitNumber} - {asset.Rego} - {asset.Make} {asset.Model}",
+                    CurrentOdometerKm = asset.CurrentOdometerKm
+                });
+            }
 
             if (SelectedAsset != null)
             {
@@ -165,14 +174,16 @@ public class OdometerEntryViewModel : BaseViewModel
             Guid? driverId = null;
             Guid? recordedByUserId = GetCurrentUserId();
 
-            await _odometerService.RecordReadingAsync(
-                SelectedAsset.Id,
-                km,
-                SelectedReadingType,
-                driverId,
-                recordedByUserId,
-                Notes,
-                updateCurrentOdometer: true);
+            await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
+            {
+                VehicleAssetId = SelectedAsset.Id,
+                ReadingKm = km,
+                ReadingType = SelectedReadingType,
+                DriverId = driverId,
+                RecordedByUserId = recordedByUserId,
+                Notes = Notes,
+                UpdateCurrentOdometer = true
+            });
 
             await Shell.Current.DisplayAlertAsync("Saved", "Odometer reading recorded.", "OK");
 

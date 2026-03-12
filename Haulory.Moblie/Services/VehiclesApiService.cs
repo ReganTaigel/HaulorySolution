@@ -1,4 +1,5 @@
-﻿using Haulory.Application.Interfaces.Services;
+﻿using System.Net.Http.Json;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Contracts.Vehicles;
 
 namespace Haulory.Mobile.Services;
@@ -11,10 +12,46 @@ public sealed class VehiclesApiService : ApiServiceBase
     }
 
     public async Task<IReadOnlyList<VehicleDto>> GetVehiclesAsync(CancellationToken cancellationToken = default)
-        => await GetAsync<List<VehicleDto>>("api/vehicles", cancellationToken) ?? new List<VehicleDto>();
+    {
+        await EnsureAuthenticatedAsync();
+
+        var response = await HttpClient.GetAsync("api/vehicles", cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        System.Diagnostics.Debug.WriteLine($"[VehiclesApi] GET api/vehicles status={(int)response.StatusCode}");
+        System.Diagnostics.Debug.WriteLine("[VehiclesApi] Raw JSON:");
+        System.Diagnostics.Debug.WriteLine(body);
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Get vehicles failed. Status: {(int)response.StatusCode}. Body: {body}");
+
+        var result = await response.Content.ReadFromJsonAsync<List<VehicleDto>>(cancellationToken: cancellationToken);
+
+        System.Diagnostics.Debug.WriteLine($"[VehiclesApi] Deserialized count = {result?.Count ?? 0}");
+
+        return result ?? new List<VehicleDto>();
+    }
 
     public async Task<IReadOnlyList<VehicleDto>> GetTrailersAsync(CancellationToken cancellationToken = default)
-        => await GetAsync<List<VehicleDto>>("api/vehicles/trailers", cancellationToken) ?? new List<VehicleDto>();
+    {
+        await EnsureAuthenticatedAsync();
+
+        var response = await HttpClient.GetAsync("api/vehicles/trailers", cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        System.Diagnostics.Debug.WriteLine($"[VehiclesApi] GET api/vehicles/trailers status={(int)response.StatusCode}");
+        System.Diagnostics.Debug.WriteLine("[VehiclesApi] Raw JSON trailers:");
+        System.Diagnostics.Debug.WriteLine(body);
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Get trailers failed. Status: {(int)response.StatusCode}. Body: {body}");
+
+        var result = await response.Content.ReadFromJsonAsync<List<VehicleDto>>(cancellationToken: cancellationToken);
+
+        System.Diagnostics.Debug.WriteLine($"[VehiclesApi] Deserialized trailer count = {result?.Count ?? 0}");
+
+        return result ?? new List<VehicleDto>();
+    }
 
     public async Task<VehicleDto?> GetVehicleByIdAsync(Guid vehicleId, CancellationToken cancellationToken = default)
         => await GetAsync<VehicleDto>($"api/vehicles/{vehicleId}", cancellationToken);

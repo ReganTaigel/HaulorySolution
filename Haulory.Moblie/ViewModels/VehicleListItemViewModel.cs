@@ -6,6 +6,10 @@ public class VehicleListItemViewModel
 {
     public Guid Id { get; set; }
 
+    public int Year { get; set; }
+    public string Make { get; set; } = "";
+    public string Model { get; set; } = "";
+
     public string VehicleTypeDisplay { get; set; } = "";
     public string Rego { get; set; } = "";
 
@@ -31,9 +35,11 @@ public class VehicleListItemViewModel
         var model = new VehicleListItemViewModel
         {
             Id = dto.Id,
+            Year = dto.Year,
+            Make = dto.Make,
+            Model = dto.Model,
             Rego = dto.Rego,
             VehicleTypeDisplay = dto.VehicleType ?? dto.Kind ?? "Vehicle",
-
             OdometerFullDisplay = dto.OdometerKm.HasValue
                 ? $"{dto.OdometerKm.Value:N0} km"
                 : "—"
@@ -42,22 +48,23 @@ public class VehicleListItemViewModel
         if (dto.RegoExpiry != null)
         {
             model.RegoExpiryDisplay = dto.RegoExpiry.Value.ToString("dd MMM yyyy");
-
-            if (dto.RegoExpiry < DateTime.UtcNow)
-                model.RegoStatusInlineDisplay = "Expired";
-            else
-                model.RegoStatusInlineDisplay = "Valid";
+            model.RegoStatusInlineDisplay = dto.RegoExpiry < DateTime.UtcNow ? "Expired" : "Valid";
         }
+        else
+        {
+            model.RegoExpiryDisplay = "—";
+        }
+
+        model.CertificateNameDisplay = dto.CertificateType ?? "Certificate";
 
         if (dto.CertificateExpiry != null)
         {
-            model.CertificateNameDisplay = dto.CertificateType ?? "Certificate";
             model.CertificateExpiryDisplay = dto.CertificateExpiry.Value.ToString("dd MMM yyyy");
-
-            if (dto.CertificateExpiry < DateTime.UtcNow)
-                model.CertStatusInlineDisplay = "Expired";
-            else
-                model.CertStatusInlineDisplay = "Valid";
+            model.CertStatusInlineDisplay = dto.CertificateExpiry < DateTime.UtcNow ? "Expired" : "Valid";
+        }
+        else
+        {
+            model.CertificateExpiryDisplay = "—";
         }
 
         if (dto.RucLicenceStartKm != null && dto.RucLicenceEndKm != null)
@@ -71,8 +78,12 @@ public class VehicleListItemViewModel
             {
                 var remaining = dto.RucLicenceEndKm.Value - dto.OdometerKm.Value;
                 model.RucRemainingDisplay = $"{remaining:N0} km";
-
                 model.IsRucOverdueYesNo = remaining < 0 ? "Yes" : "No";
+            }
+            else
+            {
+                model.RucRemainingDisplay = "—";
+                model.IsRucOverdueYesNo = "No";
             }
         }
 

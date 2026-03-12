@@ -39,7 +39,21 @@ public static class ClaimsPrincipalExtensions
 
         return ownerUserId;
     }
+    public static Guid GetUserId(this ClaimsPrincipal user)
+    {
+        ArgumentNullException.ThrowIfNull(user);
 
+        var value =
+            user.FindFirstValue("user_id") ??
+            user.FindFirstValue("userId") ??
+            user.FindFirstValue(ClaimTypes.NameIdentifier) ??
+            user.FindFirstValue("sub");
+
+        if (!Guid.TryParse(value, out var userId))
+            throw new UnauthorizedAccessException("Authenticated user id is missing or invalid.");
+
+        return userId;
+    }
     public static string GetRoleName(this ClaimsPrincipal user)
     {
         ArgumentNullException.ThrowIfNull(user);
@@ -63,4 +77,5 @@ public static class ClaimsPrincipalExtensions
         var role = user.GetRoleName();
         return string.Equals(role, roleName, StringComparison.OrdinalIgnoreCase);
     }
+
 }

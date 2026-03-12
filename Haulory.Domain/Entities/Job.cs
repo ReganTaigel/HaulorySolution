@@ -167,7 +167,6 @@ public class Job
 
         ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
         LoadDescription = loadDescription?.Trim() ?? string.Empty;
-        InvoiceNumber = invoiceNumber?.Trim() ?? string.Empty;
 
         SetRateInternal(rateType, rateValue, quantity);
 
@@ -272,7 +271,48 @@ public class Job
     }
 
     #endregion
+    public void UpdateDetails(
+    string clientCompanyName,
+    string? clientContactName,
+    string? clientEmail,
+    string clientAddressLine1,
+    string clientCity,
+    string clientCountry,
+    string pickupCompany,
+    string pickupAddress,
+    string deliveryCompany,
+    string deliveryAddress,
+    string referenceNumber,
+    string loadDescription,
+    string invoiceNumber,
+    RateType rateType,
+    decimal rateValue,
+    decimal quantity,
+    Guid? driverId,
+    Guid? vehicleAssetId)
+    {
+        ClientCompanyName = clientCompanyName.Trim();
+        ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
+        ClientEmail = string.IsNullOrWhiteSpace(clientEmail) ? null : clientEmail.Trim();
+        ClientAddressLine1 = clientAddressLine1.Trim();
+        ClientCity = clientCity.Trim();
+        ClientCountry = clientCountry.Trim();
 
+        PickupCompany = pickupCompany.Trim();
+        PickupAddress = pickupAddress.Trim();
+        DeliveryCompany = deliveryCompany.Trim();
+        DeliveryAddress = deliveryAddress.Trim();
+
+        ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
+        LoadDescription = loadDescription?.Trim() ?? string.Empty;
+
+        RateType = rateType;
+        RateValue = rateValue;
+        Quantity = quantity;
+
+        DriverId = driverId;
+        VehicleAssetId = vehicleAssetId;
+    }
 }
 
 #endregion

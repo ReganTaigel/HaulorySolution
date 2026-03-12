@@ -13,7 +13,6 @@
           RowSpacing="14"
           IsVisible="{Binding IsVehiclesVisible}">
 
-        <!-- Header -->
         <VerticalStackLayout Grid.Row="0" Spacing="10">
 
             <Grid ColumnDefinitions="*,Auto"
@@ -43,7 +42,6 @@
                         VerticalOptions="Center" />
             </Grid>
 
-            <!-- Guidance -->
             <Border StrokeThickness="1"
                     Stroke="{StaticResource Gray300}"
                     StrokeShape="RoundRectangle 18"
@@ -71,7 +69,6 @@
 
         </VerticalStackLayout>
 
-        <!-- List and Pull to refresh -->
         <RefreshView Grid.Row="1"
                      Command="{Binding RefreshCommand}"
                      IsRefreshing="{Binding IsBusy}"
@@ -132,21 +129,21 @@
 
                             <VerticalStackLayout Spacing="12">
 
-                                <!-- Title row -->
                                 <VerticalStackLayout Spacing="4">
+                                    <Label Text="{Binding Year}"
+                                           IsVisible="False" />
+
                                     <Label FontSize="16"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource BrandTitle}"
                                            LineBreakMode="TailTruncation">
-                                        <Label.FormattedText>
-                                            <FormattedString>
-                                                <Span Text="{Binding Year}" />
-                                                <Span Text=" " />
-                                                <Span Text="{Binding Make}" />
-                                                <Span Text=" " />
-                                                <Span Text="{Binding Model}" />
-                                            </FormattedString>
-                                        </Label.FormattedText>
+                                        <Label.Text>
+                                            <MultiBinding StringFormat="{}{0} {1} {2}">
+                                                <Binding Path="Year" />
+                                                <Binding Path="Make" />
+                                                <Binding Path="Model" />
+                                            </MultiBinding>
+                                        </Label.Text>
                                     </Label>
 
                                     <Border StrokeThickness="1"
@@ -160,7 +157,6 @@
                                     </Border>
                                 </VerticalStackLayout>
 
-                                <!-- Compliance section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
                                         StrokeShape="RoundRectangle 14"
@@ -173,47 +169,36 @@
                                                FontSize="12"
                                                TextColor="{StaticResource BrandInk}" />
 
-                                        <!-- Rego -->
-                                        <Label FontSize="13"
-                                               TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Rego: " />
-                                                    <Span Text="{Binding Rego}"
-                                                          FontAttributes="Bold" />
-                                                    <Span Text="  " />
-                                                    <Span Text="Expires: " />
-                                                    <Span Text="{Binding RegoExpiryDisplay}"
-                                                          FontAttributes="Bold" />
-                                                    <Span Text=" " />
-                                                    <Span Text="{Binding RegoStatusInlineDisplay}"
-                                                          FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
+                                        <Label Text="{Binding Rego, StringFormat='Rego: {0}'}"
+                                               FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}" />
 
-                                        <!-- WOF / COF -->
-                                        <Label FontSize="13"
-                                               TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="{Binding CertificateNameDisplay}" />
-                                                    <Span Text=" expiry: " />
-                                                    <Span Text="{Binding CertificateExpiryDisplay}"
-                                                          FontAttributes="Bold" />
-                                                    <Span Text=" " />
-                                                    <Span Text="{Binding CertStatusInlineDisplay}"
-                                                          FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
+                                        <Label Text="{Binding RegoExpiryDisplay, StringFormat='Expires: {0}'}"
+                                               FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label Text="{Binding RegoStatusInlineDisplay}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label Text="{Binding CertificateNameDisplay, StringFormat='{0} expiry'}"
+                                               FontSize="13"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label Text="{Binding CertificateExpiryDisplay}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label Text="{Binding CertStatusInlineDisplay}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
 
                                     </VerticalStackLayout>
                                 </Border>
 
-                                <!-- Odometer section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
                                         StrokeShape="RoundRectangle 14"
@@ -225,21 +210,13 @@
                                                FontSize="12"
                                                TextColor="{StaticResource BrandInk}" />
 
-                                        <Label FontSize="13"
-                                               TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Current: " />
-                                                    <Span Text="{Binding OdometerFullDisplay}"
-                                                          FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
+                                        <Label Text="{Binding OdometerFullDisplay, StringFormat='Current: {0}'}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                     </VerticalStackLayout>
                                 </Border>
 
-                                <!-- RUC section -->
                                 <Border StrokeThickness="1"
                                         Stroke="{StaticResource Gray200}"
                                         StrokeShape="RoundRectangle 14"
@@ -253,35 +230,24 @@
                                                TextColor="{StaticResource BrandInk}" />
 
                                         <Label FontSize="13"
-                                               TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Licence: " />
-                                                    <Span Text="{Binding RucLicenceStartDisplay}"
-                                                          FontAttributes="Bold" />
-                                                    <Span Text=" to " />
-                                                    <Span Text="{Binding RucLicenceEndDisplay}"
-                                                          FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
+                                               TextColor="{StaticResource BrandTitle}">
+                                            <Label.Text>
+                                                <MultiBinding StringFormat="Licence: {0} to {1}">
+                                                    <Binding Path="RucLicenceStartDisplay" />
+                                                    <Binding Path="RucLicenceEndDisplay" />
+                                                </MultiBinding>
+                                            </Label.Text>
                                         </Label>
 
-                                        <Label FontSize="13"
-                                               TextColor="{StaticResource BrandTitle}"
-                                               LineBreakMode="TailTruncation">
-                                            <Label.FormattedText>
-                                                <FormattedString>
-                                                    <Span Text="Remaining: " />
-                                                    <Span Text="{Binding RucRemainingDisplay}"
-                                                          FontAttributes="Bold" />
-                                                    <Span Text="  " />
-                                                    <Span Text="Overdue: " />
-                                                    <Span Text="{Binding IsRucOverdueYesNo}"
-                                                          FontAttributes="Bold" />
-                                                </FormattedString>
-                                            </Label.FormattedText>
-                                        </Label>
+                                        <Label Text="{Binding RucRemainingDisplay, StringFormat='Remaining: {0}'}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label Text="{Binding IsRucOverdueYesNo, StringFormat='Overdue: {0}'}"
+                                               FontSize="13"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource BrandTitle}" />
                                     </VerticalStackLayout>
                                 </Border>
 
@@ -296,4 +262,5 @@
         </RefreshView>
 
     </Grid>
+
 </ContentPage>

@@ -1,7 +1,4 @@
-﻿using Haulory.Application.Features.Vehicles.CreateVehicleSet;
-using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+﻿
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Contracts.Vehicles;
 using Haulory.Mobile.Features;

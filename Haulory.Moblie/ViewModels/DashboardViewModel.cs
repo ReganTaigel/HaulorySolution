@@ -1,6 +1,7 @@
 ﻿using Haulory.Application.Interfaces.Services;
-using Haulory.Application.Services;
+
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Contracts.Vehicles;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
@@ -19,7 +20,7 @@ public class DashboardViewModel : BaseViewModel
 
     private readonly ISessionService _sessionService;
     private readonly JobsApiService _jobsApiService;
-    private readonly IOdometerService _odometerService;
+    private readonly OdometerApiService _odometerApiService;
     private readonly ReportsApiService _reportsApiService;
 
     #endregion
@@ -197,14 +198,14 @@ public class DashboardViewModel : BaseViewModel
         ISessionService sessionService,
         JobsApiService jobsApiService,
         ReportsApiService reportsApiService,
-        IOdometerService odometerService,
+        OdometerApiService odometerApiService,
         IFeatureAccessService featureAccessService)
         : base(featureAccessService)
     {
         _sessionService = sessionService;
         _jobsApiService = jobsApiService;
         _reportsApiService = reportsApiService;
-        _odometerService = odometerService;
+        _odometerApiService = odometerApiService;
 
         StartDayCommand = new Command(async () => await StartDayAsync());
         EndDayCommand = new Command(async () => await EndDayAsync());
@@ -313,20 +314,6 @@ public class DashboardViewModel : BaseViewModel
         if (!_sessionService.IsAuthenticated)
             await _sessionService.RestoreAsync();
 
-        System.Diagnostics.Debug.WriteLine(
-            $"[Dashboard] Auth={_sessionService.IsAuthenticated}, " +
-            $"AccountId={_sessionService.CurrentAccountId}, " +
-            $"OwnerId={_sessionService.CurrentOwnerId}, " +
-            $"IsMainUser={IsMainUser}, " +
-            $"IsSubUser={IsSubUser}, " +
-            $"JobsVisible={IsJobsVisible}, " +
-            $"JobsEnabled={IsJobsEnabled}, " +
-            $"VehiclesVisible={IsVehiclesVisible}, " +
-            $"VehiclesEnabled={IsVehiclesEnabled}, " +
-            $"DriversVisible={IsDriversVisible}, " +
-            $"DriversEnabled={IsDriversEnabled}, " +
-            $"ReportsVisible={IsReportsVisible}, " +
-            $"ReportsEnabled={IsReportsEnabled}");
     }
 
     public async Task LoadCompletedReportSummaryAsync()
@@ -438,14 +425,16 @@ public class DashboardViewModel : BaseViewModel
             var currentUserId = _sessionService.CurrentAccountId;
             Guid? driverId = null;
 
-            await _odometerService.RecordReadingAsync(
-                _currentVehicleAssetId.Value,
-                startKm,
-                OdometerReadingType.StartOfDay,
-                driverId,
-                currentUserId,
-                "Dashboard start day entry",
-                updateCurrentOdometer: true);
+            await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
+            {
+                VehicleAssetId = _currentVehicleAssetId.Value,
+                ReadingKm = startKm,
+                ReadingType = OdometerReadingType.StartOfDay,
+                DriverId = driverId,
+                RecordedByUserId = currentUserId,
+                Notes = "Dashboard start day entry",
+                UpdateCurrentOdometer = true
+            });
 
             Preferences.Default.Set($"day_started_{currentUserId}", true);
 
@@ -510,14 +499,16 @@ public class DashboardViewModel : BaseViewModel
             var currentUserId = _sessionService.CurrentAccountId;
             Guid? driverId = null;
 
-            await _odometerService.RecordReadingAsync(
-                _currentVehicleAssetId.Value,
-                endKm,
-                OdometerReadingType.EndOfDay,
-                driverId,
-                currentUserId,
-                "Dashboard end day entry",
-                updateCurrentOdometer: true);
+            await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
+            {
+                VehicleAssetId = _currentVehicleAssetId.Value,
+                ReadingKm = endKm,
+                ReadingType = OdometerReadingType.EndOfDay,
+                DriverId = driverId,
+                RecordedByUserId = currentUserId,
+                Notes = "Dashboard end day entry",
+                UpdateCurrentOdometer = true
+            });
 
             Preferences.Default.Set($"day_started_{currentUserId}", false);
 

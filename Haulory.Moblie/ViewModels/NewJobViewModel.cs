@@ -1,6 +1,4 @@
-﻿using Haulory.Application.Interfaces.Repositories;
-using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+﻿using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Enums;
 using Haulory.Mobile.Contracts.Jobs;
 using Haulory.Mobile.Features;
@@ -14,21 +12,24 @@ namespace Haulory.Mobile.ViewModels;
 public class NewJobViewModel : BaseViewModel
 {
     private readonly JobsApiService _jobsApiService;
-    private readonly IDriverRepository _driverRepo;
-    private readonly IVehicleAssetRepository _vehicleRepo;
+    private readonly DriversApiService _driversApiService;
+    private readonly VehiclesApiService _vehiclesApiService;
     private readonly ISessionService _session;
+
+    private Guid? _editingJobId;
+    private bool _isLoadingExistingJob;
 
     public IReadOnlyList<RateType> RateTypes { get; } =
         Enum.GetValues(typeof(RateType)).Cast<RateType>().ToList();
 
-    public ObservableCollection<Driver> Drivers { get; } = new();
-    public ObservableCollection<VehicleAsset> Vehicles { get; } = new();
-    public ObservableCollection<VehicleAsset> Trailers { get; } = new();
+    public ObservableCollection<DriverPickerItem> Drivers { get; } = new();
+    public ObservableCollection<VehiclePickerItem> Vehicles { get; } = new();
+    public ObservableCollection<VehiclePickerItem> Trailers { get; } = new();
 
-    private Driver? _selectedDriver;
-    private VehicleAsset? _selectedVehicle;
-    private VehicleAsset? _selectedTrailer1;
-    private VehicleAsset? _selectedTrailer2;
+    private DriverPickerItem? _selectedDriver;
+    private VehiclePickerItem? _selectedVehicle;
+    private VehiclePickerItem? _selectedTrailer1;
+    private VehiclePickerItem? _selectedTrailer2;
 
     private RateType _rateType;
     private decimal _quantity = 1m;
@@ -36,10 +37,8 @@ public class NewJobViewModel : BaseViewModel
 
     private string _pickupCompany = string.Empty;
     private string _pickupAddress = string.Empty;
-
     private string _deliveryCompany = string.Empty;
     private string _deliveryAddress = string.Empty;
-
     private string _referenceNumber = string.Empty;
     private string _loadDescription = string.Empty;
 
@@ -55,13 +54,23 @@ public class NewJobViewModel : BaseViewModel
     public bool IsAddJobVisible => IsFeatureVisible(AppFeature.AddJob);
     public bool IsAddJobEnabled => IsFeatureEnabled(AppFeature.AddJob);
 
-    public Driver? SelectedDriver
+    public bool IsEditMode => _editingJobId.HasValue;
+
+    public string PageTitle => IsEditMode ? "Edit job" : "New job";
+
+    public string PageSubtitle => IsEditMode
+        ? "Update pickup, delivery, assignment, and billing details"
+        : "Enter pickup, delivery, assignment, and billing details";
+
+    public string SaveButtonText => IsEditMode ? "Update job" : "Save job";
+
+    public DriverPickerItem? SelectedDriver
     {
         get => _selectedDriver;
         set => SetProperty(ref _selectedDriver, value);
     }
 
-    public VehicleAsset? SelectedVehicle
+    public VehiclePickerItem? SelectedVehicle
     {
         get => _selectedVehicle;
         set
@@ -74,7 +83,7 @@ public class NewJobViewModel : BaseViewModel
         }
     }
 
-    public VehicleAsset? SelectedTrailer1
+    public VehiclePickerItem? SelectedTrailer1
     {
         get => _selectedTrailer1;
         set
@@ -91,7 +100,7 @@ public class NewJobViewModel : BaseViewModel
         }
     }
 
-    public VehicleAsset? SelectedTrailer2
+    public VehiclePickerItem? SelectedTrailer2
     {
         get => _selectedTrailer2;
         set
@@ -190,8 +199,8 @@ public class NewJobViewModel : BaseViewModel
     {
         get
         {
-            var t1 = SelectedTrailer1?.Rego;
-            var t2 = SelectedTrailer2?.Rego;
+            var t1 = SelectedTrailer1?.DisplayName;
+            var t2 = SelectedTrailer2?.DisplayName;
 
             if (string.IsNullOrWhiteSpace(t1) && string.IsNullOrWhiteSpace(t2))
                 return "No trailers selected";
@@ -279,22 +288,31 @@ public class NewJobViewModel : BaseViewModel
 
     public NewJobViewModel(
         JobsApiService jobsApiService,
-        IDriverRepository driverRepo,
-        IVehicleAssetRepository vehicleRepo,
+        DriversApiService driversApiService,
+        VehiclesApiService vehiclesApiService,
         ISessionService session,
         IFeatureAccessService featureAccessService)
         : base(featureAccessService)
     {
         _jobsApiService = jobsApiService;
-        _driverRepo = driverRepo;
-        _vehicleRepo = vehicleRepo;
+        _driversApiService = driversApiService;
+        _vehiclesApiService = vehiclesApiService;
         _session = session;
 
         SaveJobCommand = new Command(async () => await SaveAsync());
         CancelCommand = new Command(async () =>
             await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
-
         RateType = RateType.PerLoad;
+    }
+
+    public void SetEditingJobId(Guid? jobId)
+    {
+        _editingJobId = jobId;
+
+        OnPropertyChanged(nameof(IsEditMode));
+        OnPropertyChanged(nameof(PageTitle));
+        OnPropertyChanged(nameof(PageSubtitle));
+        OnPropertyChanged(nameof(SaveButtonText));
     }
 
     public async Task LoadAsync()
@@ -316,39 +334,129 @@ public class NewJobViewModel : BaseViewModel
         }
 
         Drivers.Clear();
-        var drivers = await _driverRepo.GetAllByOwnerUserIdAsync(ownerUserId);
-        foreach (var d in drivers.OrderBy(d => d.LastName).ThenBy(d => d.FirstName))
-            Drivers.Add(d);
-
         Vehicles.Clear();
         Trailers.Clear();
 
-        var allAssets = await _vehicleRepo.GetAllAsync();
+        var drivers = await _driversApiService.GetDriversAsync();
+        var vehicles = await _vehiclesApiService.GetVehiclesAsync();
+        var trailers = await _vehiclesApiService.GetTrailersAsync();
 
-        foreach (var v in allAssets
-                     .Where(a => a.OwnerUserId == ownerUserId)
-                     .Where(a => a.Kind == AssetKind.PowerUnit)
-                     .OrderBy(a => a.Rego))
+        foreach (var d in drivers.OrderBy(d => d.LastName).ThenBy(d => d.FirstName))
         {
-            Vehicles.Add(v);
+            Drivers.Add(new DriverPickerItem
+            {
+                Id = d.Id,
+                UserId = d.UserId,
+                DisplayName = $"{d.FirstName} {d.LastName}"
+            });
         }
 
-        foreach (var t in allAssets
-                     .Where(a => a.OwnerUserId == ownerUserId)
-                     .Where(a => a.Kind == AssetKind.Trailer)
-                     .OrderBy(a => a.Rego))
+        foreach (var v in vehicles.OrderBy(v => v.Rego))
         {
-            Trailers.Add(t);
+            Vehicles.Add(new VehiclePickerItem
+            {
+                Id = v.Id,
+                DisplayName = $"{v.UnitNumber} - {v.Rego} - {v.Make} {v.Model}"
+            });
         }
 
-        if (Drivers.Count == 1 && SelectedDriver == null)
-            SelectedDriver = Drivers[0];
+        foreach (var t in trailers.OrderBy(t => t.Rego))
+        {
+            Trailers.Add(new VehiclePickerItem
+            {
+                Id = t.Id,
+                DisplayName = $"{t.UnitNumber} - {t.Rego} - {t.Make} {t.Model}"
+            });
+        }
 
-        if (Vehicles.Count == 1 && SelectedVehicle == null)
-            SelectedVehicle = Vehicles[0];
+        if (IsEditMode && _editingJobId.HasValue && !_isLoadingExistingJob)
+        {
+            _isLoadingExistingJob = true;
+
+            try
+            {
+                await LoadExistingJobAsync(_editingJobId.Value);
+            }
+            finally
+            {
+                _isLoadingExistingJob = false;
+            }
+        }
+        else
+        {
+            if (Drivers.Count == 1 && SelectedDriver == null)
+                SelectedDriver = Drivers[0];
+
+            if (Vehicles.Count == 1 && SelectedVehicle == null)
+                SelectedVehicle = Vehicles[0];
+        }
 
         OnPropertyChanged(nameof(SelectedTrailerSummary));
+        OnPropertyChanged(nameof(Total));
         RefreshFeatureBindings();
+    }
+
+    private async Task LoadExistingJobAsync(Guid jobId)
+    {
+        var job = await _jobsApiService.GetJobByIdAsync(jobId);
+        if (job == null)
+        {
+            await Shell.Current.DisplayAlertAsync("Not found", "The selected job could not be loaded.", "OK");
+            return;
+        }
+
+        ClientCompanyName = job.ClientCompanyName ?? string.Empty;
+        ClientContactName = job.ClientContactName;
+        ClientEmail = job.ClientEmail;
+        ClientAddressLine1 = job.ClientAddressLine1 ?? string.Empty;
+        ClientCity = job.ClientCity ?? string.Empty;
+        ClientCountry = string.IsNullOrWhiteSpace(job.ClientCountry)
+            ? "New Zealand"
+            : job.ClientCountry;
+
+        PickupCompany = job.PickupCompany ?? string.Empty;
+        PickupAddress = job.PickupAddress ?? string.Empty;
+
+        DeliveryCompany = job.DeliveryCompany ?? string.Empty;
+        DeliveryAddress = job.DeliveryAddress ?? string.Empty;
+
+        ReferenceNumber = job.ReferenceNumber ?? string.Empty;
+        LoadDescription = job.LoadDescription ?? string.Empty;
+
+        InvoiceNumber = job.InvoiceNumber ?? string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(job.RateType) &&
+            Enum.TryParse<RateType>(job.RateType, true, out var parsedRateType))
+        {
+            RateType = parsedRateType;
+        }
+        else
+        {
+            RateType = RateType.PerLoad;
+        }
+
+        RateValue = job.RateValue;
+        Quantity = job.Quantity;
+
+        SelectedDriver = null;
+        SelectedVehicle = null;
+        SelectedTrailer1 = null;
+        SelectedTrailer2 = null;
+
+        if (job.DriverId.HasValue)
+            SelectedDriver = Drivers.FirstOrDefault(x => x.Id == job.DriverId.Value);
+
+        if (job.VehicleAssetId.HasValue)
+            SelectedVehicle = Vehicles.FirstOrDefault(x => x.Id == job.VehicleAssetId.Value);
+
+        if (job.TrailerAssetIds != null && job.TrailerAssetIds.Count > 0)
+            SelectedTrailer1 = Trailers.FirstOrDefault(x => x.Id == job.TrailerAssetIds[0]);
+
+        if (job.TrailerAssetIds != null && job.TrailerAssetIds.Count > 1)
+            SelectedTrailer2 = Trailers.FirstOrDefault(x => x.Id == job.TrailerAssetIds[1]);
+
+        OnPropertyChanged(nameof(SelectedTrailerSummary));
+        OnPropertyChanged(nameof(Total));
     }
 
     private async Task SaveAsync()
@@ -408,12 +516,6 @@ public class NewJobViewModel : BaseViewModel
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(InvoiceNumber))
-        {
-            await Shell.Current.DisplayAlertAsync("Missing info", "Invoice number is required.", "OK");
-            return;
-        }
-
         if ((SelectedTrailer1 != null || SelectedTrailer2 != null) && SelectedVehicle == null)
         {
             await Shell.Current.DisplayAlertAsync(
@@ -423,15 +525,11 @@ public class NewJobViewModel : BaseViewModel
             return;
         }
 
-        var trailerIds = new[]
-        {
-            SelectedTrailer1?.Id,
-            SelectedTrailer2?.Id
-        }
-        .Where(id => id.HasValue && id.Value != Guid.Empty)
-        .Select(id => id!.Value)
-        .Distinct()
-        .ToList();
+        var trailerIds = new[] { SelectedTrailer1?.Id, SelectedTrailer2?.Id }
+            .Where(id => id.HasValue && id.Value != Guid.Empty)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
 
         if (trailerIds.Count > 2)
         {
@@ -442,43 +540,68 @@ public class NewJobViewModel : BaseViewModel
             return;
         }
 
-        var request = new CreateJobRequest
+        if (IsEditMode && _editingJobId.HasValue)
         {
-            ClientCompanyName = ClientCompanyName,
-            ClientContactName = ClientContactName,
-            ClientEmail = ClientEmail,
-            ClientAddressLine1 = ClientAddressLine1,
-            ClientCity = ClientCity,
-            ClientCountry = ClientCountry,
+            var request = new UpdateJobRequest
+            {
+                ClientCompanyName = ClientCompanyName,
+                ClientContactName = ClientContactName,
+                ClientEmail = ClientEmail,
+                ClientAddressLine1 = ClientAddressLine1,
+                ClientCity = ClientCity,
+                ClientCountry = ClientCountry,
 
-            PickupCompany = PickupCompany,
-            PickupAddress = PickupAddress,
+                PickupCompany = PickupCompany,
+                PickupAddress = PickupAddress,
+                DeliveryCompany = DeliveryCompany,
+                DeliveryAddress = DeliveryAddress,
 
-            DeliveryCompany = DeliveryCompany,
-            DeliveryAddress = DeliveryAddress,
+                ReferenceNumber = ReferenceNumber,
+                LoadDescription = LoadDescription,
 
-            ReferenceNumber = ReferenceNumber,
-            LoadDescription = LoadDescription,
-            InvoiceNumber = InvoiceNumber.Trim(),
+                RateType = RateType,
+                RateValue = RateValue,
+                Quantity = Quantity,
 
-            RateType = RateType,
-            RateValue = RateValue,
-            Quantity = Quantity,
+                DriverId = SelectedDriver?.Id,
+                VehicleAssetId = SelectedVehicle?.Id,
+                AssignedToUserId = SelectedDriver?.UserId,
+                TrailerAssetIds = trailerIds
+            };
 
-            DriverId = SelectedDriver?.Id,
-            VehicleAssetId = SelectedVehicle?.Id,
-            AssignedToUserId = SelectedDriver?.UserId,
+            var result = await _jobsApiService.UpdateJobAsync(_editingJobId.Value, request);
+        }
+        else
+        {
+            var request = new CreateJobRequest
+            {
+                ClientCompanyName = ClientCompanyName,
+                ClientContactName = ClientContactName,
+                ClientEmail = ClientEmail,
+                ClientAddressLine1 = ClientAddressLine1,
+                ClientCity = ClientCity,
+                ClientCountry = ClientCountry,
 
-            TrailerAssetIds = trailerIds
-        };
+                PickupCompany = PickupCompany,
+                PickupAddress = PickupAddress,
+                DeliveryCompany = DeliveryCompany,
+                DeliveryAddress = DeliveryAddress,
 
-        var result = await _jobsApiService.CreateJobAsync(request);
+                ReferenceNumber = ReferenceNumber,
+                LoadDescription = LoadDescription,
 
-        await Shell.Current.DisplayAlertAsync(
-            "Job Saved",
-            $"Job created: {result.ReferenceNumber}",
-            "OK");
+                RateType = RateType,
+                RateValue = RateValue,
+                Quantity = Quantity,
 
+                DriverId = SelectedDriver?.Id,
+                VehicleAssetId = SelectedVehicle?.Id,
+                AssignedToUserId = SelectedDriver?.UserId,
+                TrailerAssetIds = trailerIds
+            };
+
+            var result = await _jobsApiService.CreateJobAsync(request);
+        }
         await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
     }
 

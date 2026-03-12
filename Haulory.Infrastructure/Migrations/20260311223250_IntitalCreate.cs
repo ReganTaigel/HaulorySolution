@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Haulory.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class IntitalCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -314,6 +314,58 @@ namespace Haulory.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VehicleDayRuns",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VehicleAssetId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    StartOdometerKm = table.Column<int>(type: "int", nullable: false),
+                    EndOdometerKm = table.Column<int>(type: "int", nullable: true),
+                    StartedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FinishedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    OwnerUserId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    VehicleAssetId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VehicleDayRuns", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_UserAccounts_OwnerUserId",
+                        column: x => x.OwnerUserId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_UserAccounts_OwnerUserId1",
+                        column: x => x.OwnerUserId1,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_UserAccounts_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_UserAccounts_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_VehicleAssets_VehicleAssetId",
+                        column: x => x.VehicleAssetId,
+                        principalTable: "VehicleAssets",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_VehicleDayRuns_VehicleAssets_VehicleAssetId1",
+                        column: x => x.VehicleAssetId1,
+                        principalTable: "VehicleAssets",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DriverInductions",
                 columns: table => new
                 {
@@ -552,6 +604,41 @@ namespace Haulory.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_OwnerUserId",
+                table: "VehicleDayRuns",
+                column: "OwnerUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_OwnerUserId1",
+                table: "VehicleDayRuns",
+                column: "OwnerUserId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_UserId",
+                table: "VehicleDayRuns",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_UserId_VehicleAssetId_StartedAtUtc",
+                table: "VehicleDayRuns",
+                columns: new[] { "UserId", "VehicleAssetId", "StartedAtUtc" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_UserId1",
+                table: "VehicleDayRuns",
+                column: "UserId1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_VehicleAssetId",
+                table: "VehicleDayRuns",
+                column: "VehicleAssetId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VehicleDayRuns_VehicleAssetId1",
+                table: "VehicleDayRuns",
+                column: "VehicleAssetId1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WorkSites_OwnerUserId",
                 table: "WorkSites",
                 column: "OwnerUserId");
@@ -586,6 +673,9 @@ namespace Haulory.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OdometerReadings");
+
+            migrationBuilder.DropTable(
+                name: "VehicleDayRuns");
 
             migrationBuilder.DropTable(
                 name: "InductionRequirements");

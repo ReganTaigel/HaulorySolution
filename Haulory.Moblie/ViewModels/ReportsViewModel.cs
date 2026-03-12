@@ -22,11 +22,6 @@ public class ReportsViewModel : BaseViewModel
     private readonly ReportsApiService _reportsApiService;
     private readonly ISessionService _session;
 
-    private readonly InvoiceReportHandler _invoiceReport;
-    private readonly IPdfInvoiceGenerator _pdfInvoice;
-
-    private readonly PodReportHandler _podReport;
-    private readonly IPdfPodGenerator _pdfPod;
 
     #endregion
 
@@ -90,21 +85,11 @@ public class ReportsViewModel : BaseViewModel
     public ReportsViewModel(
         ReportsApiService reportsApiService,
         ISessionService session,
-        IFeatureAccessService featureAccessService,
-        InvoiceReportHandler invoiceReport,
-        IPdfInvoiceGenerator pdfInvoice,
-        PodReportHandler podReport,
-        IPdfPodGenerator pdfPod)
+        IFeatureAccessService featureAccessService)
         : base(featureAccessService)
     {
         _reportsApiService = reportsApiService;
         _session = session;
-
-        _invoiceReport = invoiceReport;
-        _pdfInvoice = pdfInvoice;
-
-        _podReport = podReport;
-        _pdfPod = pdfPod;
 
         RefreshCommand = new Command(async () => await LoadAsync());
         ExportInvoiceCommand = new Command<Guid>(async receiptId => await ExportInvoiceAsync(receiptId));
@@ -230,19 +215,10 @@ public class ReportsViewModel : BaseViewModel
 
         try
         {
-            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-            if (ownerUserId == Guid.Empty)
-                return;
+            var pdfBytes = await _reportsApiService.ExportInvoicePdfAsync(receiptId, IncludeGst, GstRate);
 
-            var dto = await _invoiceReport.HandleAsync(ownerUserId, receiptId, IncludeGst, GstRate);
 
-            var pdfBytes = _pdfInvoice.GenerateInvoicePdf(dto, Array.Empty<byte>());
-
-            var safeInvoice = string.IsNullOrWhiteSpace(dto.InvoiceNumber)
-                ? "invoice"
-                : dto.InvoiceNumber.Trim();
-
-            var filename = $"Invoice_{safeInvoice}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var filename = $"Invoice_{receiptId}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
             var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
             System.IO.File.WriteAllBytes(path, pdfBytes);
@@ -270,18 +246,9 @@ public class ReportsViewModel : BaseViewModel
 
         try
         {
-            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-            if (ownerUserId == Guid.Empty)
-                return;
+            var pdfBytes = await _reportsApiService.ExportPodPdfAsync(receiptId);
 
-            var dto = await _podReport.HandleAsync(ownerUserId, receiptId);
-            var pdfBytes = _pdfPod.GeneratePodPdf(dto);
-
-            var safeRef = string.IsNullOrWhiteSpace(dto.ReferenceNumber)
-                ? "pod"
-                : dto.ReferenceNumber.Trim();
-
-            var filename = $"POD_{safeRef}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var filename = $"POD_{receiptId}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
             var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
             System.IO.File.WriteAllBytes(path, pdfBytes);

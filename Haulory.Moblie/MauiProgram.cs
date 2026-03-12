@@ -40,8 +40,6 @@ public static class MauiProgram
             });
 
         RegisterApplicationServices(builder);
-        RegisterDatabase(builder);
-        RegisterRepositories(builder);
         RegisterViewModels(builder);
         RegisterPages(builder);
 
@@ -51,7 +49,6 @@ public static class MauiProgram
 
         var app = builder.Build();
 
-        EnsureDatabaseCreated(app);
 
         return app;
     }
@@ -71,20 +68,36 @@ public static class MauiProgram
         builder.Services.AddTransient<CreateDriverFromUserHandler>();
         builder.Services.AddTransient<CreateDriverHandler>();
         builder.Services.AddTransient<CreateVehicleHandler>();
-
+        builder.Services.AddSingleton<OdometerApiService>();
         builder.Services.AddTransient<InvoiceReportHandler>();
         builder.Services.AddTransient<PodReportHandler>();
 
         builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
         builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
-
+        builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
         builder.Services.AddSingleton<ISessionService, SessionService>();
 
         builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
 
-        builder.Services.AddSingleton(new HttpClient
+        builder.Services.AddSingleton(sp =>
         {
-            BaseAddress = new Uri("http://10.0.2.2:5158/")
+            string baseUrl;
+
+            if (DeviceInfo.DeviceType == DeviceType.Physical)
+            {
+                // Use your PC's LAN IP for real phone
+                baseUrl = "http://127.0.0.1:5158/";
+            }
+            else
+            {
+                // Emulator
+                baseUrl = "http://10.0.2.2:5158/";
+            }
+
+            return new HttpClient
+            {
+                BaseAddress = new Uri(baseUrl)
+            };
         });
 
         // API services
@@ -97,50 +110,10 @@ public static class MauiProgram
 
     #endregion
 
-    #region Database
-
-    // Registers EF Core DbContext factory using SQLite in app data directory.
-    private static void RegisterDatabase(MauiAppBuilder builder)
-    {
-        var dbPath = Path.Combine(FileSystem.AppDataDirectory, "haulory.db");
-
-        builder.Services.AddDbContextFactory<HauloryDbContext>(options =>
-            options.UseSqlite($"Filename={dbPath}")
-#if DEBUG
-                .EnableSensitiveDataLogging()
-#endif
-        );
-    }
-
-    // Ensures local database exists on app start.
-    private static void EnsureDatabaseCreated(MauiApp app)
-    {
-        using var scope = app.Services.CreateScope();
-
-        var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<HauloryDbContext>>();
-        using var db = factory.CreateDbContext();
-
-        db.Database.EnsureCreated();
-    }
-
-    #endregion
-
     #region Repositories
 
     // Data access registration.
     // IMPORTANT: repositories are scoped (not singleton) because they depend on DbContext.
-    private static void RegisterRepositories(MauiAppBuilder builder)
-    {
-        builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
-        builder.Services.AddScoped<IJobRepository, JobRepository>();
-        builder.Services.AddScoped<IDriverRepository, DriverRepository>();
-        builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
-        builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
-        builder.Services.AddScoped<IOdometerService, OdometerServiceRepository>();
-        builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
-        builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
-        builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
-    }
 
     #endregion
 

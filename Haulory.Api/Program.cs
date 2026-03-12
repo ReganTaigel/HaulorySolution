@@ -1,4 +1,6 @@
+using Haulory.Api.Services;
 using Haulory.Application.Features.Drivers;
+using Haulory.Application.Features.Reports;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
@@ -11,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using System.Text;
-using Haulory.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,11 @@ builder.Services.AddScoped<CreateDriverFromUserHandler>();
 builder.Services.AddScoped<IInductionEvidenceFileStorage, InductionEvidenceFileStorage>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddTransient<InvoiceReportHandler>();
+builder.Services.AddTransient<PodReportHandler>();
+builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
+builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
+builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("JWT key is missing.");

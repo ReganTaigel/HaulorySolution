@@ -7,13 +7,9 @@ public class DeliveryReceipt
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
 
-    // Tenant boundary (owner)
     public Guid OwnerUserId { get; private set; }
-
-    // One receipt per job (within owner)
     public Guid JobId { get; private set; }
 
-    // Snapshot fields (keep what you already have)
     public string ReferenceNumber { get; private set; } = string.Empty;
     public string InvoiceNumber { get; private set; } = string.Empty;
 
@@ -34,31 +30,24 @@ public class DeliveryReceipt
     public DateTime DeliveredAtUtc { get; private set; }
     public string SignatureJson { get; private set; } = string.Empty;
 
-    // Client (Bill To) snapshot (copied from Job at delivery time)
     public string ClientCompanyName { get; private set; } = string.Empty;
     public string? ClientContactName { get; private set; }
     public string? ClientEmail { get; private set; }
     public string ClientAddressLine1 { get; private set; } = string.Empty;
     public string ClientCity { get; private set; } = string.Empty;
     public string ClientCountry { get; private set; } = string.Empty;
-    
-    // EF
+
     private DeliveryReceipt() { }
 
-    // Updated ctor includes ownerUserId
     public DeliveryReceipt(
         Guid ownerUserId,
         Guid jobId,
-
-        // client snapshot
         string clientCompanyName,
         string? clientContactName,
         string? clientEmail,
         string clientAddressLine1,
         string clientCity,
         string clientCountry,
-
-        // existing fields...
         string referenceNumber,
         string invoiceNumber,
         string pickupCompany,

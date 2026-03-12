@@ -77,9 +77,27 @@ public sealed class DriversController : ControllerBase
 
         if (string.IsNullOrWhiteSpace(request.Email))
             ModelState.AddModelError(nameof(request.Email), "Email is required.");
-
         if (request.EmergencyContact is null)
+        {
             ModelState.AddModelError(nameof(request.EmergencyContact), "Emergency contact is required.");
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(request.EmergencyContact.FirstName))
+                ModelState.AddModelError(nameof(request.EmergencyContact.FirstName), "Emergency contact first name is required.");
+
+            if (string.IsNullOrWhiteSpace(request.EmergencyContact.LastName))
+                ModelState.AddModelError(nameof(request.EmergencyContact.LastName), "Emergency contact last name is required.");
+
+            if (string.IsNullOrWhiteSpace(request.EmergencyContact.Relationship))
+                ModelState.AddModelError(nameof(request.EmergencyContact.Relationship), "Emergency contact relationship is required.");
+
+            if (string.IsNullOrWhiteSpace(request.EmergencyContact.Email))
+                ModelState.AddModelError(nameof(request.EmergencyContact.Email), "Emergency contact email is required.");
+
+            if (string.IsNullOrWhiteSpace(request.EmergencyContact.PhoneNumber))
+                ModelState.AddModelError(nameof(request.EmergencyContact.PhoneNumber), "Emergency contact phone number is required.");
+        }
 
         if (request.CreateLoginAccount && string.IsNullOrWhiteSpace(request.Password))
             ModelState.AddModelError(nameof(request.Password), "Password is required when creating a login account.");
@@ -92,9 +110,9 @@ public sealed class DriversController : ControllerBase
         var created = await _createDriverHandler.HandleAsync(
             new CreateDriverCommand(
                 OwnerUserId: ownerUserId,
-                FirstName: request.FirstName,
-                LastName: request.LastName,
-                Email: request.Email,
+                FirstName: request.FirstName.Trim(),
+                LastName: request.LastName.Trim(),
+                Email: request.Email.Trim().ToLowerInvariant(),
                 LicenceNumber: request.LicenceNumber,
 
                 PhoneNumber: request.PhoneNumber,

@@ -67,7 +67,10 @@ public class NewDriverViewModel : BaseViewModel
 
         RefreshSaveState();
     }
-
+    public bool IsEditMode => Guid.TryParse(DriverId, out var id) && id != Guid.Empty;
+    public string PageTitle => IsEditMode ? "Edit driver" : "New driver";
+    public string SaveButtonText => IsEditMode ? "Update driver" : "Save driver";
+    public bool CanCreateLoginAccount => !IsEditMode;
     public string DriverId
     {
         get => _driverId;
@@ -404,18 +407,7 @@ public class NewDriverViewModel : BaseViewModel
         {
             await Shell.Current.DisplayAlertAsync(
                 "Cannot save",
-                $"Authenticated: {_sessionService.IsAuthenticated}\n" +
-                $"OwnerId: {_sessionService.CurrentOwnerId}\n" +
-                $"IsMainUser: {IsMainUser}\n" +
-                $"FirstName ok: {!string.IsNullOrWhiteSpace(FirstName)}\n" +
-                $"LastName ok: {!string.IsNullOrWhiteSpace(LastName)}\n" +
-                $"Email ok: {!string.IsNullOrWhiteSpace(Email) && Email.Contains('@')}\n" +
-                $"EmergencyFirstName ok: {!string.IsNullOrWhiteSpace(EmergencyFirstName)}\n" +
-                $"EmergencyLastName ok: {!string.IsNullOrWhiteSpace(EmergencyLastName)}\n" +
-                $"EmergencyRelationship ok: {!string.IsNullOrWhiteSpace(EmergencyRelationship)}\n" +
-                $"EmergencyEmail ok: {!string.IsNullOrWhiteSpace(EmergencyEmail) && EmergencyEmail.Contains('@')}\n" +
-                $"EmergencyPhone ok: {!string.IsNullOrWhiteSpace(EmergencyPhoneNumber)}\n" +
-                $"Password ok: {!CreateLoginAccount || !string.IsNullOrWhiteSpace(Password)}",
+                "Please complete all required fields before saving.",
                 "OK");
             return;
         }
@@ -425,52 +417,98 @@ public class NewDriverViewModel : BaseViewModel
             _isSaving = true;
             RefreshSaveState();
 
-            var request = new CreateDriverRequest
+            if (IsEditMode && Guid.TryParse(DriverId, out var driverId))
             {
-                FirstName = FirstName.Trim(),
-                LastName = LastName.Trim(),
-                Email = Email.Trim().ToLowerInvariant(),
-
-                PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
-                DateOfBirthUtc = ToUtcDate(DateOfBirthLocal),
-
-                LicenceNumber = string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
-                LicenceVersion = string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
-                LicenceClassOrEndorsements = string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
-                LicenceIssuedOnUtc = ToUtcDate(LicenceIssuedLocal),
-                LicenceExpiresOnUtc = ToUtcDate(LicenceExpiryLocal),
-                LicenceConditionsNotes = string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
-
-                Line1 = string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
-                Line2 = string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
-                Suburb = string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
-                City = string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
-                Region = string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
-                Postcode = string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
-                Country = string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
-
-                EmergencyContact = new EmergencyContactRequest
+                var request = new UpdateDriverRequest
                 {
-                    FirstName = EmergencyFirstName.Trim(),
-                    LastName = EmergencyLastName.Trim(),
-                    Relationship = EmergencyRelationship.Trim(),
-                    Email = EmergencyEmail.Trim().ToLowerInvariant(),
-                    PhoneNumber = EmergencyPhoneNumber.Trim(),
-                    SecondaryPhoneNumber = string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
-                        ? null
-                        : EmergencySecondaryPhoneNumber.Trim()
-                },
+                    FirstName = FirstName.Trim(),
+                    LastName = LastName.Trim(),
+                    Email = Email.Trim().ToLowerInvariant(),
 
-                CreateLoginAccount = CreateLoginAccount,
-                Password = string.IsNullOrWhiteSpace(Password) ? null : Password
-            };
+                    PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
+                    DateOfBirthUtc = ToUtcDate(DateOfBirthLocal),
 
-            await _driversApiService.CreateDriverAsync(request);
+                    LicenceNumber = string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
+                    LicenceVersion = string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
+                    LicenceClassOrEndorsements = string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
+                    LicenceIssuedOnUtc = ToUtcDate(LicenceIssuedLocal),
+                    LicenceExpiresOnUtc = ToUtcDate(LicenceExpiryLocal),
+                    LicenceConditionsNotes = string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
 
-            await Shell.Current.DisplayAlertAsync(
-                "Saved",
-                CreateLoginAccount ? "Driver + login account created." : "Driver created.",
-                "OK");
+                    Line1 = string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
+                    Line2 = string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
+                    Suburb = string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
+                    City = string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
+                    Region = string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
+                    Postcode = string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
+                    Country = string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
+
+                    EmergencyContact = new EmergencyContactRequest
+                    {
+                        FirstName = EmergencyFirstName.Trim(),
+                        LastName = EmergencyLastName.Trim(),
+                        Relationship = EmergencyRelationship.Trim(),
+                        Email = EmergencyEmail.Trim().ToLowerInvariant(),
+                        PhoneNumber = EmergencyPhoneNumber.Trim(),
+                        SecondaryPhoneNumber = string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
+                            ? null
+                            : EmergencySecondaryPhoneNumber.Trim()
+                    }
+                };
+
+                await _driversApiService.UpdateDriverAsync(driverId, request);
+
+                await Shell.Current.DisplayAlertAsync("Saved", "Driver updated.", "OK");
+            }
+            else
+            {
+                var request = new CreateDriverRequest
+                {
+                    FirstName = FirstName.Trim(),
+                    LastName = LastName.Trim(),
+                    Email = Email.Trim().ToLowerInvariant(),
+
+                    PhoneNumber = string.IsNullOrWhiteSpace(PhoneNumber) ? null : PhoneNumber.Trim(),
+                    DateOfBirthUtc = ToUtcDate(DateOfBirthLocal),
+
+                    LicenceNumber = string.IsNullOrWhiteSpace(LicenceNumber) ? null : LicenceNumber.Trim(),
+                    LicenceVersion = string.IsNullOrWhiteSpace(LicenceVersion) ? null : LicenceVersion.Trim(),
+                    LicenceClassOrEndorsements = string.IsNullOrWhiteSpace(LicenceClassOrEndorsements) ? null : LicenceClassOrEndorsements.Trim(),
+                    LicenceIssuedOnUtc = ToUtcDate(LicenceIssuedLocal),
+                    LicenceExpiresOnUtc = ToUtcDate(LicenceExpiryLocal),
+                    LicenceConditionsNotes = string.IsNullOrWhiteSpace(LicenceConditionsNotes) ? null : LicenceConditionsNotes.Trim(),
+
+                    Line1 = string.IsNullOrWhiteSpace(Line1) ? null : Line1.Trim(),
+                    Line2 = string.IsNullOrWhiteSpace(Line2) ? null : Line2.Trim(),
+                    Suburb = string.IsNullOrWhiteSpace(Suburb) ? null : Suburb.Trim(),
+                    City = string.IsNullOrWhiteSpace(City) ? null : City.Trim(),
+                    Region = string.IsNullOrWhiteSpace(Region) ? null : Region.Trim(),
+                    Postcode = string.IsNullOrWhiteSpace(Postcode) ? null : Postcode.Trim(),
+                    Country = string.IsNullOrWhiteSpace(Country) ? null : Country.Trim(),
+
+                    EmergencyContact = new EmergencyContactRequest
+                    {
+                        FirstName = EmergencyFirstName.Trim(),
+                        LastName = EmergencyLastName.Trim(),
+                        Relationship = EmergencyRelationship.Trim(),
+                        Email = EmergencyEmail.Trim().ToLowerInvariant(),
+                        PhoneNumber = EmergencyPhoneNumber.Trim(),
+                        SecondaryPhoneNumber = string.IsNullOrWhiteSpace(EmergencySecondaryPhoneNumber)
+                            ? null
+                            : EmergencySecondaryPhoneNumber.Trim()
+                    },
+
+                    CreateLoginAccount = CreateLoginAccount,
+                    Password = string.IsNullOrWhiteSpace(Password) ? null : Password
+                };
+
+                await _driversApiService.CreateDriverAsync(request);
+
+                await Shell.Current.DisplayAlertAsync(
+                    "Saved",
+                    CreateLoginAccount ? "Driver + login account created." : "Driver created.",
+                    "OK");
+            }
 
             await Shell.Current.GoToAsync("..");
         }
@@ -484,7 +522,6 @@ public class NewDriverViewModel : BaseViewModel
             RefreshSaveState();
         }
     }
-
     private void RefreshSaveState()
     {
         OnPropertyChanged(nameof(IsMainUser));
@@ -492,6 +529,10 @@ public class NewDriverViewModel : BaseViewModel
         OnPropertyChanged(nameof(IsAddDriverVisible));
         OnPropertyChanged(nameof(IsAddDriverEnabled));
         OnPropertyChanged(nameof(CanSaveDriverAction));
+        OnPropertyChanged(nameof(IsEditMode));
+        OnPropertyChanged(nameof(PageTitle));
+        OnPropertyChanged(nameof(SaveButtonText));
+        OnPropertyChanged(nameof(CanCreateLoginAccount));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 
@@ -499,17 +540,70 @@ public class NewDriverViewModel : BaseViewModel
     {
         return DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local).ToUniversalTime();
     }
+    private async Task LoadExistingDriverAsync(Guid driverId)
+    {
+        var driver = await _driversApiService.GetDriverByIdAsync(driverId);
+        if (driver == null)
+        {
+            await Shell.Current.DisplayAlertAsync("Not found", "Driver could not be loaded.", "OK");
+            return;
+        }
+
+        FirstName = driver.FirstName ?? string.Empty;
+        LastName = driver.LastName ?? string.Empty;
+        Email = driver.Email ?? string.Empty;
+        PhoneNumber = driver.PhoneNumber ?? string.Empty;
+
+        if (driver.DateOfBirthUtc.HasValue)
+            DateOfBirthLocal = driver.DateOfBirthUtc.Value.ToLocalTime().Date;
+
+        LicenceNumber = driver.LicenceNumber ?? string.Empty;
+        LicenceVersion = driver.LicenceVersion ?? string.Empty;
+        LicenceClassOrEndorsements = driver.LicenceClassOrEndorsements ?? string.Empty;
+        LicenceConditionsNotes = driver.LicenceConditionsNotes ?? string.Empty;
+
+        if (driver.LicenceIssuedOnUtc.HasValue)
+            LicenceIssuedLocal = driver.LicenceIssuedOnUtc.Value.ToLocalTime().Date;
+
+        if (driver.LicenceExpiresOnUtc.HasValue)
+            LicenceExpiryLocal = driver.LicenceExpiresOnUtc.Value.ToLocalTime().Date;
+
+        Line1 = driver.Line1 ?? string.Empty;
+        Line2 = driver.Line2 ?? string.Empty;
+        Suburb = driver.Suburb ?? string.Empty;
+        City = driver.City ?? string.Empty;
+        Region = driver.Region ?? string.Empty;
+        Postcode = driver.Postcode ?? string.Empty;
+        Country = driver.Country ?? string.Empty;
+
+        EmergencyFirstName = driver.EmergencyContact?.FirstName ?? string.Empty;
+        EmergencyLastName = driver.EmergencyContact?.LastName ?? string.Empty;
+        EmergencyRelationship = driver.EmergencyContact?.Relationship ?? string.Empty;
+        EmergencyEmail = driver.EmergencyContact?.Email ?? string.Empty;
+        EmergencyPhoneNumber = driver.EmergencyContact?.PhoneNumber ?? string.Empty;
+        EmergencySecondaryPhoneNumber = driver.EmergencyContact?.SecondaryPhoneNumber ?? string.Empty;
+
+        CreateLoginAccount = false;
+        Password = string.Empty;
+    }
 
     public async Task InitializeAsync()
     {
         if (!_sessionService.IsAuthenticated)
             await _sessionService.RestoreAsync();
 
+        if (IsEditMode && Guid.TryParse(DriverId, out var driverId))
+            await LoadExistingDriverAsync(driverId);
+
         OnPropertyChanged(nameof(IsMainUser));
         OnPropertyChanged(nameof(CanSave));
         OnPropertyChanged(nameof(IsAddDriverVisible));
         OnPropertyChanged(nameof(IsAddDriverEnabled));
         OnPropertyChanged(nameof(CanSaveDriverAction));
+        OnPropertyChanged(nameof(IsEditMode));
+        OnPropertyChanged(nameof(PageTitle));
+        OnPropertyChanged(nameof(SaveButtonText));
+        OnPropertyChanged(nameof(CanCreateLoginAccount));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
     }
 }

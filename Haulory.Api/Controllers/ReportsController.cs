@@ -1,7 +1,8 @@
-﻿using System.Security.Claims;
-using Haulory.Api.Contracts.Reports;
+﻿using Haulory.Api.Contracts.Reports;
 using Haulory.Api.Extensions;
+using Haulory.Application.Features.Reports;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,17 +14,30 @@ namespace Haulory.Api.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
+    private readonly InvoiceReportHandler _invoiceReportHandler;
+    private readonly PodReportHandler _podReportHandler;
+    private readonly IPdfInvoiceGenerator _pdfInvoiceGenerator;
+    private readonly IPdfPodGenerator _pdfPodGenerator;
 
-    public ReportsController(IDeliveryReceiptRepository deliveryReceiptRepository)
+    public ReportsController(
+        IDeliveryReceiptRepository deliveryReceiptRepository,
+        InvoiceReportHandler invoiceReportHandler,
+        PodReportHandler podReportHandler,
+        IPdfInvoiceGenerator pdfInvoiceGenerator,
+        IPdfPodGenerator pdfPodGenerator)
     {
         _deliveryReceiptRepository = deliveryReceiptRepository;
+        _invoiceReportHandler = invoiceReportHandler;
+        _podReportHandler = podReportHandler;
+        _pdfInvoiceGenerator = pdfInvoiceGenerator;
+        _pdfPodGenerator = pdfPodGenerator;
     }
 
     [HttpGet("today")]
     [ProducesResponseType(typeof(ReportsTodayDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ReportsTodayDto>> GetToday()
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
 
@@ -50,7 +64,7 @@ public class ReportsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DeliveryReceiptDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DeliveryReceiptDto>>> GetReceiptsByDate([FromQuery] DateTime? date = null)
     {
-        var ownerUserId = GetOwnerUserId();
+        var ownerUserId = User.GetOwnerUserId();
 
         var targetDate = (date ?? DateTime.Now).Date;
         var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
@@ -64,19 +78,43 @@ public class ReportsController : ControllerBase
         return Ok(filtered);
     }
 
-    private Guid GetOwnerUserId()
+    [HttpGet("invoices/{receiptId:guid}/pdf")]
+    [Produces("application/pdf")]
+    public async Task<IActionResult> ExportInvoicePdf(
+        Guid receiptId,
+        [FromQuery] bool includeGst = true,
+        [FromQuery] decimal gstRate = 0.15m)
     {
-        var value =
-            User.FindFirstValue("owner_id") ??
-            User.FindFirstValue("ownerId") ??
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub") ??
-            User.FindFirstValue("userId");
+        var ownerUserId = User.GetOwnerUserId();
 
-        if (!Guid.TryParse(value, out var ownerUserId))
-            throw new UnauthorizedAccessException("Authenticated owner id is missing or invalid.");
+        var dto = await _invoiceReportHandler.HandleAsync(ownerUserId, receiptId, includeGst, gstRate);
+        var pdfBytes = _pdfInvoiceGenerator.GenerateInvoicePdf(dto, Array.Empty<byte>());
 
-        return ownerUserId;
+        var safeInvoice = string.IsNullOrWhiteSpace(dto.InvoiceNumber)
+            ? "invoice"
+            : dto.InvoiceNumber.Trim();
+
+        var fileName = $"Invoice_{safeInvoice}.pdf";
+
+        return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    [HttpGet("pods/{receiptId:guid}/pdf")]
+    [Produces("application/pdf")]
+    public async Task<IActionResult> ExportPodPdf(Guid receiptId)
+    {
+        var ownerUserId = User.GetOwnerUserId();
+
+        var dto = await _podReportHandler.HandleAsync(ownerUserId, receiptId);
+        var pdfBytes = _pdfPodGenerator.GeneratePodPdf(dto);
+
+        var safeRef = string.IsNullOrWhiteSpace(dto.ReferenceNumber)
+            ? "pod"
+            : dto.ReferenceNumber.Trim();
+
+        var fileName = $"POD_{safeRef}.pdf";
+
+        return File(pdfBytes, "application/pdf", fileName);
     }
 
     private static DateTime ToLocalDate(DateTime deliveredAtUtc)

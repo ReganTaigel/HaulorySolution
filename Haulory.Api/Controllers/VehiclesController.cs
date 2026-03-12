@@ -11,6 +11,7 @@ namespace Haulory.Api.Controllers;
 
 [ApiController]
 [Route("api/vehicles")]
+[Route("api/vehicleassets")] // compatibility route for mobile app
 [Authorize]
 public sealed class VehiclesController : ControllerBase
 {
@@ -25,16 +26,18 @@ public sealed class VehiclesController : ControllerBase
         _createVehicleHandler = createVehicleHandler;
     }
 
+    // GET: api/vehicles
+    // GET: api/vehicleassets
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<VehicleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<VehicleDto>>> GetAll()
     {
+        System.Diagnostics.Debug.WriteLine("[VehiclesController] GetAll called");
+
         var ownerUserId = User.GetOwnerUserId();
+        var vehicles = await _vehicleRepository.GetByOwnerAsync(ownerUserId);
 
-        var allVehicles = await _vehicleRepository.GetAllAsync();
-
-        var result = allVehicles
-            .Where(x => x.OwnerUserId == ownerUserId)
+        var result = vehicles
             .OrderBy(x => x.VehicleSetId)
             .ThenBy(x => x.UnitNumber)
             .ThenBy(x => x.Rego)
@@ -44,6 +47,8 @@ public sealed class VehiclesController : ControllerBase
         return Ok(result);
     }
 
+    // GET: api/vehicles/{id}
+    // GET: api/vehicleassets/{id}
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,25 +64,54 @@ public sealed class VehiclesController : ControllerBase
         return Ok(vehicle.ToDto());
     }
 
+    // GET: api/vehicles/trailers
+    // GET: api/vehicleassets/trailers
     [HttpGet("trailers")]
     [ProducesResponseType(typeof(IEnumerable<VehicleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<VehicleDto>>> GetTrailers()
     {
+        System.Diagnostics.Debug.WriteLine("[VehiclesController] GetTrailers called");
+
         var ownerUserId = User.GetOwnerUserId();
+        var trailers = await _vehicleRepository.GetTrailerAssetsByOwnerAsync(ownerUserId);
 
-        var allVehicles = await _vehicleRepository.GetAllAsync();
-
-        var trailers = allVehicles
-            .Where(x => x.OwnerUserId == ownerUserId && x.Kind == AssetKind.Trailer)
+        var result = trailers
             .OrderBy(x => x.VehicleSetId)
             .ThenBy(x => x.UnitNumber)
             .ThenBy(x => x.Rego)
             .Select(x => x.ToDto())
             .ToList();
 
-        return Ok(trailers);
+        return Ok(result);
     }
 
+    // GET: api/vehicles/owner/{ownerUserId}
+    // GET: api/vehicleassets/owner/{ownerUserId}
+    // compatibility endpoint - still uses authenticated owner's vehicles
+    [HttpGet("owner/{ownerUserId:guid}")]
+    [ProducesResponseType(typeof(IEnumerable<VehicleDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<VehicleDto>>> GetByOwner(Guid ownerUserId)
+    {
+        var authenticatedOwnerUserId = User.GetOwnerUserId();
+
+        // prevent users from querying a different owner's vehicles
+        if (ownerUserId != authenticatedOwnerUserId)
+            return Forbid();
+
+        var vehicles = await _vehicleRepository.GetByOwnerAsync(authenticatedOwnerUserId);
+
+        var result = vehicles
+            .OrderBy(x => x.VehicleSetId)
+            .ThenBy(x => x.UnitNumber)
+            .ThenBy(x => x.Rego)
+            .Select(x => x.ToDto())
+            .ToList();
+
+        return Ok(result);
+    }
+
+    // POST: api/vehicles/sets
+    // POST: api/vehicleassets/sets
     [HttpPost("sets")]
     [ProducesResponseType(typeof(CreateVehicleSetResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
