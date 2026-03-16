@@ -1,9 +1,10 @@
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Enums;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Features.Jobs.NewJob;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
+using Haulory.Domain.Enums;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -11,16 +12,27 @@ namespace Haulory.Mobile.ViewModels;
 
 public class NewJobViewModel : BaseViewModel, IQueryAttributable
 {
+    #region Dependencies
+
     private readonly ISessionService _session;
     private readonly NewJobFormState _state = new();
     private readonly NewJobValidator _validator = new();
     private readonly NewJobEditorService _editorService;
     private readonly JobPickerLoader _pickerLoader;
+    private readonly ICrashLogger _crashLogger;
+
+    #endregion
+
+    #region Selection State
 
     private DriverPickerItem? _selectedDriver;
     private VehiclePickerItem? _selectedVehicle;
     private VehiclePickerItem? _selectedTrailer1;
     private VehiclePickerItem? _selectedTrailer2;
+
+    #endregion
+
+    #region Collections
 
     public IReadOnlyList<RateType> RateTypes { get; } =
         Enum.GetValues(typeof(RateType)).Cast<RateType>().ToList();
@@ -29,18 +41,26 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     public ObservableCollection<VehiclePickerItem> Vehicles { get; } = new();
     public ObservableCollection<VehiclePickerItem> Trailers { get; } = new();
 
+    #endregion
+
+    #region Constructor
+
     public NewJobViewModel(
         JobsApiService jobsApiService,
         DriversApiService driversApiService,
         VehiclesApiService vehiclesApiService,
         ISessionService session,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
         _session = session;
+        _crashLogger = crashLogger;
+
         _editorService = new NewJobEditorService(
             jobsApiService,
             new NewJobRequestMapper(_validator));
+
         _pickerLoader = new JobPickerLoader(driversApiService, vehiclesApiService);
 
         SaveJobCommand = new Command(async () => await SaveAsync());
@@ -49,6 +69,10 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
 
         _state.RateType = RateType.PerLoad;
     }
+
+    #endregion
+
+    #region Feature Access
 
     public bool IsAddJobVisible => IsFeatureVisible(AppFeature.AddJob);
     public bool IsAddJobEnabled => IsFeatureEnabled(AppFeature.AddJob);
@@ -84,6 +108,10 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
         : IsPickupOnly
             ? "Save pickup details"
             : IsEditMode ? "Update job" : "Save job";
+
+    #endregion
+
+    #region Selected Pickers
 
     public DriverPickerItem? SelectedDriver
     {
@@ -148,6 +176,10 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
             SyncSelections();
         }
     }
+
+    #endregion
+
+    #region Form Properties
 
     public string PickupCompany
     {
@@ -327,8 +359,16 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
         _ => RateValue * Quantity
     };
 
+    #endregion
+
+    #region Commands
+
     public ICommand SaveJobCommand { get; }
     public ICommand CancelCommand { get; }
+
+    #endregion
+
+    #region Public Methods
 
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
@@ -366,6 +406,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     public void SetPickupOnly(bool pickupOnly)
     {
         _state.IsPickupOnly = pickupOnly;
+
         if (pickupOnly)
             _state.IsReviewOnly = false;
 
@@ -375,6 +416,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     public void SetReviewOnly(bool reviewOnly)
     {
         _state.IsReviewOnly = reviewOnly;
+
         if (reviewOnly)
             _state.IsPickupOnly = false;
 
@@ -383,72 +425,84 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
 
     public async Task LoadAsync()
     {
-        if (!IsPageVisible)
-        {
-            RefreshFeatureBindings();
-            return;
-        }
-
-        if (!_session.IsAuthenticated)
-            await _session.RestoreAsync();
-
-        var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-        if (ownerUserId == Guid.Empty)
-        {
-            RefreshFeatureBindings();
-            return;
-        }
-
-        Drivers.Clear();
-        Vehicles.Clear();
-        Trailers.Clear();
-
-        if (!IsPickupOnly && !IsReviewOnly)
-        {
-            var pickers = await _pickerLoader.LoadAsync();
-
-            foreach (var d in pickers.Drivers)
-                Drivers.Add(d);
-
-            foreach (var v in pickers.Vehicles)
-                Vehicles.Add(v);
-
-            foreach (var t in pickers.Trailers)
-                Trailers.Add(t);
-        }
-
-        if (IsEditMode && _state.EditingJobId.HasValue && !_state.IsLoadingExistingJob)
-        {
-            _state.IsLoadingExistingJob = true;
-
-            try
+        await SafeRunner.RunAsync(
+            async () =>
             {
-                await _editorService.LoadIntoStateAsync(_state, _state.EditingJobId.Value);
-                ApplyStateToSelections();
-                RaiseAllStateBindings();
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync("Not found", ex.Message, "OK");
-            }
-            finally
-            {
-                _state.IsLoadingExistingJob = false;
-            }
-        }
-        else
-        {
-            if (Drivers.Count == 1 && SelectedDriver == null)
-                SelectedDriver = Drivers[0];
+                if (!IsPageVisible)
+                {
+                    RefreshFeatureBindings();
+                    return;
+                }
 
-            if (Vehicles.Count == 1 && SelectedVehicle == null)
-                SelectedVehicle = Vehicles[0];
-        }
+                if (!_session.IsAuthenticated)
+                    await _session.RestoreAsync();
 
-        OnPropertyChanged(nameof(SelectedTrailerSummary));
-        OnPropertyChanged(nameof(Total));
-        RefreshFeatureBindings();
+                var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
+                if (ownerUserId == Guid.Empty)
+                {
+                    RefreshFeatureBindings();
+                    return;
+                }
+
+                Drivers.Clear();
+                Vehicles.Clear();
+                Trailers.Clear();
+
+                if (!IsPickupOnly && !IsReviewOnly)
+                {
+                    var pickers = await _pickerLoader.LoadAsync();
+
+                    foreach (var driver in pickers.Drivers)
+                        Drivers.Add(driver);
+
+                    foreach (var vehicle in pickers.Vehicles)
+                        Vehicles.Add(vehicle);
+
+                    foreach (var trailer in pickers.Trailers)
+                        Trailers.Add(trailer);
+                }
+
+                if (IsEditMode && _state.EditingJobId.HasValue && !_state.IsLoadingExistingJob)
+                {
+                    _state.IsLoadingExistingJob = true;
+
+                    try
+                    {
+                        await _editorService.LoadIntoStateAsync(_state, _state.EditingJobId.Value);
+                        ApplyStateToSelections();
+                        RaiseAllStateBindings();
+                    }
+                    finally
+                    {
+                        _state.IsLoadingExistingJob = false;
+                    }
+                }
+                else
+                {
+                    if (Drivers.Count == 1 && SelectedDriver == null)
+                        SelectedDriver = Drivers[0];
+
+                    if (Vehicles.Count == 1 && SelectedVehicle == null)
+                        SelectedVehicle = Vehicles[0];
+                }
+
+                OnPropertyChanged(nameof(SelectedTrailerSummary));
+                OnPropertyChanged(nameof(Total));
+                RefreshFeatureBindings();
+            },
+            _crashLogger,
+            "NewJobViewModel.LoadAsync",
+            nameof(NewJobPage),
+            metadataJson: $"{{\"JobId\":\"{_state.EditingJobId}\",\"IsEditMode\":{IsEditMode.ToString().ToLowerInvariant()},\"IsPickupOnly\":{IsPickupOnly.ToString().ToLowerInvariant()},\"IsReviewOnly\":{IsReviewOnly.ToString().ToLowerInvariant()}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+            });
     }
+
+    #endregion
+
+    #region Private Methods
 
     private async Task SaveAsync()
     {
@@ -474,8 +528,20 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
             return;
         }
 
-        await _editorService.SaveAsync(_state);
-        await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                await _editorService.SaveAsync(_state);
+                await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
+            },
+            _crashLogger,
+            "NewJobViewModel.SaveAsync",
+            nameof(NewJobPage),
+            metadataJson: $"{{\"JobId\":\"{_state.EditingJobId}\",\"IsEditMode\":{IsEditMode.ToString().ToLowerInvariant()},\"IsPickupOnly\":{IsPickupOnly.ToString().ToLowerInvariant()},\"IsReviewOnly\":{IsReviewOnly.ToString().ToLowerInvariant()},\"RateType\":\"{RateType}\",\"RateValue\":{RateValue},\"Quantity\":{Quantity}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+            });
     }
 
     private void ApplyStateToSelections()
@@ -554,14 +620,21 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
         OnPropertyChanged(nameof(SaveButtonText));
     }
 
-    private void SetStateValue<T>(T current, T value, Action<T> assign, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    private void SetStateValue<T>(
+        T current,
+        T value,
+        Action<T> assign,
+        [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(current, value))
             return;
 
         assign(value);
         OnPropertyChanged(propertyName);
+
         if (propertyName == nameof(RateValue) || propertyName == nameof(Quantity))
             OnPropertyChanged(nameof(Total));
     }
+
+    #endregion
 }

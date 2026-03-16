@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Features.Drivers.NewDriver;
 using Haulory.Mobile.Services;
@@ -9,20 +10,34 @@ namespace Haulory.Mobile.ViewModels;
 [QueryProperty(nameof(DriverId), "driverId")]
 public class NewDriverViewModel : BaseViewModel
 {
+    #region Dependencies
+
     private readonly ISessionService _sessionService;
     private readonly NewDriverFormState _state = new();
     private readonly NewDriverValidator _validator = new();
     private readonly NewDriverEditorService _editorService;
+    private readonly ICrashLogger _crashLogger;
+
+    #endregion
+
+    #region Commands
 
     public ICommand SaveDriverCommand { get; }
+
+    #endregion
+
+    #region Constructor
 
     public NewDriverViewModel(
         DriversApiService driversApiService,
         ISessionService sessionService,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
         _sessionService = sessionService;
+        _crashLogger = crashLogger;
+
         _editorService = new NewDriverEditorService(
             driversApiService,
             new NewDriverRequestMapper());
@@ -32,10 +47,18 @@ public class NewDriverViewModel : BaseViewModel
         RefreshSaveState();
     }
 
+    #endregion
+
+    #region State Properties
+
     public bool IsEditMode => _state.IsEditMode;
     public string PageTitle => IsEditMode ? "Edit driver" : "New driver";
     public string SaveButtonText => IsEditMode ? "Update driver" : "Save driver";
     public bool CanCreateLoginAccount => !IsEditMode;
+    public bool IsMainProfileDriver => _state.IsMainProfile;
+
+    public bool ShowCreateLoginSection =>
+        !IsEditMode && !IsMainProfileDriver && IsAddDriverVisible;
 
     public string DriverId
     {
@@ -121,6 +144,10 @@ public class NewDriverViewModel : BaseViewModel
 
     public bool CanSaveDriverAction => IsAddDriverEnabled && CanSave;
 
+    #endregion
+
+    #region Private Methods
+
     private async Task ExecuteSaveAsync()
     {
         if (!await EnsureFeatureEnabledAsync(AppFeature.AddDriver))
@@ -144,20 +171,28 @@ public class NewDriverViewModel : BaseViewModel
             _state.IsSaving = true;
             RefreshSaveState();
 
-            await _editorService.SaveAsync(_state);
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    await _editorService.SaveAsync(_state);
 
-            await Shell.Current.DisplayAlertAsync(
-                "Saved",
-                IsEditMode
-                    ? "Driver updated."
-                    : CreateLoginAccount ? "Driver + login account created." : "Driver created.",
-                "OK");
+                    await Shell.Current.DisplayAlertAsync(
+                        "Saved",
+                        IsEditMode
+                            ? "Driver updated."
+                            : CreateLoginAccount ? "Driver + login account created." : "Driver created.",
+                        "OK");
 
-            await Shell.Current.GoToAsync("..");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                    await Shell.Current.GoToAsync("..");
+                },
+                _crashLogger,
+                "NewDriverViewModel.ExecuteSaveAsync",
+                nameof(Views.NewDriverPage),
+                metadataJson: $"{{\"DriverId\":\"{DriverId}\",\"IsEditMode\":{IsEditMode.ToString().ToLowerInvariant()},\"CreateLoginAccount\":{CreateLoginAccount.ToString().ToLowerInvariant()},\"IsMainProfileDriver\":{IsMainProfileDriver.ToString().ToLowerInvariant()}}}",
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                });
         }
         finally
         {
@@ -165,6 +200,40 @@ public class NewDriverViewModel : BaseViewModel
             RefreshSaveState();
         }
     }
+
+    #endregion
+
+    #region Public Methods
+
+    public async Task InitializeAsync()
+    {
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                if (!_sessionService.IsAuthenticated)
+                    await _sessionService.RestoreAsync();
+
+                if (IsEditMode && Guid.TryParse(DriverId, out var driverId))
+                {
+                    await _editorService.LoadIntoStateAsync(_state, driverId);
+                    RaiseAllBindings();
+                }
+
+                RefreshSaveState();
+            },
+            _crashLogger,
+            "NewDriverViewModel.InitializeAsync",
+            nameof(Views.NewDriverPage),
+            metadataJson: $"{{\"DriverId\":\"{DriverId}\",\"IsEditMode\":{IsEditMode.ToString().ToLowerInvariant()}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Not found", ex.Message, "OK");
+            });
+    }
+
+    #endregion
+
+    #region Helper Methods
 
     private void RefreshSaveState()
     {
@@ -177,28 +246,9 @@ public class NewDriverViewModel : BaseViewModel
         OnPropertyChanged(nameof(PageTitle));
         OnPropertyChanged(nameof(SaveButtonText));
         OnPropertyChanged(nameof(CanCreateLoginAccount));
+        OnPropertyChanged(nameof(IsMainProfileDriver));
+        OnPropertyChanged(nameof(ShowCreateLoginSection));
         (SaveDriverCommand as Command)?.ChangeCanExecute();
-    }
-
-    public async Task InitializeAsync()
-    {
-        if (!_sessionService.IsAuthenticated)
-            await _sessionService.RestoreAsync();
-
-        if (IsEditMode && Guid.TryParse(DriverId, out var driverId))
-        {
-            try
-            {
-                await _editorService.LoadIntoStateAsync(_state, driverId);
-                RaiseAllBindings();
-            }
-            catch (Exception ex)
-            {
-                await Shell.Current.DisplayAlertAsync("Not found", ex.Message, "OK");
-            }
-        }
-
-        RefreshSaveState();
     }
 
     private void RaiseAllBindings()
@@ -229,6 +279,8 @@ public class NewDriverViewModel : BaseViewModel
         OnPropertyChanged(nameof(EmergencySecondaryPhoneNumber));
         OnPropertyChanged(nameof(CreateLoginAccount));
         OnPropertyChanged(nameof(Password));
+        OnPropertyChanged(nameof(IsMainProfileDriver));
+        OnPropertyChanged(nameof(ShowCreateLoginSection));
     }
 
     private void SetStateValue<T>(T current, T value, Action<T> assign, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
@@ -240,4 +292,6 @@ public class NewDriverViewModel : BaseViewModel
         OnPropertyChanged(propertyName);
         RefreshSaveState();
     }
+
+    #endregion
 }

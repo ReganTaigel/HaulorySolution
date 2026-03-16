@@ -1,5 +1,6 @@
 using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Drivers;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Haulory.Mobile.Features;
@@ -18,6 +19,7 @@ public class DriverCollectionViewModel : BaseViewModel
 
     private readonly DriversApiService _driversApiService;
     private readonly ISessionService _sessionService;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
@@ -28,7 +30,7 @@ public class DriverCollectionViewModel : BaseViewModel
 
     #endregion
 
-    #region Bindable Properties
+    #region Feature Access
 
     public bool IsMainUser =>
         _sessionService.CurrentAccountId.HasValue &&
@@ -52,11 +54,12 @@ public class DriverCollectionViewModel : BaseViewModel
         IsFeatureVisible(AppFeature.Inductions) &&
         IsFeatureEnabled(AppFeature.Inductions);
 
-    public bool IsInductionsVisible =>
-        IsFeatureVisible(AppFeature.Inductions);
+    public bool IsInductionsVisible => IsFeatureVisible(AppFeature.Inductions);
+    public bool IsInductionsEnabled => IsFeatureEnabled(AppFeature.Inductions);
 
-    public bool IsInductionsEnabled =>
-        IsFeatureEnabled(AppFeature.Inductions);
+    #endregion
+
+    #region Collections
 
     public ObservableCollection<DriverListItem> Drivers { get; } = new();
 
@@ -67,6 +70,7 @@ public class DriverCollectionViewModel : BaseViewModel
     public ICommand AddDriverCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ManageInductionsCommand { get; }
+    public ICommand ToggleDriverExpandedCommand { get; }
 
     #endregion
 
@@ -75,19 +79,47 @@ public class DriverCollectionViewModel : BaseViewModel
     public DriverCollectionViewModel(
         DriversApiService driversApiService,
         ISessionService sessionService,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
         _driversApiService = driversApiService;
         _sessionService = sessionService;
+        _crashLogger = crashLogger;
 
         AddDriverCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.AddDriver, nameof(NewDriverPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.AddDriver, nameof(NewDriverPage)),
+                _crashLogger,
+                "DriverCollectionViewModel.AddDriverCommand",
+                nameof(DriverCollectionPage));
+        });
 
         ManageInductionsCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.Inductions, nameof(ManageInductionsPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Inductions, nameof(ManageInductionsPage)),
+                _crashLogger,
+                "DriverCollectionViewModel.ManageInductionsCommand",
+                nameof(DriverCollectionPage));
+        });
 
         RefreshCommand = new Command(async () => await LoadAsync());
+
+        ToggleDriverExpandedCommand = new Command<DriverListItem>(item =>
+        {
+            if (item == null)
+                return;
+
+            foreach (var driver in Drivers)
+            {
+                if (!ReferenceEquals(driver, item))
+                    driver.IsExpanded = false;
+            }
+
+            item.IsExpanded = !item.IsExpanded;
+        });
     }
 
     #endregion
@@ -103,53 +135,72 @@ public class DriverCollectionViewModel : BaseViewModel
         {
             IsBusy = true;
 
-            Drivers.Clear();
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    Drivers.Clear();
 
-            if (!IsFeatureEnabled(AppFeature.Drivers))
-            {
-                RaiseGate();
-                return;
-            }
+                    if (!IsFeatureEnabled(AppFeature.Drivers))
+                    {
+                        RaiseGate();
+                        return;
+                    }
 
-            if (!_sessionService.IsAuthenticated)
-                await _sessionService.RestoreAsync();
+                    if (!_sessionService.IsAuthenticated)
+                        await _sessionService.RestoreAsync();
 
-            var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
-            var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;
+                    var ownerUserId = _sessionService.CurrentOwnerId ?? Guid.Empty;
+                    var accountId = _sessionService.CurrentAccountId ?? Guid.Empty;
 
-            if (!_sessionService.IsAuthenticated || ownerUserId == Guid.Empty || accountId == Guid.Empty)
-            {
-                _mainDriver = null;
-                _isMainComplete = false;
-                RaiseGate();
-                return;
-            }
+                    if (!_sessionService.IsAuthenticated || ownerUserId == Guid.Empty || accountId == Guid.Empty)
+                    {
+                        _mainDriver = null;
+                        _isMainComplete = false;
+                        RaiseGate();
+                        return;
+                    }
 
-            var drivers = await _driversApiService.GetDriversAsync();
+                    var drivers = await _driversApiService.GetDriversAsync();
 
-            var orderedDrivers = drivers
-                .OrderByDescending(d => d.UserId.HasValue)
-                .ThenBy(d => d.LastName ?? string.Empty)
-                .ThenBy(d => d.FirstName ?? string.Empty)
-                .ThenBy(d => d.Email ?? string.Empty)
-                .ToList();
+                    _mainDriver = drivers.FirstOrDefault(d =>
+                        d.UserId.HasValue && d.UserId.Value == ownerUserId);
 
-            foreach (var d in orderedDrivers)
-                Drivers.Add(new DriverListItem(d));
+                    var orderedDrivers = drivers
+                        .OrderByDescending(d =>
+                            d.UserId.HasValue && d.UserId.Value == ownerUserId)
+                        .ThenBy(d => d.LastName ?? string.Empty)
+                        .ThenBy(d => d.FirstName ?? string.Empty)
+                        .ThenBy(d => d.Email ?? string.Empty)
+                        .ToList();
 
-            _mainDriver = drivers.FirstOrDefault(d =>
-                d.UserId.HasValue && d.UserId.Value == ownerUserId);
+                    foreach (var driver in orderedDrivers)
+                    {
+                        var item = new DriverListItem(driver);
 
-            _isMainComplete =
-                _mainDriver != null &&
-                _mainDriver.EmergencyContact != null &&
-                !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.FirstName) &&
-                !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.LastName) &&
-                !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.Relationship) &&
-                !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.PhoneNumber) &&
-                !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.Email);
+                        if (_mainDriver != null && driver.Id == _mainDriver.Id)
+                            item.IsExpanded = true;
 
-            RaiseGate();
+                        Drivers.Add(item);
+                    }
+
+                    _isMainComplete =
+                        _mainDriver != null &&
+                        _mainDriver.EmergencyContact != null &&
+                        !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.FirstName) &&
+                        !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.LastName) &&
+                        !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.Relationship) &&
+                        !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.PhoneNumber) &&
+                        !string.IsNullOrWhiteSpace(_mainDriver.EmergencyContact.Email);
+
+                    RaiseGate();
+                },
+                _crashLogger,
+                "DriverCollectionViewModel.LoadAsync",
+                nameof(DriverCollectionPage),
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+                });
         }
         finally
         {
@@ -159,18 +210,15 @@ public class DriverCollectionViewModel : BaseViewModel
 
     #endregion
 
-    #region UI Helpers
+    #region Private Methods
 
     private void RaiseGate()
     {
         OnPropertyChanged(nameof(IsMainUser));
-
         OnPropertyChanged(nameof(IsDriversVisible));
         OnPropertyChanged(nameof(IsDriversEnabled));
-
         OnPropertyChanged(nameof(IsAddDriverVisible));
         OnPropertyChanged(nameof(IsAddDriverEnabled));
-
         OnPropertyChanged(nameof(ShowInductionWarnings));
         OnPropertyChanged(nameof(IsInductionsVisible));
         OnPropertyChanged(nameof(IsInductionsEnabled));

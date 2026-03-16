@@ -9,8 +9,10 @@ using Haulory.Application.Services;
 using Haulory.Infrastructure.Persistence.Repositories;
 using Haulory.Infrastructure.Persistence.Services;
 using Haulory.Infrastructure.Services;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Haulory.Mobile.DependencyInjection;
 
@@ -31,6 +33,8 @@ public static class ApplicationServiceRegistrationExtensions
 
         services.AddSingleton<OdometerApiService>();
         services.AddSingleton<ISessionService, SessionService>();
+        services.AddSingleton<ICrashLogger, CrashLogger>();
+        services.AddSingleton<CrashSyncService>();
 
         services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
         services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();

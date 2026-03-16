@@ -1,5 +1,6 @@
 using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Vehicles;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
@@ -15,10 +16,11 @@ public class VehicleCollectionViewModel : BaseViewModel
     private readonly VehiclesApiService _vehiclesApiService;
     private readonly JobsApiService _jobsApiService;
     private readonly ISessionService _session;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
-    #region State
+    #region Properties
 
     public bool IsSubUser =>
         _session.CurrentAccountId.HasValue &&
@@ -36,10 +38,6 @@ public class VehicleCollectionViewModel : BaseViewModel
     public bool IsAddVehicleVisible => IsFeatureVisible(AppFeature.AddVehicle) && IsMainUser;
     public bool IsAddVehicleEnabled => IsFeatureEnabled(AppFeature.AddVehicle) && IsMainUser;
 
-    #endregion
-
-    #region Collections
-
     public ObservableCollection<VehicleListItemViewModel> Assets { get; } = new();
 
     #endregion
@@ -49,28 +47,35 @@ public class VehicleCollectionViewModel : BaseViewModel
     public ICommand GoToNewVehicleCommand { get; }
     public ICommand EditVehicleCommand { get; }
     public ICommand RefreshCommand { get; }
+    public ICommand ToggleVehicleExpandedCommand { get; }
 
     #endregion
 
-    #region Constructor
+    #region Constructors
 
     public VehicleCollectionViewModel(
         VehiclesApiService vehiclesApiService,
         JobsApiService jobsApiService,
         ISessionService session,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
         _vehiclesApiService = vehiclesApiService;
         _jobsApiService = jobsApiService;
         _session = session;
+        _crashLogger = crashLogger;
 
         GoToNewVehicleCommand = new Command(async () =>
         {
             if (!IsMainUser)
                 return;
 
-            await NavigateToFeatureAsync(AppFeature.AddVehicle, nameof(NewVehiclePage));
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.AddVehicle, nameof(NewVehiclePage)),
+                _crashLogger,
+                "VehicleCollectionViewModel.GoToNewVehicleCommand",
+                nameof(VehicleCollectionPage));
         });
 
         EditVehicleCommand = new Command<VehicleListItemViewModel>(async item =>
@@ -81,21 +86,42 @@ public class VehicleCollectionViewModel : BaseViewModel
             if (item == null || item.Id == Guid.Empty)
                 return;
 
-            if (!await EnsureFeatureEnabledAsync(AppFeature.AddVehicle))
-                return;
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    if (!await EnsureFeatureEnabledAsync(AppFeature.AddVehicle))
+                        return;
 
-            await Shell.Current.GoToAsync(nameof(NewVehiclePage), new Dictionary<string, object>
-            {
-                ["vehicleId"] = item.Id
-            });
+                    await Shell.Current.GoToAsync(nameof(NewVehiclePage), new Dictionary<string, object>
+                    {
+                        ["vehicleId"] = item.Id
+                    });
+                },
+                _crashLogger,
+                "VehicleCollectionViewModel.EditVehicleCommand",
+                nameof(VehicleCollectionPage));
         });
 
         RefreshCommand = new Command(async () => await LoadAsync());
+
+        ToggleVehicleExpandedCommand = new Command<VehicleListItemViewModel>(item =>
+        {
+            if (item == null)
+                return;
+
+            foreach (var vehicle in Assets)
+            {
+                if (!ReferenceEquals(vehicle, item))
+                    vehicle.IsExpanded = false;
+            }
+
+            item.IsExpanded = !item.IsExpanded;
+        });
     }
 
     #endregion
 
-    #region Load
+    #region Public Methods
 
     public async Task LoadAsync()
     {
@@ -105,55 +131,73 @@ public class VehicleCollectionViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            Assets.Clear();
 
-            if (!IsFeatureEnabled(AppFeature.Vehicles))
-            {
-                RefreshFeatureBindings();
-                return;
-            }
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    Assets.Clear();
 
-            if (!_session.IsAuthenticated)
-                await _session.RestoreAsync();
+                    if (!IsFeatureEnabled(AppFeature.Vehicles))
+                    {
+                        RefreshFeatureBindings();
+                        return;
+                    }
 
-            var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
-            var accountId = _session.CurrentAccountId ?? Guid.Empty;
+                    if (!_session.IsAuthenticated)
+                        await _session.RestoreAsync();
 
-            if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
-            {
-                RefreshFeatureBindings();
-                return;
-            }
+                    var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
+                    var accountId = _session.CurrentAccountId ?? Guid.Empty;
 
-            OnPropertyChanged(nameof(IsMainUser));
-            OnPropertyChanged(nameof(IsSubUser));
-            RefreshFeatureBindings();
+                    if (ownerUserId == Guid.Empty || accountId == Guid.Empty)
+                    {
+                        RefreshFeatureBindings();
+                        return;
+                    }
 
-            var allVehicles = await _vehiclesApiService.GetVehiclesAsync();
+                    OnPropertyChanged(nameof(IsMainUser));
+                    OnPropertyChanged(nameof(IsSubUser));
+                    RefreshFeatureBindings();
 
-            IEnumerable<VehicleDto> visibleVehicles = allVehicles;
+                    var allVehicles = await _vehiclesApiService.GetVehiclesAsync();
 
-            if (IsSubUser)
-            {
-                var jobs = await _jobsApiService.GetActiveJobsAsync();
+                    IEnumerable<VehicleDto> visibleVehicles = allVehicles;
 
-                var assignedVehicleIds = jobs
-                    .Where(j => j.AssignedToUserId == accountId && j.VehicleAssetId.HasValue && j.VehicleAssetId.Value != Guid.Empty)
-                    .Select(j => j.VehicleAssetId!.Value)
-                    .Distinct()
-                    .ToHashSet();
+                    if (IsSubUser)
+                    {
+                        var jobs = await _jobsApiService.GetActiveJobsAsync();
 
-                visibleVehicles = allVehicles
-                    .Where(v => assignedVehicleIds.Contains(v.Id));
-            }
+                        var assignedVehicleIds = jobs
+                            .Where(j => j.AssignedToUserId == accountId &&
+                                        j.VehicleAssetId.HasValue &&
+                                        j.VehicleAssetId.Value != Guid.Empty)
+                            .Select(j => j.VehicleAssetId!.Value)
+                            .Distinct()
+                            .ToHashSet();
 
-            foreach (var vehicle in visibleVehicles
-                         .OrderBy(v => v.Rego)
-                         .ThenBy(v => v.Make)
-                         .ThenBy(v => v.Model))
-            {
-                Assets.Add(VehicleListItemViewModel.FromDto(vehicle));
-            }
+                        visibleVehicles = allVehicles
+                            .Where(v => assignedVehicleIds.Contains(v.Id));
+                    }
+
+                    var orderedVehicles = visibleVehicles
+                        .OrderBy(v => GetVehicleSortOrder(v))
+                        .ThenBy(v => v.Rego ?? string.Empty)
+                        .ThenBy(v => v.Make ?? string.Empty)
+                        .ThenBy(v => v.Model ?? string.Empty)
+                        .ToList();
+
+                    foreach (var vehicle in orderedVehicles)
+                    {
+                        Assets.Add(VehicleListItemViewModel.FromDto(vehicle));
+                    }
+                },
+                _crashLogger,
+                "VehicleCollectionViewModel.LoadAsync",
+                nameof(VehicleCollectionPage),
+                onError: async _ =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Error", "Unable to load vehicles right now.", "OK");
+                });
         }
         finally
         {
@@ -163,7 +207,32 @@ public class VehicleCollectionViewModel : BaseViewModel
 
     #endregion
 
-    #region Private Helpers
+    #region Private Methods
+
+    private static int GetVehicleSortOrder(VehicleDto vehicle)
+    {
+        var type = (vehicle.VehicleType ?? vehicle.Kind ?? string.Empty)
+            .Trim()
+            .ToLowerInvariant();
+
+        var isTrailer = type.Contains("trailer");
+        var isLight = type.Contains("light");
+        var isHeavy = type.Contains("heavy");
+
+        if (!isTrailer && isLight)
+            return 0;
+
+        if (!isTrailer && isHeavy)
+            return 1;
+
+        if (isTrailer && isLight)
+            return 2;
+
+        if (isTrailer && isHeavy)
+            return 3;
+
+        return 4;
+    }
 
     private void RefreshFeatureBindings()
     {

@@ -20,7 +20,7 @@ public class HauloryDbContext : DbContext
     public DbSet<JobTrailerAssignment> JobTrailerAssignments => Set<JobTrailerAssignment>();
     public DbSet<OdometerReading> OdometerReadings => Set<OdometerReading>();
     public DbSet<VehicleDayRun> VehicleDayRuns => Set<VehicleDayRun>();
-
+    public DbSet<ServerCrashLog> ServerCrashLogs => Set<ServerCrashLog>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

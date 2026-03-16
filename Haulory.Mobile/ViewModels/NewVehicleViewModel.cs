@@ -1,5 +1,6 @@
 using Haulory.Contracts.Vehicles;
 using Haulory.Domain.Enums;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Features.Vehicles.NewVehicle;
 using Haulory.Mobile.Services;
@@ -11,15 +12,25 @@ namespace Haulory.Mobile.ViewModels;
 
 public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
 {
+    #region Dependencies
+
     private readonly NewVehicleFormState _state = new();
     private readonly NewVehicleValidator _validator = new();
     private readonly NewVehicleEditorService _editorService;
+    private readonly ICrashLogger _crashLogger;
+
+    #endregion
+
+    #region Constructor
 
     public NewVehicleViewModel(
         VehiclesApiService vehiclesApiService,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
+        _crashLogger = crashLogger;
+
         _editorService = new NewVehicleEditorService(
             vehiclesApiService,
             new NewVehicleRequestMapper());
@@ -27,6 +38,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         SaveVehicleCommand = new Command(async () => await ExecuteSaveVehicleAsync(), () => CanSaveVehicle);
         RefreshSaveState();
     }
+
+    #endregion
+
+    #region Collections
 
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
@@ -83,6 +98,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             new(FuelType.Hybrid, "Hybrid")
         };
 
+    #endregion
+
+    #region State Properties
+
     public bool IsEditMode => _state.EditingVehicleId.HasValue;
     public string PageTitle => IsEditMode ? "Edit vehicle" : "New vehicle";
     public string SaveButtonText => IsEditMode ? "Update vehicle" : "Save vehicle";
@@ -98,6 +117,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         ((!ShowRucStep && ((OdoCount == 0 && CertificateComplete) || (OdoCount > 0 && ShowOdometers)))
          || (ShowRucStep && RucComplete));
 
+    #endregion
+
+    #region Selection Properties
+
     public VehicleOption<VehicleType>? SelectedVehicleType
     {
         get => VehicleTypes.FirstOrDefault(x => x.Value == _state.VehicleType);
@@ -110,9 +133,12 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             _state.FuelType = null;
             _state.Unit1Rego = _state.Unit2Rego = _state.Unit3Rego = string.Empty;
             _state.Unit1RegoExpiry = _state.Unit2RegoExpiry = _state.Unit3RegoExpiry = null;
-            _state.Unit1Make = _state.Unit1Model = string.Empty; _state.Unit1Year = null;
-            _state.Unit2Make = _state.Unit2Model = string.Empty; _state.Unit2Year = null;
-            _state.Unit3Make = _state.Unit3Model = string.Empty; _state.Unit3Year = null;
+            _state.Unit1Make = _state.Unit1Model = string.Empty;
+            _state.Unit1Year = null;
+            _state.Unit2Make = _state.Unit2Model = string.Empty;
+            _state.Unit2Year = null;
+            _state.Unit3Make = _state.Unit3Model = string.Empty;
+            _state.Unit3Year = null;
             _state.Unit1CertExpiry = _state.Unit2CertExpiry = _state.Unit3CertExpiry = null;
             _state.ResetOdometers();
             _state.ResetAllRuc();
@@ -124,13 +150,23 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     public VehicleOption<VehicleConfiguration>? SelectedLightConfig
     {
         get => LightTrailerConfigurations.FirstOrDefault(x => x.Value == _state.LightConfiguration);
-        set { _state.LightConfiguration = value?.Value; OnPropertyChanged(); RaiseAllVisibility(); }
+        set
+        {
+            _state.LightConfiguration = value?.Value;
+            OnPropertyChanged();
+            RaiseAllVisibility();
+        }
     }
 
     public VehicleOption<PowerUnitBodyType>? SelectedPowerUnitBodyType
     {
         get => PowerUnitBodyTypes.FirstOrDefault(x => x.Value == _state.PowerUnitBodyType);
-        set { _state.PowerUnitBodyType = value?.Value; OnPropertyChanged(); RaiseAllVisibility(); }
+        set
+        {
+            _state.PowerUnitBodyType = value?.Value;
+            OnPropertyChanged();
+            RaiseAllVisibility();
+        }
     }
 
     public VehicleOption<VehicleConfiguration>? SelectedHeavyConfig
@@ -139,6 +175,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         set
         {
             _state.HeavyConfiguration = value?.Value;
+
             if (!IsBTrain)
             {
                 _state.Unit3Rego = string.Empty;
@@ -150,6 +187,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
                 _state.Trailer2OdometerKm = null;
                 _state.ResetUnit3Ruc();
             }
+
             OnPropertyChanged();
             RaiseAllVisibility();
         }
@@ -161,13 +199,20 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         set
         {
             _state.FuelType = value?.Value;
-            if (!RequiresRuc) _state.ResetUnit1Ruc();
+
+            if (!RequiresRuc)
+                _state.ResetUnit1Ruc();
+
             OnPropertyChanged();
             OnPropertyChanged(nameof(RequiresRuc));
             OnPropertyChanged(nameof(FuelInfoText));
             RaiseAllVisibility();
         }
     }
+
+    #endregion
+
+    #region Form Properties
 
     public string Unit1Rego { get => _state.Unit1Rego; set { _state.Unit1Rego = value; OnPropertyChanged(); RaiseAllVisibility(); } }
     public string Unit2Rego { get => _state.Unit2Rego; set { _state.Unit2Rego = value; OnPropertyChanged(); RaiseAllVisibility(); } }
@@ -226,6 +271,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     public int? Unit3RucLicenceEndKm { get => _state.Unit3RucLicenceEndKm; set { _state.Unit3RucLicenceEndKm = value; OnPropertyChanged(); RefreshSaveState(); } }
     public string FuelInfoText => _validator.FuelInfoText(_state);
 
+    #endregion
+
+    #region Derived Properties
+
     public bool HasVehicleType => _validator.HasVehicleType(_state);
     public bool IsPoweredVehicle => _validator.IsPoweredVehicle(_state);
     public bool IsTrailerAsset => _validator.IsTrailerAsset(_state);
@@ -269,6 +318,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     public string Trailer1OdoLabel => "Odometer (unit 2)";
     public string Trailer2OdoLabel => "Odometer (unit 3)";
 
+    #endregion
+
+    #region Public Methods
+
     public void ApplyQueryAttributes(IDictionary<string, object> query)
     {
         if (query.TryGetValue("vehicleId", out var vehicleIdValue))
@@ -293,6 +346,10 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
 
     public async Task SaveVehicleAsync() => await _editorService.SaveAsync(_state);
 
+    #endregion
+
+    #region Private Methods
+
     private async Task UpdateVehicleAsync()
     {
         if (!_state.EditingVehicleId.HasValue)
@@ -314,21 +371,29 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             _state.IsSaving = true;
             RefreshSaveState();
 
-            if (IsEditMode)
-                await UpdateVehicleAsync();
-            else
-                await SaveVehicleAsync();
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    if (IsEditMode)
+                        await UpdateVehicleAsync();
+                    else
+                        await SaveVehicleAsync();
 
-            await Shell.Current.DisplayAlertAsync(
-                "Saved",
-                IsEditMode ? "Vehicle updated successfully." : "Vehicle saved successfully.",
-                "OK");
+                    await Shell.Current.DisplayAlertAsync(
+                        "Saved",
+                        IsEditMode ? "Vehicle updated successfully." : "Vehicle saved successfully.",
+                        "OK");
 
-            await Shell.Current.GoToAsync(nameof(VehicleCollectionPage));
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                    await Shell.Current.GoToAsync(nameof(VehicleCollectionPage));
+                },
+                _crashLogger,
+                "NewVehicleViewModel.ExecuteSaveVehicleAsync",
+                nameof(NewVehiclePage),
+                metadataJson: $"{{\"IsEditMode\":{IsEditMode.ToString().ToLowerInvariant()},\"VehicleId\":\"{_state.EditingVehicleId}\"}}",
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                });
         }
         finally
         {
@@ -342,11 +407,17 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         try
         {
             _state.IsLoadingExistingVehicle = true;
-            await LoadExistingVehicleAsync();
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+
+            await SafeRunner.RunAsync(
+                async () => await LoadExistingVehicleAsync(),
+                _crashLogger,
+                "NewVehicleViewModel.LoadExistingVehicleSafeAsync",
+                nameof(NewVehiclePage),
+                metadataJson: $"{{\"VehicleId\":\"{_state.EditingVehicleId}\"}}",
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Load failed", ex.Message, "OK");
+                });
         }
         finally
         {
@@ -523,4 +594,6 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
 
         RefreshSaveState();
     }
+
+    #endregion
 }

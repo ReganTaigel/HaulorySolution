@@ -1,4 +1,6 @@
 using Haulory.Mobile.DependencyInjection;
+using Haulory.Mobile.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Haulory.Mobile;
@@ -17,6 +19,11 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        var dbPath = Path.Combine(FileSystem.AppDataDirectory, "haulory-crashlogs.db");
+
+        builder.Services.AddDbContextFactory<MobileCrashDbContext>(options =>
+            options.UseSqlite($"Data Source={dbPath}"));
+
         builder.Services
             .AddMobileApplicationServices()
             .AddMobileHttpClients()
@@ -27,6 +34,13 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+
+        using var scope = app.Services.CreateScope();
+        var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<MobileCrashDbContext>>();
+        using var db = factory.CreateDbContext();
+        db.Database.EnsureCreated();
+
+        return app;
     }
 }

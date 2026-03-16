@@ -85,16 +85,13 @@
                         Style="{StaticResource PrimaryButtonStyle}"
                         HeightRequest="44"
                         Padding="14,0" />
-
             </Grid>
-
         </VerticalStackLayout>
 
         <!-- DRIVER LIST -->
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Drivers}"
-                        SelectionMode="Single"
-                        SelectionChanged="OnDriverSelected"
+                        SelectionMode="None"
                         Margin="0,2,0,0">
 
             <CollectionView.EmptyView>
@@ -139,6 +136,12 @@
                                   ColumnSpacing="8"
                                   VerticalOptions="Center">
 
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleDriverExpandedCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+
                                 <Label Grid.Column="0"
                                        Text="{Binding DisplayName}"
                                        FontAttributes="Bold"
@@ -147,26 +150,6 @@
                                        LineBreakMode="TailTruncation" />
 
                                 <Border Grid.Column="1"
-                                        StrokeThickness="1"
-                                        Stroke="{StaticResource Gray300}"
-                                        BackgroundColor="{StaticResource BrandTileFill}"
-                                        StrokeShape="RoundRectangle 12"
-                                        Padding="10,4"
-                                        IsVisible="{Binding IsMainProfile}">
-                                    <HorizontalStackLayout Spacing="6">
-                                        <Image
-                                            Source="id-card.svg"
-                                            HeightRequest="14"
-                                            WidthRequest="14"
-                                            VerticalOptions="Center" />
-                                        <Label Text="MAIN"
-                                               FontSize="13"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource BrandInk}" />
-                                    </HorizontalStackLayout>
-                                </Border>
-
-                                <Border Grid.Column="2"
                                         StrokeThickness="1"
                                         Stroke="{StaticResource BrandAccent}"
                                         BackgroundColor="{StaticResource BrandTileFill}"
@@ -186,6 +169,12 @@
                                     </HorizontalStackLayout>
                                 </Border>
 
+                                <Label Grid.Column="2"
+                                       Text="{Binding ExpandIcon}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Gray600}"
+                                       VerticalTextAlignment="Center" />
                             </Grid>
 
                             <!-- Warning chips -->
@@ -259,264 +248,273 @@
                                         </DataTrigger>
                                     </Label.Triggers>
                                 </Label>
-
                             </HorizontalStackLayout>
 
-                            <!-- Driver details -->
-                            <Border StrokeThickness="1"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 14"
-                                    BackgroundColor="{StaticResource BrandTileFill}"
-                                    Padding="12">
+                            <!-- Show/Hide label -->
+                            <Label Text="{Binding ExpandText}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" />
 
-                                <VerticalStackLayout Spacing="8">
+                            <!-- Expandable details -->
+                            <VerticalStackLayout Spacing="12"
+                                                 IsVisible="{Binding IsExpanded}">
 
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                        <Image
-                                            Source="contact.svg"
-                                            HeightRequest="16"
-                                            WidthRequest="16"
-                                            VerticalOptions="Center" />
+                                <!-- Driver details -->
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                        Padding="12">
 
-                                        <Label Grid.Column="1"
-                                               Text="Driver details"
-                                               FontSize="13"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource BrandTitle}" />
-                                    </Grid>
+                                    <VerticalStackLayout Spacing="8">
 
-                                    <Label Text="{Binding Email, StringFormat='Email: {0}'}"
-                                           FontSize="14"
-                                           LineHeight="1.15"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding Email}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding Email}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Image
+                                                Source="contact.svg"
+                                                HeightRequest="16"
+                                                WidthRequest="16"
+                                                VerticalOptions="Center" />
 
-                                    <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}"
-                                           FontSize="14"
-                                           LineHeight="1.15"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding PhoneNumber}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding PhoneNumber}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                            <Label Grid.Column="1"
+                                                   Text="Driver details"
+                                                   FontSize="13"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource BrandTitle}" />
+                                        </Grid>
 
-                                    <Label Text="{Binding DateOfBirthUtc, StringFormat='DOB: {0:yyyy-MM-dd}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding DateOfBirthUtc}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Label Text="{Binding Email, StringFormat='Email: {0}'}"
+                                               FontSize="14"
+                                               LineHeight="1.15"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding Email}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding Email}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                    <Label Text="{Binding AddressSummary, StringFormat='Address: {0}'}"
-                                           FontSize="14"
-                                           LineHeight="1.15"
-                                           TextColor="{StaticResource BrandInk}"
-                                           LineBreakMode="TailTruncation"
-                                           MaxLines="2">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding AddressSummary}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding AddressSummary}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Label Text="{Binding PhoneNumber, StringFormat='Phone: {0}'}"
+                                               FontSize="14"
+                                               LineHeight="1.15"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding PhoneNumber}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding PhoneNumber}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                </VerticalStackLayout>
-                            </Border>
+                                        <Label Text="{Binding DateOfBirthUtc, StringFormat='DOB: {0:yyyy-MM-dd}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding DateOfBirthUtc}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                            <!-- Licence details -->
-                            <Border StrokeThickness="1"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 14"
-                                    BackgroundColor="{StaticResource BrandTileFill}"
-                                    Padding="12">
+                                        <Label Text="{Binding AddressSummary, StringFormat='Address: {0}'}"
+                                               FontSize="14"
+                                               LineHeight="1.15"
+                                               TextColor="{StaticResource BrandInk}"
+                                               LineBreakMode="TailTruncation"
+                                               MaxLines="2">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding AddressSummary}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding AddressSummary}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                <VerticalStackLayout Spacing="8">
+                                    </VerticalStackLayout>
+                                </Border>
 
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                        <Image
-                                            Source="license.svg"
-                                            HeightRequest="16"
-                                            WidthRequest="16"
-                                            VerticalOptions="Center" />
+                                <!-- Licence details -->
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                        Padding="12">
 
-                                        <Label Grid.Column="1"
-                                               Text="Licence details"
-                                               FontSize="13"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource BrandTitle}" />
-                                    </Grid>
+                                    <VerticalStackLayout Spacing="8">
 
-                                    <Label Text="{Binding LicenceNumber, StringFormat='Licence: {0}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceNumber}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceNumber}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Image
+                                                Source="license.svg"
+                                                HeightRequest="16"
+                                                WidthRequest="16"
+                                                VerticalOptions="Center" />
 
-                                    <Label Text="{Binding LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
-                                           FontSize="14"
-                                           LineHeight="1.15"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceClassOrEndorsements}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceClassOrEndorsements}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                            <Label Grid.Column="1"
+                                                   Text="Licence details"
+                                                   FontSize="13"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource BrandTitle}" />
+                                        </Grid>
 
-                                    <Label Text="{Binding LicenceVersion, StringFormat='Version: {0}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceVersion}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceVersion}"
-                                                         Value="">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Label Text="{Binding LicenceNumber, StringFormat='Licence: {0}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceNumber}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceNumber}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                    <Label Text="{Binding LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceIssuedOnUtc}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Label Text="{Binding LicenceClassOrEndorsements, StringFormat='Class/Endorsements: {0}'}"
+                                               FontSize="14"
+                                               LineHeight="1.15"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceClassOrEndorsements}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceClassOrEndorsements}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                    <Label Text="{Binding LicenceExpiresOnUtc, StringFormat='Licence expires: {0:yyyy-MM-dd}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}">
-                                        <Label.Triggers>
-                                            <DataTrigger TargetType="Label"
-                                                         Binding="{Binding LicenceExpiresOnUtc}"
-                                                         Value="{x:Null}">
-                                                <Setter Property="IsVisible"
-                                                        Value="False" />
-                                            </DataTrigger>
-                                        </Label.Triggers>
-                                    </Label>
+                                        <Label Text="{Binding LicenceVersion, StringFormat='Version: {0}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceVersion}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceVersion}"
+                                                             Value="">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                </VerticalStackLayout>
-                            </Border>
+                                        <Label Text="{Binding LicenceIssuedOnUtc, StringFormat='Issued: {0:yyyy-MM-dd}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceIssuedOnUtc}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                            <!-- Emergency contact -->
-                            <Border StrokeThickness="1"
-                                    Stroke="{StaticResource Gray300}"
-                                    BackgroundColor="{StaticResource BrandTileFill}"
-                                    StrokeShape="RoundRectangle 14"
-                                    Padding="12"
-                                    IsVisible="{Binding HasEmergencyContact}">
+                                        <Label Text="{Binding LicenceExpiresOnUtc, StringFormat='Licence expires: {0:yyyy-MM-dd}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label"
+                                                             Binding="{Binding LicenceExpiresOnUtc}"
+                                                             Value="{x:Null}">
+                                                    <Setter Property="IsVisible"
+                                                            Value="False" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
 
-                                <VerticalStackLayout Spacing="8">
+                                    </VerticalStackLayout>
+                                </Border>
 
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-                                        <Image
-                                            Source="shield.svg"
-                                            HeightRequest="16"
-                                            WidthRequest="16"
-                                            VerticalOptions="Center" />
+                                <!-- Emergency contact -->
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray300}"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                        StrokeShape="RoundRectangle 14"
+                                        Padding="12"
+                                        IsVisible="{Binding HasEmergencyContact}">
 
-                                        <Label Grid.Column="1"
-                                               Text="Emergency contact"
-                                               FontSize="13"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource BrandTitle}" />
-                                    </Grid>
+                                    <VerticalStackLayout Spacing="8">
 
-                                    <Label Text="{Binding EmergencyContactName, StringFormat='Name: {0}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}" />
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Image
+                                                Source="shield.svg"
+                                                HeightRequest="16"
+                                                WidthRequest="16"
+                                                VerticalOptions="Center" />
 
-                                    <Label Text="{Binding EmergencyContactPhone, StringFormat='Phone: {0}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}" />
+                                            <Label Grid.Column="1"
+                                                   Text="Emergency contact"
+                                                   FontSize="13"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource BrandTitle}" />
+                                        </Grid>
 
-                                    <Label Text="{Binding EmergencyContactEmail, StringFormat='Email: {0}'}"
-                                           FontSize="14"
-                                           TextColor="{StaticResource BrandInk}" />
-                                </VerticalStackLayout>
-                            </Border>
+                                        <Label Text="{Binding EmergencyContactName, StringFormat='Name: {0}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}" />
+
+                                        <Label Text="{Binding EmergencyContactPhone, StringFormat='Phone: {0}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}" />
+
+                                        <Label Text="{Binding EmergencyContactEmail, StringFormat='Email: {0}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource BrandInk}" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                            </VerticalStackLayout>
 
                         </VerticalStackLayout>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-
         </CollectionView>
-
     </Grid>
 </ContentPage>

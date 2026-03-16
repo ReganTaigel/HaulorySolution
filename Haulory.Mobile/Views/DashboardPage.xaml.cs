@@ -23,7 +23,7 @@ public partial class DashboardPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Connection error", ex.Message, "OK");
+            await DisplayAlertAsync("Connection error", ex.Message, "OK");
         }
     }
 }

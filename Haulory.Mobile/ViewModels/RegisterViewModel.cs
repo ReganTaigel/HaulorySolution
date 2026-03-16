@@ -1,6 +1,6 @@
-using Azure;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Auth;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Services;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Storage;
@@ -16,6 +16,7 @@ public class RegisterViewModel : BaseViewModel
 
     private readonly AuthApiService _authApiService;
     private readonly ISessionService _sessionService;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
@@ -235,10 +236,12 @@ public class RegisterViewModel : BaseViewModel
 
     public RegisterViewModel(
         AuthApiService authApiService,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        ICrashLogger crashLogger)
     {
         _authApiService = authApiService;
         _sessionService = sessionService;
+        _crashLogger = crashLogger;
 
         RegisterCommand = new Command(async () => await ExecuteRegisterAsync(), () => CanRegister);
 
@@ -270,89 +273,93 @@ public class RegisterViewModel : BaseViewModel
 
             var email = (Email?.Trim() ?? string.Empty).ToLowerInvariant();
 
-            var registerRequest = new RegisterRequest
-            {
-                FirstName = FirstName?.Trim() ?? string.Empty,
-                LastName = LastName?.Trim() ?? string.Empty,
-                Email = email,
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    var registerRequest = new RegisterRequest
+                    {
+                        FirstName = FirstName?.Trim() ?? string.Empty,
+                        LastName = LastName?.Trim() ?? string.Empty,
+                        Email = email,
 
-                BusinessName = BusinessName?.Trim() ?? string.Empty,
-                BusinessEmail = string.IsNullOrWhiteSpace(BusinessEmail) ? null : BusinessEmail.Trim().ToLowerInvariant(),
-                BusinessPhone = string.IsNullOrWhiteSpace(BusinessPhone) ? null : BusinessPhone.Trim(),
+                        BusinessName = BusinessName?.Trim() ?? string.Empty,
+                        BusinessEmail = string.IsNullOrWhiteSpace(BusinessEmail) ? null : BusinessEmail.Trim().ToLowerInvariant(),
+                        BusinessPhone = string.IsNullOrWhiteSpace(BusinessPhone) ? null : BusinessPhone.Trim(),
 
-                BusinessAddress1 = string.IsNullOrWhiteSpace(BusinessAddress1) ? null : BusinessAddress1.Trim(),
-                BusinessAddress2 = string.IsNullOrWhiteSpace(BusinessAddress2) ? null : BusinessAddress2.Trim(),
-                BusinessSuburb = string.IsNullOrWhiteSpace(BusinessSuburb) ? null : BusinessSuburb.Trim(),
-                BusinessCity = string.IsNullOrWhiteSpace(BusinessCity) ? null : BusinessCity.Trim(),
-                BusinessRegion = string.IsNullOrWhiteSpace(BusinessRegion) ? null : BusinessRegion.Trim(),
-                BusinessPostcode = string.IsNullOrWhiteSpace(BusinessPostcode) ? null : BusinessPostcode.Trim(),
-                BusinessCountry = string.IsNullOrWhiteSpace(BusinessCountry) ? null : BusinessCountry.Trim(),
+                        BusinessAddress1 = string.IsNullOrWhiteSpace(BusinessAddress1) ? null : BusinessAddress1.Trim(),
+                        BusinessAddress2 = string.IsNullOrWhiteSpace(BusinessAddress2) ? null : BusinessAddress2.Trim(),
+                        BusinessSuburb = string.IsNullOrWhiteSpace(BusinessSuburb) ? null : BusinessSuburb.Trim(),
+                        BusinessCity = string.IsNullOrWhiteSpace(BusinessCity) ? null : BusinessCity.Trim(),
+                        BusinessRegion = string.IsNullOrWhiteSpace(BusinessRegion) ? null : BusinessRegion.Trim(),
+                        BusinessPostcode = string.IsNullOrWhiteSpace(BusinessPostcode) ? null : BusinessPostcode.Trim(),
+                        BusinessCountry = string.IsNullOrWhiteSpace(BusinessCountry) ? null : BusinessCountry.Trim(),
 
-                SupplierGstNumber = string.IsNullOrWhiteSpace(SupplierGstNumber) ? null : SupplierGstNumber.Trim(),
-                SupplierNzbn = string.IsNullOrWhiteSpace(SupplierNzbn) ? null : SupplierNzbn.Trim(),
+                        SupplierGstNumber = string.IsNullOrWhiteSpace(SupplierGstNumber) ? null : SupplierGstNumber.Trim(),
+                        SupplierNzbn = string.IsNullOrWhiteSpace(SupplierNzbn) ? null : SupplierNzbn.Trim(),
 
-                Password = Password
-            };
-            var registerResult = await _authApiService.RegisterAsync(registerRequest);
+                        Password = Password
+                    };
 
-            if (!registerResult.Success)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Registration Failed",
-                    registerResult.Error ?? "Unable to create account.",
-                    "OK");
-                return;
-            }
+                    var registerResult = await _authApiService.RegisterAsync(registerRequest);
 
-            var (response, error) = await _authApiService.LoginAsync(email, Password);
+                    if (!registerResult.Success)
+                    {
+                        await Shell.Current.DisplayAlertAsync(
+                            "Registration Failed",
+                            registerResult.Error ?? "Unable to create account.",
+                            "OK");
+                        return;
+                    }
 
-            if (response is null)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Registration Successful",
-                    error ?? "Account created. Please log in.",
-                    "OK");
+                    var (response, error) = await _authApiService.LoginAsync(email, Password);
 
-                await Shell.Current.GoToAsync("///LoginPage");
-                return;
-            }
+                    if (response is null)
+                    {
+                        await Shell.Current.DisplayAlertAsync(
+                            "Registration Successful",
+                            error ?? "Account created. Please log in.",
+                            "OK");
 
-            if (response.AccountId == response.OwnerId)
-            {
-                await _sessionService.SetAccountAsync(
-                    response.AccountId,
-                    response.Token);
-            }
-            else
-            {
-                await _sessionService.SetAccountAsync(
-                    response.AccountId,
-                    response.OwnerId,
-                    response.Token);
-            }
+                        await Shell.Current.GoToAsync("///LoginPage");
+                        return;
+                    }
 
-            await SecureStorage.Default.SetAsync("haulory_api_token", response.Token);
+                    if (response.AccountId == response.OwnerId)
+                    {
+                        await _sessionService.SetAccountAsync(
+                            response.AccountId,
+                            response.Token);
+                    }
+                    else
+                    {
+                        await _sessionService.SetAccountAsync(
+                            response.AccountId,
+                            response.OwnerId,
+                            response.Token);
+                    }
 
-            await Shell.Current.DisplayAlertAsync(
-                "Welcome",
-                "Main account created.",
-                "OK");
+                    await SecureStorage.Default.SetAsync("haulory_api_token", response.Token);
 
-            await Shell.Current.GoToAsync("///DashboardPage");
-        }
-        catch (HttpRequestException ex)
-        {
-            await Shell.Current.DisplayAlertAsync(
-                "Connection Error",
-                ex.Message,
-                "OK");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync(
-                "Registration Error",
-                ex.Message,
-                "OK");
+                    await Shell.Current.DisplayAlertAsync(
+                        "Welcome",
+                        "Main account created.",
+                        "OK");
+
+                    await Shell.Current.GoToAsync("///DashboardPage");
+                },
+                _crashLogger,
+                "RegisterViewModel.ExecuteRegisterAsync",
+                nameof(Views.RegisterPage),
+                metadataJson: $"{{\"Email\":\"{email}\",\"BusinessName\":\"{BusinessName?.Trim()}\"}}",
+                onError: async ex =>
+                {
+                    var title = ex is HttpRequestException ? "Connection Error" : "Registration Error";
+
+                    await Shell.Current.DisplayAlertAsync(
+                        title,
+                        ex.Message,
+                        "OK");
+                });
         }
         finally
         {

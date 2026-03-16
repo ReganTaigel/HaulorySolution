@@ -1,5 +1,6 @@
 using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Jobs;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
 using Microsoft.Maui.Controls;
@@ -17,6 +18,7 @@ public class DeliverySignatureViewModel : BaseViewModel
     private readonly JobsApiService _jobsApiService;
     private readonly ISessionService _session;
     private readonly IAppEventBus? _events;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
@@ -150,10 +152,12 @@ public class DeliverySignatureViewModel : BaseViewModel
     public DeliverySignatureViewModel(
         JobsApiService jobsApiService,
         ISessionService session,
+        ICrashLogger crashLogger,
         IAppEventBus? events = null)
     {
         _jobsApiService = jobsApiService;
         _session = session;
+        _crashLogger = crashLogger;
         _events = events;
 
         SignatureDrawable = new SignatureDrawable(_strokes);
@@ -175,14 +179,17 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private async Task LoadJobSafeAsync()
     {
-        try
-        {
-            await LoadJobAsync();
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Load failed: {ex.Message}";
-        }
+        await SafeRunner.RunAsync(
+            async () => await LoadJobAsync(),
+            _crashLogger,
+            "DeliverySignatureViewModel.LoadJobSafeAsync",
+            nameof(DeliverySignaturePage),
+            metadataJson: $"{{\"JobId\":\"{_jobId}\"}}",
+            onError: async ex =>
+            {
+                StatusMessage = $"Load failed: {ex.Message}";
+                await Task.CompletedTask;
+            });
     }
 
     private async Task LoadJobAsync()
@@ -253,7 +260,8 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     private async Task SaveAsync()
     {
-        if (_isSaving) return;
+        if (_isSaving)
+            return;
 
         _isSaving = true;
         ((Command)SaveCommand).ChangeCanExecute();
@@ -302,36 +310,44 @@ public class DeliverySignatureViewModel : BaseViewModel
                 return;
             }
 
-            var signatureJson = BuildSignatureJson();
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    var signatureJson = BuildSignatureJson();
 
-            var request = new CompleteJobRequest
-            {
-                ReceiverName = ReceiverName.Trim(),
-                SignatureJson = signatureJson,
-                WaitTimeMinutes = WaitTimeMinutes,
-                DamageNotes = string.IsNullOrWhiteSpace(DamageNotes) ? null : DamageNotes.Trim()
-            };
+                    var request = new CompleteJobRequest
+                    {
+                        ReceiverName = ReceiverName.Trim(),
+                        SignatureJson = signatureJson,
+                        WaitTimeMinutes = WaitTimeMinutes,
+                        DamageNotes = string.IsNullOrWhiteSpace(DamageNotes) ? null : DamageNotes.Trim()
+                    };
 
-            await _jobsApiService.CompleteJobAsync(_job.Id, request);
+                    await _jobsApiService.CompleteJobAsync(_job.Id, request);
 
-            if (_events != null)
-                await _events.PublishAsync(new JobCompletedEvent(_job.Id));
+                    if (_events != null)
+                        await _events.PublishAsync(new JobCompletedEvent(_job.Id));
 
-            var requiresReview =
-                (WaitTimeMinutes.HasValue && WaitTimeMinutes.Value > 0) ||
-                !string.IsNullOrWhiteSpace(DamageNotes);
+                    var requiresReview =
+                        (WaitTimeMinutes.HasValue && WaitTimeMinutes.Value > 0) ||
+                        !string.IsNullOrWhiteSpace(DamageNotes);
 
-            var msg = requiresReview
-                ? "Delivery saved. Exceptions recorded—Main user review required."
-                : "Delivery saved. Job completed.";
+                    var msg = requiresReview
+                        ? "Delivery saved. Exceptions recorded—Main user review required."
+                        : "Delivery saved. Job completed.";
 
-            await Shell.Current.DisplayAlertAsync("Saved", msg, "OK");
+                    await Shell.Current.DisplayAlertAsync("Saved", msg, "OK");
 
-            await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                    await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
+                },
+                _crashLogger,
+                "DeliverySignatureViewModel.SaveAsync",
+                nameof(DeliverySignaturePage),
+                metadataJson: $"{{\"JobId\":\"{_job.Id}\",\"ReceiverName\":\"{ReceiverName}\",\"HasWaitTime\":{WaitTimeMinutes.HasValue.ToString().ToLowerInvariant()},\"HasDamageNotes\":{(!string.IsNullOrWhiteSpace(DamageNotes)).ToString().ToLowerInvariant()}}}",
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Save failed", ex.Message, "OK");
+                });
         }
         finally
         {
@@ -383,13 +399,28 @@ public record SignatureData(List<SignatureStroke> Strokes);
 
 public class SignatureDrawable : IDrawable
 {
+    #region Dependencies
+
     private readonly List<List<PointF>> _strokes;
+
+    #endregion
+
+    #region Events
+
     public Action? InvalidateRequested;
+
+    #endregion
+
+    #region Constructor
 
     public SignatureDrawable(List<List<PointF>> strokes)
     {
         _strokes = strokes;
     }
+
+    #endregion
+
+    #region Methods
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
@@ -403,6 +434,8 @@ public class SignatureDrawable : IDrawable
                 canvas.DrawLine(stroke[i - 1], stroke[i]);
         }
     }
+
+    #endregion
 }
 
 #endregion

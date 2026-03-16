@@ -1,6 +1,7 @@
 using Haulory.Application.Interfaces.Services;
 using Haulory.Domain.Enums;
 using Haulory.Contracts.Vehicles;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
 using Haulory.Mobile.Views;
@@ -21,6 +22,7 @@ public class DashboardViewModel : BaseViewModel
     private readonly JobsApiService _jobsApiService;
     private readonly OdometerApiService _odometerApiService;
     private readonly ReportsApiService _reportsApiService;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
@@ -219,38 +221,75 @@ public class DashboardViewModel : BaseViewModel
         JobsApiService jobsApiService,
         ReportsApiService reportsApiService,
         OdometerApiService odometerApiService,
-        IFeatureAccessService featureAccessService)
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
         : base(featureAccessService)
     {
         _sessionService = sessionService;
         _jobsApiService = jobsApiService;
         _reportsApiService = reportsApiService;
         _odometerApiService = odometerApiService;
+        _crashLogger = crashLogger;
 
         StartDayCommand = new Command(async () => await StartDayAsync());
         EndDayCommand = new Command(async () => await EndDayAsync());
 
         GoToJobsCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.Jobs, nameof(JobsCollectionPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Jobs, nameof(JobsCollectionPage)),
+                _crashLogger,
+                "DashboardViewModel.GoToJobsCommand",
+                nameof(DashboardPage));
+        });
 
         GoToVehiclesCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.Vehicles, nameof(VehicleCollectionPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Vehicles, nameof(VehicleCollectionPage)),
+                _crashLogger,
+                "DashboardViewModel.GoToVehiclesCommand",
+                nameof(DashboardPage));
+        });
 
         GoToDriversCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.Drivers, nameof(DriverCollectionPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Drivers, nameof(DriverCollectionPage)),
+                _crashLogger,
+                "DashboardViewModel.GoToDriversCommand",
+                nameof(DashboardPage));
+        });
 
         GoToReportsCommand = new Command(async () =>
-            await NavigateToFeatureAsync(AppFeature.Reports, nameof(ReportsPage)));
+        {
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Reports, nameof(ReportsPage)),
+                _crashLogger,
+                "DashboardViewModel.GoToReportsCommand",
+                nameof(DashboardPage));
+        });
 
         GoToNeedsReviewCommand = new Command(async () =>
         {
             if (!IsMainUser)
                 return;
 
-            await NavigateToFeatureAsync(AppFeature.Jobs, nameof(NeedsReviewPage));
+            await SafeRunner.RunAsync(
+                async () => await NavigateToFeatureAsync(AppFeature.Jobs, nameof(NeedsReviewPage)),
+                _crashLogger,
+                "DashboardViewModel.GoToNeedsReviewCommand",
+                nameof(DashboardPage));
         });
 
-        LogoutCommand = new Command(async () => await LogoutAsync());
+        LogoutCommand = new Command(async () =>
+        {
+            await SafeRunner.RunAsync(
+                async () => await LogoutAsync(),
+                _crashLogger,
+                "DashboardViewModel.LogoutCommand",
+                nameof(DashboardPage));
+        });
 
         EnsureShellNavigationRefreshHook();
     }
@@ -274,10 +313,67 @@ public class DashboardViewModel : BaseViewModel
             OnPropertyChanged(nameof(IsMainUser));
             OnPropertyChanged(nameof(IsSubUser));
 
-            await LoadCurrentJobAsync();
-            await LoadCompletedReportSummaryAsync();
-            await LoadNeedsReviewSummaryAsync();
-            await LoadDayStateAsync();
+            await SafeRunner.RunAsync(
+                async () => await LoadCurrentJobAsync(),
+                _crashLogger,
+                "DashboardViewModel.LoadCurrentJobAsync",
+                nameof(DashboardPage),
+                metadataJson: CrashMetadataBuilder.Build(
+                    route: nameof(DashboardPage),
+                    feature: "LoadCurrentJob"),
+                onError: async ex =>
+                {
+                    CurrentJobSummary = "Unable to load current jobs";
+                    ClearCurrentJobUi();
+                    await Task.CompletedTask;
+                });
+
+            await SafeRunner.RunAsync(
+                async () => await LoadCompletedReportSummaryAsync(),
+                _crashLogger,
+                "DashboardViewModel.LoadCompletedReportSummaryAsync",
+                nameof(DashboardPage),
+                metadataJson: CrashMetadataBuilder.Build(
+                    route: nameof(DashboardPage),
+                    feature: "LoadCompletedReportSummary"),
+                onError: async ex =>
+                {
+                    CompletedTodayCount = 0;
+                    RevenueToday = 0;
+                    LatestCompletedSummary = "Unable to load completed summary";
+                    await Task.CompletedTask;
+                });
+
+            await SafeRunner.RunAsync(
+                async () => await LoadNeedsReviewSummaryAsync(),
+                _crashLogger,
+                "DashboardViewModel.LoadNeedsReviewSummaryAsync",
+                nameof(DashboardPage),
+                metadataJson: CrashMetadataBuilder.Build(
+                    route: nameof(DashboardPage),
+                    feature: "LoadNeedsReviewSummary"),
+                onError: async ex =>
+                {
+                    NeedsReviewCount = 0;
+                    NeedsReviewSummary = "Unable to load jobs needing review";
+                    await Task.CompletedTask;
+                });
+
+            await SafeRunner.RunAsync(
+                async () => await LoadDayStateAsync(),
+                _crashLogger,
+                "DashboardViewModel.LoadDayStateAsync",
+                nameof(DashboardPage),
+                metadataJson: CrashMetadataBuilder.Build(
+                    route: nameof(DashboardPage),
+                    feature: "LoadDayState"),
+                onError: async ex =>
+                {
+                    HasStartedDay = false;
+                    DayStatusText = "Unable to load day state";
+                    AssignedVehicleDisplay = "Unable to load assigned vehicle";
+                    await Task.CompletedTask;
+                });
 
             RefreshFeatureBindings();
 
@@ -432,73 +528,78 @@ public class DashboardViewModel : BaseViewModel
         if (!await EnsureFeatureEnabledAsync(AppFeature.StartDay))
             return;
 
-        try
+        if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
         {
-            if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "No vehicle",
-                    "There is no assigned vehicle for today.",
-                    "OK");
-                return;
-            }
-
-            if (HasStartedDay)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Already started",
-                    "The day has already been started.",
-                    "OK");
-                return;
-            }
-
-            var result = await Shell.Current.DisplayPromptAsync(
-                "Start Day",
-                "Enter start odometer reading",
-                accept: "Start Day",
-                cancel: "Cancel",
-                keyboard: Keyboard.Numeric);
-
-            if (string.IsNullOrWhiteSpace(result))
-                return;
-
-            if (!int.TryParse(result, out var startKm))
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Invalid value",
-                    "Enter a valid odometer reading.",
-                    "OK");
-                return;
-            }
-
-            var currentUserId = _sessionService.CurrentAccountId;
-            Guid? driverId = null;
-
-            await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
-            {
-                VehicleAssetId = _currentVehicleAssetId.Value,
-                ReadingKm = startKm,
-                ReadingType = OdometerReadingType.StartOfDay,
-                DriverId = driverId,
-                RecordedByUserId = currentUserId,
-                Notes = "Dashboard start day entry",
-                UpdateCurrentOdometer = true
-            });
-
-            Preferences.Default.Set($"day_started_{currentUserId}", true);
-
-            HasStartedDay = true;
-            DayStatusText = $"Day started • {startKm:N0} km";
-
             await Shell.Current.DisplayAlertAsync(
-                "Started",
-                "Day started successfully.",
+                "No vehicle",
+                "There is no assigned vehicle for today.",
                 "OK");
+            return;
         }
-        catch (Exception ex)
+
+        if (HasStartedDay)
         {
-            await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Already started",
+                "The day has already been started.",
+                "OK");
+            return;
         }
+
+        var result = await Shell.Current.DisplayPromptAsync(
+            "Start Day",
+            "Enter start odometer reading",
+            accept: "Start Day",
+            cancel: "Cancel",
+            keyboard: Keyboard.Numeric);
+
+        if (string.IsNullOrWhiteSpace(result))
+            return;
+
+        if (!int.TryParse(result, out var startKm))
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Invalid value",
+                "Enter a valid odometer reading.",
+                "OK");
+            return;
+        }
+
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                var currentUserId = _sessionService.CurrentAccountId;
+                Guid? driverId = null;
+
+                await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
+                {
+                    VehicleAssetId = _currentVehicleAssetId.Value,
+                    ReadingKm = startKm,
+                    ReadingType = OdometerReadingType.StartOfDay,
+                    DriverId = driverId,
+                    RecordedByUserId = currentUserId,
+                    Notes = "Dashboard start day entry",
+                    UpdateCurrentOdometer = true
+                });
+
+                Preferences.Default.Set($"day_started_{currentUserId}", true);
+
+                HasStartedDay = true;
+                DayStatusText = $"Day started • {startKm:N0} km";
+
+                await Shell.Current.DisplayAlertAsync(
+                    "Started",
+                    "Day started successfully.",
+                    "OK");
+            },
+            _crashLogger,
+            "DashboardViewModel.StartDayAsync",
+            nameof(DashboardPage),
+            metadataJson: $"{{\"VehicleAssetId\":\"{_currentVehicleAssetId}\",\"StartKm\":{startKm}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
+            });
     }
 
     private async Task EndDayAsync()
@@ -506,73 +607,78 @@ public class DashboardViewModel : BaseViewModel
         if (!await EnsureFeatureEnabledAsync(AppFeature.EndDay))
             return;
 
-        try
+        if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
         {
-            if (_currentVehicleAssetId == null || _currentVehicleAssetId == Guid.Empty)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "No vehicle",
-                    "There is no assigned vehicle for today.",
-                    "OK");
-                return;
-            }
-
-            if (!HasStartedDay)
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Cannot end day",
-                    "You need to start the day before ending it.",
-                    "OK");
-                return;
-            }
-
-            var result = await Shell.Current.DisplayPromptAsync(
-                "End Day",
-                "Enter end odometer reading",
-                accept: "End Day",
-                cancel: "Cancel",
-                keyboard: Keyboard.Numeric);
-
-            if (string.IsNullOrWhiteSpace(result))
-                return;
-
-            if (!int.TryParse(result, out var endKm))
-            {
-                await Shell.Current.DisplayAlertAsync(
-                    "Invalid value",
-                    "Enter a valid odometer reading.",
-                    "OK");
-                return;
-            }
-
-            var currentUserId = _sessionService.CurrentAccountId;
-            Guid? driverId = null;
-
-            await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
-            {
-                VehicleAssetId = _currentVehicleAssetId.Value,
-                ReadingKm = endKm,
-                ReadingType = OdometerReadingType.EndOfDay,
-                DriverId = driverId,
-                RecordedByUserId = currentUserId,
-                Notes = "Dashboard end day entry",
-                UpdateCurrentOdometer = true
-            });
-
-            Preferences.Default.Set($"day_started_{currentUserId}", false);
-
-            HasStartedDay = false;
-            DayStatusText = $"Day completed • {endKm:N0} km";
-
             await Shell.Current.DisplayAlertAsync(
-                "Completed",
-                "Day ended successfully.",
+                "No vehicle",
+                "There is no assigned vehicle for today.",
                 "OK");
+            return;
         }
-        catch (Exception ex)
+
+        if (!HasStartedDay)
         {
-            await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
+            await Shell.Current.DisplayAlertAsync(
+                "Cannot end day",
+                "You need to start the day before ending it.",
+                "OK");
+            return;
         }
+
+        var result = await Shell.Current.DisplayPromptAsync(
+            "End Day",
+            "Enter end odometer reading",
+            accept: "End Day",
+            cancel: "Cancel",
+            keyboard: Keyboard.Numeric);
+
+        if (string.IsNullOrWhiteSpace(result))
+            return;
+
+        if (!int.TryParse(result, out var endKm))
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Invalid value",
+                "Enter a valid odometer reading.",
+                "OK");
+            return;
+        }
+
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                var currentUserId = _sessionService.CurrentAccountId;
+                Guid? driverId = null;
+
+                await _odometerApiService.RecordReadingAsync(new OdometerReadingRequest
+                {
+                    VehicleAssetId = _currentVehicleAssetId.Value,
+                    ReadingKm = endKm,
+                    ReadingType = OdometerReadingType.EndOfDay,
+                    DriverId = driverId,
+                    RecordedByUserId = currentUserId,
+                    Notes = "Dashboard end day entry",
+                    UpdateCurrentOdometer = true
+                });
+
+                Preferences.Default.Set($"day_started_{currentUserId}", false);
+
+                HasStartedDay = false;
+                DayStatusText = $"Day completed • {endKm:N0} km";
+
+                await Shell.Current.DisplayAlertAsync(
+                    "Completed",
+                    "Day ended successfully.",
+                    "OK");
+            },
+            _crashLogger,
+            "DashboardViewModel.EndDayAsync",
+            nameof(DashboardPage),
+            metadataJson: $"{{\"VehicleAssetId\":\"{_currentVehicleAssetId}\",\"EndKm\":{endKm}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Error", ex.Message, "OK");
+            });
     }
 
     #endregion

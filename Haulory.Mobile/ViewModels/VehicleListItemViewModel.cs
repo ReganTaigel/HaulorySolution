@@ -1,9 +1,18 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Haulory.Contracts.Vehicles;
 
 namespace Haulory.Mobile.ViewModels;
 
-public class VehicleListItemViewModel
+public class VehicleListItemViewModel : INotifyPropertyChanged
 {
+    private bool _isExpanded;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
     public Guid Id { get; set; }
 
     public int Year { get; set; }
@@ -29,6 +38,24 @@ public class VehicleListItemViewModel
     public string RucRemainingDisplay { get; set; } = "";
 
     public string IsRucOverdueYesNo { get; set; } = "";
+
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded == value)
+                return;
+
+            _isExpanded = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ExpandIcon));
+            OnPropertyChanged(nameof(ExpandText));
+        }
+    }
+
+    public string ExpandIcon => IsExpanded ? "▲" : "▼";
+    public string ExpandText => IsExpanded ? "Hide details" : "Show details";
 
     public static VehicleListItemViewModel FromDto(VehicleDto dto)
     {

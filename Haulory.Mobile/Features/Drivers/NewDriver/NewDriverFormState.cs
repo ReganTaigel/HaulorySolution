@@ -4,7 +4,7 @@ public sealed class NewDriverFormState
 {
     public string DriverId { get; set; } = string.Empty;
     public bool IsSaving { get; set; }
-
+    public bool IsMainProfile { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

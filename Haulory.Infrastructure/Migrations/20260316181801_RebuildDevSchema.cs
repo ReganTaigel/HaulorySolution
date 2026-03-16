@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Haulory.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class LiveMigration : Migration
+    public partial class RebuildDevSchema : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -42,6 +42,35 @@ namespace Haulory.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DeliveryReceipts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServerCrashLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MobileCrashId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Source = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Severity = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    StackTrace = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    InnerException = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ExceptionType = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    AccountId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    PageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Platform = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    AppVersion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    AppBuild = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    IsHandled = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MetadataJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReceivedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServerCrashLogs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -553,6 +582,32 @@ namespace Haulory.Infrastructure.Migrations
                 columns: new[] { "VehicleAssetId", "UnitNumber", "RecordedAtUtc" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServerCrashLogs_CreatedUtc",
+                table: "ServerCrashLogs",
+                column: "CreatedUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServerCrashLogs_MobileCrashId",
+                table: "ServerCrashLogs",
+                column: "MobileCrashId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServerCrashLogs_ReceivedUtc",
+                table: "ServerCrashLogs",
+                column: "ReceivedUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServerCrashLogs_Severity",
+                table: "ServerCrashLogs",
+                column: "Severity");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServerCrashLogs_Source",
+                table: "ServerCrashLogs",
+                column: "Source");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserAccounts_Email",
                 table: "UserAccounts",
                 column: "Email",
@@ -640,6 +695,9 @@ namespace Haulory.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OdometerReadings");
+
+            migrationBuilder.DropTable(
+                name: "ServerCrashLogs");
 
             migrationBuilder.DropTable(
                 name: "VehicleDayRuns");

@@ -1,6 +1,7 @@
-using System.Net.Http.Json;
 using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Vehicles;
+
+using System.Net.Http.Json;
 
 namespace Haulory.Mobile.Services;
 
@@ -66,4 +67,5 @@ public sealed class VehiclesApiService : ApiServiceBase
         UpdateVehicleRequest request,
         CancellationToken cancellationToken = default)
         => PutAsync<VehicleDto>($"api/vehicles/{vehicleId}", request, cancellationToken);
+
 }

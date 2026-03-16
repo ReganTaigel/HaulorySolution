@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Storage;
@@ -15,6 +16,7 @@ public class LoginViewModel : BaseViewModel
 
     private readonly AuthApiService _authApiService;
     private readonly ISessionService _sessionService;
+    private readonly ICrashLogger _crashLogger;
 
     #endregion
 
@@ -36,10 +38,12 @@ public class LoginViewModel : BaseViewModel
 
     public LoginViewModel(
         AuthApiService authApiService,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        ICrashLogger crashLogger)
     {
         _authApiService = authApiService;
         _sessionService = sessionService;
+        _crashLogger = crashLogger;
 
         LoginCommand = new Command(async () => await LoginAsync());
 
@@ -55,51 +59,59 @@ public class LoginViewModel : BaseViewModel
 
     private async Task LoginAsync()
     {
-        try
-        {
-            var (result, error) = await _authApiService.LoginAsync(Email, Password);
-
-            if (result is null)
+        await SafeRunner.RunAsync(
+            async () =>
             {
-                await Shell.Current.DisplayAlertAsync(
-                    "Login Failed",
-                    error ?? "Unable to log in.",
-                    "OK");
-                return;
-            }
+                var (result, error) = await _authApiService.LoginAsync(Email, Password);
 
-            if (result.AccountId == result.OwnerId)
+                if (result is null)
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                        "Login Failed",
+                        error ?? "Unable to log in.",
+                        "OK");
+                    return;
+                }
+
+                if (result.AccountId == result.OwnerId)
+                {
+                    await _sessionService.SetAccountAsync(
+                        result.AccountId,
+                        result.Token);
+                }
+                else
+                {
+                    await _sessionService.SetAccountAsync(
+                        result.AccountId,
+                        result.OwnerId,
+                        result.Token);
+                }
+
+                await SecureStorage.Default.SetAsync("haulory_api_token", result.Token);
+
+                await Shell.Current.GoToAsync("///DashboardPage");
+            },
+            _crashLogger,
+            "LoginViewModel.LoginAsync",
+            nameof(Views.LoginPage),
+            metadataJson: $"{{\"Email\":\"{Email}\"}}",
+            onError: async ex =>
             {
-                await _sessionService.SetAccountAsync(
-                    result.AccountId,
-                    result.Token);
-            }
-            else
-            {
-                await _sessionService.SetAccountAsync(
-                    result.AccountId,
-                    result.OwnerId,
-                    result.Token);
-            }
-
-            await SecureStorage.Default.SetAsync("haulory_api_token", result.Token);
-
-            await Shell.Current.GoToAsync("///DashboardPage");
-        }
-        catch (HttpRequestException ex)
-        {
-            await Shell.Current.DisplayAlertAsync(
-                "Connection Error",
-                ex.Message,
-                "OK");
-        }
-        catch (Exception ex)
-        {
-            await Shell.Current.DisplayAlertAsync(
-                "Login Error",
-                ex.Message,
-                "OK");
-        }
+                if (ex is HttpRequestException)
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                        "Connection Error",
+                        ex.Message,
+                        "OK");
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlertAsync(
+                        "Login Error",
+                        ex.Message,
+                        "OK");
+                }
+            });
     }
 
     #endregion
