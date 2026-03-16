@@ -1,5 +1,6 @@
 using Haulory.Api.Services;
 using Haulory.Application.Features.Drivers;
+using Haulory.Application.Features.Jobs;
 using Haulory.Application.Features.Reports;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
 builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<CreateJobHandler>();
 builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
 builder.Services.AddScoped<CreateDriverHandler>();
 builder.Services.AddScoped<CreateDriverFromUserHandler>();
@@ -103,18 +105,22 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
+
+// Enable Swagger in both Development and Production for now
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Simple root endpoint
+app.MapGet("/", () => Results.Ok("Haulory API is running"));
+
+// Simple health endpoint
+app.MapGet("/health", () => Results.Ok("Healthy"));
 
 app.MapControllers();
 

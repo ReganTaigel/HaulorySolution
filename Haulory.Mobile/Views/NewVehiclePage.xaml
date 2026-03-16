@@ -1,0 +1,966 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Mobile.Views.NewVehiclePage"
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding IsAddVehicleVisible}">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="14" Padding="20">
+
+            <!-- PAGE HEADER -->
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
+
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="{StaticResource Gray100}"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10"
+                    VerticalOptions="Center">
+
+                    <Image
+                        Source="vehicle.svg"
+                        HeightRequest="22"
+                        WidthRequest="22" />
+                </Border>
+
+                <VerticalStackLayout
+                    Grid.Column="1"
+                    Spacing="3"
+                    VerticalOptions="Center">
+
+                    <Label
+                        Text="Add vehicle"
+                        FontSize="26"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource BrandTitle}" />
+
+                    <Label
+                        Text="Capture vehicle details, compliance, and configuration"
+                        FontSize="14"
+                        TextColor="{StaticResource Gray600}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- VEHICLE SETUP -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="settings.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Vehicle setup"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Choose the type and configuration before entering compliance details."
+                        FontSize="13"
+                        LineHeight="1.15"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <!-- Vehicle type -->
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Vehicle type"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select a vehicle type"
+                                    ItemsSource="{Binding VehicleTypes}"
+                                    ItemDisplayBinding="{Binding Display}"
+                                    SelectedItem="{Binding SelectedVehicleType}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Light trailer configuration -->
+                    <Border
+                        IsVisible="{Binding ShowLightTrailerConfig}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Trailer configuration"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Label
+                                Text="This helps determine what information is required next."
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select a trailer configuration"
+                                    ItemsSource="{Binding LightTrailerConfigurations}"
+                                    ItemDisplayBinding="{Binding Display}"
+                                    SelectedItem="{Binding SelectedLightConfig}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Power unit body type -->
+                    <Border
+                        IsVisible="{Binding ShowPowerUnitBodyType}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Power unit body type"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Label
+                                Text="Choose the body style for this power unit."
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select a body type"
+                                    ItemsSource="{Binding PowerUnitBodyTypes}"
+                                    ItemDisplayBinding="{Binding Display}"
+                                    SelectedItem="{Binding SelectedPowerUnitBodyType}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Heavy configuration -->
+                    <Border
+                        IsVisible="{Binding ShowHeavyConfig}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Configuration"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Label
+                                Text="This determines how many units and details are required."
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select a configuration"
+                                    ItemsSource="{Binding HeavyConfigurations}"
+                                    ItemDisplayBinding="{Binding Display}"
+                                    SelectedItem="{Binding SelectedHeavyConfig}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- REGISTRATION -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding ReadyForRego}">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="idcard.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Registration"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Enter registration and expiry details for each unit."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <!-- Registration numbers -->
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="12">
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit1Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Plate / registration"
+                                        Text="{Binding Unit1Rego}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit2Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Plate / registration"
+                                        Text="{Binding Unit2Rego}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit3Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Plate / registration"
+                                        Text="{Binding Unit3Rego}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Registration expiry -->
+                    <Border
+                        IsVisible="{Binding ShowRegoExpiry}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="12">
+
+                            <Label
+                                Text="Registration expiry"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit1Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit1RegoExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit2Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit2RegoExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit3Label}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit3RegoExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- VEHICLE IDENTITY -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding ShowMakeModel}">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="vehicle.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Vehicle identity"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Enter make, model, and year for each unit."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="14">
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit1Rego}" Spacing="8">
+                                <Label
+                                    Text="{Binding Unit1MakeModelLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Make"
+                                        Text="{Binding Unit1Make}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Model"
+                                        Text="{Binding Unit1Model}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Year"
+                                        Keyboard="Numeric"
+                                        Text="{Binding Unit1Year}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit2Rego}" Spacing="8">
+                                <Label
+                                    Text="{Binding Unit2MakeModelLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Make"
+                                        Text="{Binding Unit2Make}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Model"
+                                        Text="{Binding Unit2Model}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Year"
+                                        Keyboard="Numeric"
+                                        Text="{Binding Unit2Year}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit3Rego}" Spacing="8">
+                                <Label
+                                    Text="{Binding Unit3MakeModelLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Make"
+                                        Text="{Binding Unit3Make}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Model"
+                                        Text="{Binding Unit3Model}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="Year"
+                                        Keyboard="Numeric"
+                                        Text="{Binding Unit3Year}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- COMPLIANCE -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding ShowCertificateStep}">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="warning.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Compliance"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Select inspection or certification expiry dates for each unit."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="12">
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit1Cert}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit1CertLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit1CertExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit2Cert}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit2CertLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit2CertExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit3Cert}" Spacing="6">
+                                <Label
+                                    Text="{Binding Unit3CertLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding Unit3CertExpiry}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- USAGE AND ROAD TAX -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding ShowFuelType}">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="odometer.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Usage and road tax"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Set fuel type, odometer readings, and distance-based road tax where required."
+                        FontSize="13"
+                        LineHeight="1.15"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <!-- Fuel type -->
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Fuel type"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select a fuel type"
+                                    ItemsSource="{Binding FuelTypes}"
+                                    ItemDisplayBinding="{Binding Display}"
+                                    SelectedItem="{Binding SelectedFuelType}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Label
+                                Text="{Binding FuelInfoText}"
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}">
+                                <Label.Triggers>
+                                    <DataTrigger
+                                        TargetType="Label"
+                                        Binding="{Binding SelectedFuelType}"
+                                        Value="{x:Null}">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Odometer -->
+                    <Border
+                        IsVisible="{Binding ShowOdometers}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="12">
+
+                            <Label
+                                Text="Odometer"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <VerticalStackLayout IsVisible="{Binding ShowPowerUnitOdo}" Spacing="6">
+                                <Label
+                                    Text="{Binding PowerUnitOdoLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="e.g., 182340"
+                                        Keyboard="Numeric"
+                                        Text="{Binding PowerUnitOdometerKm}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowTrailer1Odo}" Spacing="6">
+                                <Label
+                                    Text="{Binding Trailer1OdoLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="e.g., 90210"
+                                        Keyboard="Numeric"
+                                        Text="{Binding Trailer1OdometerKm}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowTrailer2Odo}" Spacing="6">
+                                <Label
+                                    Text="{Binding Trailer2OdoLabel}"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="e.g., 88120"
+                                        Keyboard="Numeric"
+                                        Text="{Binding Trailer2OdometerKm}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Distance-based road tax -->
+                    <Border
+                        IsVisible="{Binding ShowRucStep}"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="14">
+
+                            <Label
+                                Text="Distance-based road tax"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Label
+                                Text="Enter the current licence range for each applicable unit."
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}" />
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit1Ruc}" Spacing="10">
+                                <Label
+                                    Text="{Binding Unit1RucLabel}"
+                                    FontAttributes="Bold"
+                                    FontSize="15"
+                                    TextColor="{StaticResource BrandTitle}" />
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="Start distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 1000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit1RucLicenceStartKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="End distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 2000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit1RucLicenceEndKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit2Ruc}" Spacing="10">
+                                <Label
+                                    Text="{Binding Unit2RucLabel}"
+                                    FontAttributes="Bold"
+                                    FontSize="15"
+                                    TextColor="{StaticResource BrandTitle}" />
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="Start distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 1000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit2RucLicenceStartKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="End distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 2000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit2RucLicenceEndKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout IsVisible="{Binding ShowUnit3Ruc}" Spacing="10">
+                                <Label
+                                    Text="{Binding Unit3RucLabel}"
+                                    FontAttributes="Bold"
+                                    FontSize="15"
+                                    TextColor="{StaticResource BrandTitle}" />
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="Start distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 1000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit3RucLicenceStartKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="6">
+                                    <Label
+                                        Text="End distance"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry
+                                            Placeholder="e.g., 2000"
+                                            Keyboard="Numeric"
+                                            Text="{Binding Unit3RucLicenceEndKm}"
+                                            FontSize="14"
+                                            HeightRequest="44"
+                                            TextColor="{StaticResource BrandInk}"
+                                            PlaceholderColor="{StaticResource Gray500}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- SAVE BUTTON -->
+            <Button
+                Text="Save vehicle"
+                Command="{Binding SaveVehicleCommand}"
+                IsEnabled="{Binding CanSaveVehicleAction}"
+                IsVisible="{Binding ShowSaveButton}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HeightRequest="50"
+                Margin="0,8,0,10" />
+
+            <BoxView HeightRequest="6" Opacity="0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

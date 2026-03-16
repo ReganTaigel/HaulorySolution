@@ -1,0 +1,728 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="Haulory.Mobile.Views.NewJobPage"
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding IsPageVisible}">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- PAGE HEADER -->
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
+
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="{StaticResource Gray100}"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10"
+                    VerticalOptions="Center">
+
+                    <Image
+                        Source="jobs.svg"
+                        HeightRequest="22"
+                        WidthRequest="22" />
+                </Border>
+
+                <VerticalStackLayout
+                    Grid.Column="1"
+                    Spacing="3"
+                    VerticalOptions="Center">
+
+                    <Label
+                        Text="{Binding PageTitle}"
+                        FontSize="26"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource BrandTitle}" />
+
+                    <Label
+                        Text="{Binding PageSubtitle}"
+                        FontSize="14"
+                        TextColor="{StaticResource Gray600}" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- REVIEW SUMMARY -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding IsReviewOnly}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="checklist.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Job to review"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label
+                                Text="{Binding ReferenceNumber}"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Label
+                                Text="{Binding PickupCompany, StringFormat='Pickup: {0}'}"
+                                FontSize="14"
+                                TextColor="{StaticResource BrandInk}"
+                                LineBreakMode="TailTruncation" />
+
+                            <Label
+                                Text="{Binding DeliveryCompany, StringFormat='Delivery: {0}'}"
+                                FontSize="14"
+                                TextColor="{StaticResource BrandInk}"
+                                LineBreakMode="TailTruncation" />
+
+                            <Label
+                                Text="{Binding LoadDescription}"
+                                FontSize="13"
+                                LineHeight="1.15"
+                                TextColor="{StaticResource Gray600}"
+                                LineBreakMode="WordWrap"
+                                MaxLines="3" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label
+                        Text="Review the driver-entered exception details and approve the job"
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- CUSTOMER -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditFullJob}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="contact.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Customer"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Who this job is billed to."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Company name"
+                                    Text="{Binding ClientCompanyName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Contact name (optional)"
+                                    Text="{Binding ClientContactName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Email (optional)"
+                                    Keyboard="Email"
+                                    Text="{Binding ClientEmail}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Address line 1"
+                                    Text="{Binding ClientAddressLine1}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="City"
+                                    Text="{Binding ClientCity}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Country"
+                                    Text="{Binding ClientCountry}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ROUTE -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditFullJob}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="location.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Route"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Where the load is being collected and delivered."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <!-- Pickup -->
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Pickup"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Company name"
+                                    Text="{Binding PickupCompany}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Pickup address"
+                                    Text="{Binding PickupAddress}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Delivery -->
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Delivery"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Company name"
+                                    Text="{Binding DeliveryCompany}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Delivery address"
+                                    Text="{Binding DeliveryAddress}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- LOAD -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditFullJob}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="delivery.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Load"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Reference and freight details for this job."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Reference number"
+                                    Text="{Binding ReferenceNumber}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{StaticResource BrandSurface}"
+                                Padding="10">
+                                <Editor
+                                    Placeholder="Load description"
+                                    AutoSize="TextChanges"
+                                    Text="{Binding LoadDescription}"
+                                    FontSize="14"
+                                    HeightRequest="110"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}"
+                                    BackgroundColor="Transparent" />
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ASSIGNMENT -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditFullJob}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="driver.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Assignment"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Choose the driver and equipment for this job."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Label
+                                Text="Driver"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select driver"
+                                    ItemsSource="{Binding Drivers}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    SelectedItem="{Binding SelectedDriver, Mode=TwoWay}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Label
+                                Text="Vehicle"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select vehicle"
+                                    ItemsSource="{Binding Vehicles}"
+                                    SelectedItem="{Binding SelectedVehicle, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Label
+                                Text="Trailer 1 (optional)"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select trailer 1"
+                                    ItemsSource="{Binding Trailers}"
+                                    SelectedItem="{Binding SelectedTrailer1, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Label
+                                Text="Trailer 2 (optional)"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select trailer 2"
+                                    ItemsSource="{Binding Trailers}"
+                                    SelectedItem="{Binding SelectedTrailer2, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Label
+                                Text="{Binding SelectedTrailerSummary}"
+                                FontSize="13"
+                                TextColor="{StaticResource Gray600}" />
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- BILLING -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditFullJob}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="dollar.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Billing"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Set the pricing method and invoice details."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Invoice number"
+                                    Text="{Binding InvoiceNumber}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Label
+                                Text="Rate type"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select rate type"
+                                    ItemsSource="{Binding RateTypes}"
+                                    SelectedItem="{Binding RateType}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Rate"
+                                    Keyboard="Numeric"
+                                    Text="{Binding RateValue}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="{Binding QuantityLabel}"
+                                    Keyboard="Numeric"
+                                    Text="{Binding Quantity}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandSurface}"
+                                Padding="12">
+
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <Label
+                                        Text="Total"
+                                        FontSize="14"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandTitle}"
+                                        VerticalTextAlignment="Center" />
+
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="{Binding Total, StringFormat='{0:N2}'}"
+                                        FontSize="20"
+                                        FontAttributes="Bold"
+                                        TextColor="{StaticResource BrandAccent}"
+                                        VerticalTextAlignment="Center" />
+                                </Grid>
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- PICKUP / REVIEW DETAILS -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16"
+                IsVisible="{Binding CanEditPickupDetails}">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="warning.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="{Binding PageTitle}"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Capture exception details before approval."
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Wait time (minutes)"
+                                    Keyboard="Numeric"
+                                    Text="{Binding WaitTimeMinutesText}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 12"
+                                BackgroundColor="{StaticResource BrandSurface}"
+                                Padding="10">
+                                <Editor
+                                    Placeholder="Damage notes"
+                                    AutoSize="TextChanges"
+                                    Text="{Binding DamageNotes}"
+                                    FontSize="14"
+                                    HeightRequest="120"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}"
+                                    BackgroundColor="Transparent" />
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label
+                        Text="Photos will be added later when blob storage is connected"
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- SAVE -->
+            <Button
+                Text="{Binding SaveButtonText}"
+                Command="{Binding SaveJobCommand}"
+                IsVisible="{Binding IsSaveVisible}"
+                IsEnabled="{Binding IsSaveEnabled}"
+                Style="{StaticResource PrimaryButtonStyle}"
+                HeightRequest="50" />
+
+            <BoxView HeightRequest="6" Opacity="0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

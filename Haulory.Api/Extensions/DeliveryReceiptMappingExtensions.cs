@@ -1,4 +1,4 @@
-﻿using Haulory.Api.Contracts.Reports;
+using Haulory.Contracts.Reports;
 using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Extensions;
@@ -12,16 +12,16 @@ public static class DeliveryReceiptMappingExtensions
             Id = receipt.Id,
             JobId = receipt.JobId,
 
-            ReferenceNumber = receipt.ReferenceNumber,
-            InvoiceNumber = receipt.InvoiceNumber,
+            ReferenceNumber = receipt.ReferenceNumber ?? string.Empty,
+            InvoiceNumber = receipt.InvoiceNumber ?? string.Empty,
 
-            PickupCompany = receipt.PickupCompany,
-            PickupAddress = receipt.PickupAddress,
+            PickupCompany = receipt.PickupCompany ?? string.Empty,
+            PickupAddress = receipt.PickupAddress ?? string.Empty,
 
-            DeliveryCompany = receipt.DeliveryCompany,
-            DeliveryAddress = receipt.DeliveryAddress,
+            DeliveryCompany = receipt.DeliveryCompany ?? string.Empty,
+            DeliveryAddress = receipt.DeliveryAddress ?? string.Empty,
 
-            LoadDescription = receipt.LoadDescription,
+            LoadDescription = receipt.LoadDescription ?? string.Empty,
 
             ReceiverName = receipt.ReceiverName,
             DeliveredAtUtc = receipt.DeliveredAtUtc,

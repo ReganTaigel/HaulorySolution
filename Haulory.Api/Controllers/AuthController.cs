@@ -1,7 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Haulory.Api.Contracts.Auth;
+using Haulory.Contracts.Auth;
 using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Users;
 using Haulory.Application.Security;

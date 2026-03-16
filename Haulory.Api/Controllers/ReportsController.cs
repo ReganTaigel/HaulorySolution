@@ -1,4 +1,4 @@
-﻿using Haulory.Api.Contracts.Reports;
+using Haulory.Contracts.Reports;
 using Haulory.Api.Extensions;
 using Haulory.Application.Features.Reports;
 using Haulory.Application.Interfaces.Repositories;
@@ -39,16 +39,17 @@ public class ReportsController : ControllerBase
     {
         var ownerUserId = User.GetOwnerUserId();
 
-        var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
+        var todayLocal = DateTime.Today;
+        var (fromUtc, toUtc) = BuildUtcRangeForLocalDay(todayLocal);
 
-        var todayLocal = DateTime.Now.Date;
+        var todayReceipts = await _deliveryReceiptRepository.GetByOwnerDeliveredBetweenUtcAsync(
+            ownerUserId,
+            fromUtc,
+            toUtc);
 
-        var todayReceipts = receipts
-            .Where(r => ToLocalDate(r.DeliveredAtUtc) == todayLocal)
+        var latest = todayReceipts
             .OrderByDescending(r => r.DeliveredAtUtc)
-            .ToList();
-
-        var latest = todayReceipts.FirstOrDefault();
+            .FirstOrDefault();
 
         return Ok(new ReportsTodayDto
         {
@@ -66,11 +67,15 @@ public class ReportsController : ControllerBase
     {
         var ownerUserId = User.GetOwnerUserId();
 
-        var targetDate = (date ?? DateTime.Now).Date;
-        var receipts = await _deliveryReceiptRepository.GetByOwnerAsync(ownerUserId);
+        var targetDate = (date ?? DateTime.Today).Date;
+        var (fromUtc, toUtc) = BuildUtcRangeForLocalDay(targetDate);
+
+        var receipts = await _deliveryReceiptRepository.GetByOwnerDeliveredBetweenUtcAsync(
+            ownerUserId,
+            fromUtc,
+            toUtc);
 
         var filtered = receipts
-            .Where(r => ToLocalDate(r.DeliveredAtUtc) == targetDate)
             .OrderByDescending(r => r.DeliveredAtUtc)
             .Select(r => r.ToDto())
             .ToList();
@@ -117,12 +122,14 @@ public class ReportsController : ControllerBase
         return File(pdfBytes, "application/pdf", fileName);
     }
 
-    private static DateTime ToLocalDate(DateTime deliveredAtUtc)
+    private static (DateTime fromUtc, DateTime toUtc) BuildUtcRangeForLocalDay(DateTime localDate)
     {
-        var utc = deliveredAtUtc.Kind == DateTimeKind.Utc
-            ? deliveredAtUtc
-            : DateTime.SpecifyKind(deliveredAtUtc, DateTimeKind.Utc);
+        var localStart = DateTime.SpecifyKind(localDate.Date, DateTimeKind.Local);
+        var localEnd = localStart.AddDays(1);
 
-        return utc.ToLocalTime().Date;
+        var fromUtc = localStart.ToUniversalTime();
+        var toUtc = localEnd.ToUniversalTime();
+
+        return (fromUtc, toUtc);
     }
 }

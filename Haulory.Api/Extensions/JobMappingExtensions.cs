@@ -1,4 +1,4 @@
-﻿using Haulory.Api.Contracts.Jobs;
+using Haulory.Contracts.Jobs;
 using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Extensions;

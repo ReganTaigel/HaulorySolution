@@ -1,9 +1,9 @@
-﻿using Haulory.Api.Contracts.Vehicles;
+using Haulory.Contracts.Vehicles;
 using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Extensions;
 
-public static class VehicleMappingExtensions
+public static class VehicleMappingsExtensions
 {
     public static VehicleDto ToDto(this VehicleAsset vehicle)
     {
@@ -21,7 +21,10 @@ public static class VehicleMappingExtensions
             UnitNumber = vehicle.UnitNumber,
 
             Kind = vehicle.Kind.ToString(),
-            VehicleType = vehicle.VehicleType?.ToString(),
+            VehicleType = vehicle.VehicleType.ToString(),
+
+            FuelType = vehicle.FuelType?.ToString(),
+            Configuration = vehicle.Configuration?.ToString(),
 
             OdometerKm = vehicle.OdometerKm,
 
@@ -30,6 +33,8 @@ public static class VehicleMappingExtensions
             CertificateType = vehicle.CertificateType.ToString(),
             CertificateExpiry = vehicle.CertificateExpiry,
 
+            RucPurchasedDate = vehicle.RucPurchasedDate,
+            RucDistancePurchasedKm = vehicle.RucDistancePurchasedKm,
             RucLicenceStartKm = vehicle.RucLicenceStartKm,
             RucLicenceEndKm = vehicle.RucLicenceEndKm,
 

@@ -244,6 +244,16 @@ public class Job
 
     #endregion
 
+    #region Pickup Details
+
+    public void UpdatePickupDetails(int? waitTimeMinutes, string? damageNotes)
+    {
+        WaitTimeMinutes = waitTimeMinutes;
+        DamageNotes = string.IsNullOrWhiteSpace(damageNotes) ? null : damageNotes.Trim();
+    }
+
+    #endregion
+
     #region Delivery
 
     public void CompleteDelivery(
@@ -253,6 +263,9 @@ public class Job
         int? waitTimeMinutes,
         string? damageNotes)
     {
+        if (Status == JobStatus.Completed || Status == JobStatus.DeliveredPendingReview)
+            throw new InvalidOperationException("Job has already been delivered.");
+
         ReceiverName = NameFormatter.ToTitleCase(receiverName);
 
         DeliverySignatureJson = string.IsNullOrWhiteSpace(signatureJson)
@@ -263,7 +276,10 @@ public class Job
         DeliveredByUserId = deliveredByUserId;
 
         WaitTimeMinutes = waitTimeMinutes;
-        DamageNotes = string.IsNullOrWhiteSpace(damageNotes) ? null : damageNotes.Trim();
+
+        DamageNotes = string.IsNullOrWhiteSpace(damageNotes)
+            ? null
+            : damageNotes.Trim();
 
         Status = RequiresReview
             ? JobStatus.DeliveredPendingReview
@@ -271,25 +287,37 @@ public class Job
     }
 
     #endregion
+
+    #region Updates
+    public void ReviewDeliveryExceptions(int? waitTimeMinutes, string? damageNotes)
+    {
+        WaitTimeMinutes = waitTimeMinutes;
+        DamageNotes = string.IsNullOrWhiteSpace(damageNotes)
+            ? null
+            : damageNotes.Trim();
+
+        Status = JobStatus.Completed;
+    }
+
     public void UpdateDetails(
-    string clientCompanyName,
-    string? clientContactName,
-    string? clientEmail,
-    string clientAddressLine1,
-    string clientCity,
-    string clientCountry,
-    string pickupCompany,
-    string pickupAddress,
-    string deliveryCompany,
-    string deliveryAddress,
-    string referenceNumber,
-    string loadDescription,
-    string invoiceNumber,
-    RateType rateType,
-    decimal rateValue,
-    decimal quantity,
-    Guid? driverId,
-    Guid? vehicleAssetId)
+        string clientCompanyName,
+        string? clientContactName,
+        string? clientEmail,
+        string clientAddressLine1,
+        string clientCity,
+        string clientCountry,
+        string pickupCompany,
+        string pickupAddress,
+        string deliveryCompany,
+        string deliveryAddress,
+        string referenceNumber,
+        string loadDescription,
+        string invoiceNumber,
+        RateType rateType,
+        decimal rateValue,
+        decimal quantity,
+        Guid? driverId,
+        Guid? vehicleAssetId)
     {
         ClientCompanyName = clientCompanyName.Trim();
         ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
@@ -313,6 +341,8 @@ public class Job
         DriverId = driverId;
         VehicleAssetId = vehicleAssetId;
     }
+
+    #endregion
 }
 
 #endregion

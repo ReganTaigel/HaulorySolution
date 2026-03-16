@@ -1,9 +1,9 @@
-﻿using Haulory.Api.Contracts.Drivers;
+using Haulory.Api.Drivers;
 using Haulory.Api.Extensions;
 using Haulory.Application.Features.Drivers;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Entities;
+using Haulory.Contracts.Drivers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +19,8 @@ public sealed class DriversController : ControllerBase
     private readonly CreateDriverHandler _createDriverHandler;
     private readonly IDriverInductionRepository _driverInductions;
     private readonly IInductionEvidenceFileStorage _fileStorage;
+    private readonly DriverRequestValidator _validator;
+    private readonly DriverWorkflowService _workflowService;
 
     public DriversController(
         IDriverRepository driverRepository,
@@ -30,6 +32,8 @@ public sealed class DriversController : ControllerBase
         _createDriverHandler = createDriverHandler;
         _driverInductions = driverInductions;
         _fileStorage = fileStorage;
+        _validator = new DriverRequestValidator();
+        _workflowService = new DriverWorkflowService(driverRepository);
     }
 
     [HttpGet]
@@ -37,16 +41,13 @@ public sealed class DriversController : ControllerBase
     public async Task<ActionResult<IEnumerable<DriverDto>>> GetAll()
     {
         var ownerUserId = User.GetOwnerUserId();
-
         var drivers = await _driverRepository.GetAllByOwnerUserIdAsync(ownerUserId);
 
-        var result = drivers
+        return Ok(drivers
             .OrderBy(x => x.FirstName)
             .ThenBy(x => x.LastName)
             .Select(x => x.ToDto())
-            .ToList();
-
-        return Ok(result);
+            .ToList());
     }
 
     [HttpGet("{id:guid}")]
@@ -55,7 +56,6 @@ public sealed class DriversController : ControllerBase
     public async Task<ActionResult<DriverDto>> GetById(Guid id)
     {
         var ownerUserId = User.GetOwnerUserId();
-
         var driver = await _driverRepository.GetByIdForOwnerAsync(ownerUserId, id);
 
         if (driver is null)
@@ -69,39 +69,7 @@ public sealed class DriversController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DriverDto>> Create([FromBody] CreateDriverRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.FirstName))
-            ModelState.AddModelError(nameof(request.FirstName), "First name is required.");
-
-        if (string.IsNullOrWhiteSpace(request.LastName))
-            ModelState.AddModelError(nameof(request.LastName), "Last name is required.");
-
-        if (string.IsNullOrWhiteSpace(request.Email))
-            ModelState.AddModelError(nameof(request.Email), "Email is required.");
-        if (request.EmergencyContact is null)
-        {
-            ModelState.AddModelError(nameof(request.EmergencyContact), "Emergency contact is required.");
-        }
-        else
-        {
-            if (string.IsNullOrWhiteSpace(request.EmergencyContact.FirstName))
-                ModelState.AddModelError(nameof(request.EmergencyContact.FirstName), "Emergency contact first name is required.");
-
-            if (string.IsNullOrWhiteSpace(request.EmergencyContact.LastName))
-                ModelState.AddModelError(nameof(request.EmergencyContact.LastName), "Emergency contact last name is required.");
-
-            if (string.IsNullOrWhiteSpace(request.EmergencyContact.Relationship))
-                ModelState.AddModelError(nameof(request.EmergencyContact.Relationship), "Emergency contact relationship is required.");
-
-            if (string.IsNullOrWhiteSpace(request.EmergencyContact.Email))
-                ModelState.AddModelError(nameof(request.EmergencyContact.Email), "Emergency contact email is required.");
-
-            if (string.IsNullOrWhiteSpace(request.EmergencyContact.PhoneNumber))
-                ModelState.AddModelError(nameof(request.EmergencyContact.PhoneNumber), "Emergency contact phone number is required.");
-        }
-
-        if (request.CreateLoginAccount && string.IsNullOrWhiteSpace(request.Password))
-            ModelState.AddModelError(nameof(request.Password), "Password is required when creating a login account.");
-
+        _validator.ValidateCreate(request, ModelState);
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
@@ -114,16 +82,13 @@ public sealed class DriversController : ControllerBase
                 LastName: request.LastName.Trim(),
                 Email: request.Email.Trim().ToLowerInvariant(),
                 LicenceNumber: request.LicenceNumber,
-
                 PhoneNumber: request.PhoneNumber,
                 DateOfBirthUtc: request.DateOfBirthUtc,
-
                 LicenceExpiresOnUtc: request.LicenceExpiresOnUtc,
                 LicenceVersion: request.LicenceVersion,
                 LicenceClassOrEndorsements: request.LicenceClassOrEndorsements,
                 LicenceIssuedOnUtc: request.LicenceIssuedOnUtc,
                 LicenceConditionsNotes: request.LicenceConditionsNotes,
-
                 Line1: request.Line1,
                 Line2: request.Line2,
                 Suburb: request.Suburb,
@@ -131,14 +96,12 @@ public sealed class DriversController : ControllerBase
                 Region: request.Region,
                 Postcode: request.Postcode,
                 Country: request.Country,
-
                 EmergencyFirstName: request.EmergencyContact?.FirstName ?? string.Empty,
                 EmergencyLastName: request.EmergencyContact?.LastName ?? string.Empty,
                 EmergencyRelationship: request.EmergencyContact?.Relationship ?? string.Empty,
                 EmergencyEmail: request.EmergencyContact?.Email ?? string.Empty,
                 EmergencyPhoneNumber: request.EmergencyContact?.PhoneNumber ?? string.Empty,
                 EmergencySecondaryPhoneNumber: request.EmergencyContact?.SecondaryPhoneNumber,
-
                 CreateLoginAccount: request.CreateLoginAccount,
                 Password: request.Password
             ));
@@ -155,55 +118,14 @@ public sealed class DriversController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DriverDto>> Update(Guid id, [FromBody] UpdateDriverRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.FirstName))
-            ModelState.AddModelError(nameof(request.FirstName), "First name is required.");
-
-        if (string.IsNullOrWhiteSpace(request.LastName))
-            ModelState.AddModelError(nameof(request.LastName), "Last name is required.");
-
-        if (string.IsNullOrWhiteSpace(request.Email))
-            ModelState.AddModelError(nameof(request.Email), "Email is required.");
-
+        _validator.ValidateUpdate(request, ModelState);
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
         var ownerUserId = User.GetOwnerUserId();
-
-        var driver = await _driverRepository.GetByIdForOwnerAsync(ownerUserId, id);
+        var driver = await _workflowService.UpdateAsync(ownerUserId, id, request);
         if (driver is null)
             return NotFound();
-
-        driver.UpdateIdentity(request.FirstName, request.LastName, request.Email);
-        driver.UpdatePhone(request.PhoneNumber);
-        driver.UpdateDateOfBirthUtc(request.DateOfBirthUtc);
-
-        driver.UpdateLicenceNumber(request.LicenceNumber);
-        driver.UpdateLicenceVersion(request.LicenceVersion);
-        driver.UpdateLicenceClassOrEndorsements(request.LicenceClassOrEndorsements);
-        driver.UpdateLicenceIssuedOnUtc(request.LicenceIssuedOnUtc);
-        driver.UpdateLicenceExpiryUtc(request.LicenceExpiresOnUtc);
-        driver.UpdateLicenceConditionsNotes(request.LicenceConditionsNotes);
-
-        driver.UpdateAddress(
-            request.Line1,
-            request.Line2,
-            request.Suburb,
-            request.City,
-            request.Region,
-            request.Postcode,
-            request.Country
-        );
-
-        driver.UpdateEmergencyContact(new EmergencyContact(
-            request.EmergencyContact?.FirstName ?? string.Empty,
-            request.EmergencyContact?.LastName ?? string.Empty,
-            request.EmergencyContact?.Relationship ?? string.Empty,
-            request.EmergencyContact?.Email ?? string.Empty,
-            request.EmergencyContact?.PhoneNumber ?? string.Empty,
-            request.EmergencyContact?.SecondaryPhoneNumber
-        ));
-
-        await _driverRepository.SaveAsync(driver);
 
         return Ok(driver.ToDto());
     }
@@ -230,13 +152,7 @@ public sealed class DriversController : ControllerBase
             await _fileStorage.DeleteAsync(entity.EvidenceFilePath, cancellationToken);
 
         await using var stream = file.OpenReadStream();
-
-        var saved = await _fileStorage.SaveAsync(
-            stream,
-            file.FileName,
-            file.ContentType,
-            cancellationToken);
-
+        var saved = await _fileStorage.SaveAsync(stream, file.FileName, file.ContentType, cancellationToken);
         entity.SetEvidence(file.FileName, saved.contentType, saved.storedRelativePath);
 
         await _driverInductions.UpdateAsync(ownerId, driverId, entity);
@@ -264,9 +180,7 @@ public sealed class DriversController : ControllerBase
             return NotFound("Driver induction not found.");
 
         await _fileStorage.DeleteAsync(entity.EvidenceFilePath, cancellationToken);
-
         entity.ClearEvidence();
-
         await _driverInductions.UpdateAsync(ownerId, driverId, entity);
 
         return NoContent();

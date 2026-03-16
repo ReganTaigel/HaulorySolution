@@ -1,4 +1,5 @@
-﻿using Haulory.Api.Extensions;
+using Haulory.Api.Extensions;
+using Haulory.Contracts.Vehicles;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
@@ -132,30 +133,4 @@ public sealed class OdometerController : ControllerBase
         });
 
     }
-}
-public sealed class OdometerReadingResponse
-{
-    public bool Success { get; set; }
-    public string Message { get; set; } = string.Empty;
-}
-public sealed class OdometerAssetDto
-{
-    public Guid Id { get; set; }
-    public Guid VehicleSetId { get; set; }
-    public int UnitNumber { get; set; }
-    public string Rego { get; set; } = string.Empty;
-    public string Make { get; set; } = string.Empty;
-    public string Model { get; set; } = string.Empty;
-    public int? OdometerKm { get; set; }
-}
-
-public sealed class OdometerReadingRequest
-{
-    public Guid VehicleAssetId { get; set; }
-    public int ReadingKm { get; set; }
-    public OdometerReadingType ReadingType { get; set; }
-    public Guid? DriverId { get; set; }
-    public Guid? RecordedByUserId { get; set; }
-    public string? Notes { get; set; }
-    public bool UpdateCurrentOdometer { get; set; }
 }

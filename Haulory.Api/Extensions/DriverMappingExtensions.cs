@@ -1,4 +1,4 @@
-﻿using Haulory.Api.Contracts.Drivers;
+using Haulory.Contracts.Drivers;
 using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Extensions;

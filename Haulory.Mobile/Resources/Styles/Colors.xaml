@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ========================================================= -->
+    <!-- Transport & Logistics Brand Palette                       -->
+    <!-- ========================================================= -->
+
+    <Color x:Key="P_WhiteSmoke">#F5F5F5</Color>
+    <Color x:Key="P_CarbonBlack">#1C1C1C</Color>
+    <Color x:Key="P_SeaGrassGreen">#2E8B57</Color>
+    <Color x:Key="P_SunflowerGold">#FFC72C</Color>
+    <Color x:Key="P_RubyRed">#C62828</Color>
+    <Color x:Key="P_GreyOlive">#6B705C</Color>
+    <Color x:Key="P_Cerulean">#007BA7</Color>
+    <Color x:Key="P_VintageBerry">#7B3F61</Color>
+    <Color x:Key="P_MajorelleBlue">#6050DC</Color>
+    <Color x:Key="P_ForestGreen">#228B22</Color>
+    <Color x:Key="P_SpicyOrange">#E76F00</Color>
+
+    <!-- Support neutrals -->
+    <Color x:Key="P_White">#FFFFFF</Color>
+    <Color x:Key="P_LightSurface">#F7F9FC</Color>
+    <Color x:Key="P_BorderSoft">#CCD6E0</Color>
+    <Color x:Key="P_MutedText">#667085</Color>
+    <Color x:Key="P_DeepInk">#111827</Color>
+
+    <!-- ========================================================= -->
+    <!-- Brand role mapping                                        -->
+    <!-- ========================================================= -->
+
+    <Color x:Key="BrandBackground">#E8EFF5</Color>
+    <Color x:Key="BrandSurface">#FFFFFF</Color>
+    <Color x:Key="BrandTileFill">#F4F8FB</Color>
+
+    <Color x:Key="BrandInk">#1C1C1C</Color>
+    <Color x:Key="BrandTitle">#007BA7</Color>
+    <Color x:Key="BrandDeep">#111827</Color>
+
+    <Color x:Key="BrandAccent">#2E8B57</Color>
+
+    <Color x:Key="BrandSuccess">#228B22</Color>
+    <Color x:Key="BrandWarning">#FFC72C</Color>
+    <Color x:Key="BrandDanger">#C62828</Color>
+    <Color x:Key="BrandUrgent">#E76F00</Color>
+    <Color x:Key="BrandInfo">#6050DC</Color>
+    <!-- ========================================================= -->
+    <!-- Default MAUI keys used by Styles.xaml                     -->
+    <!-- ========================================================= -->
+
+    <Color x:Key="Primary">#007BA7</Color>
+    <Color x:Key="PrimaryDark">#005F82</Color>
+    <Color x:Key="PrimaryDarkText">#1C1C1C</Color>
+
+    <Color x:Key="Secondary">#2E8B57</Color>
+    <Color x:Key="SecondaryDarkText">#1C1C1C</Color>
+
+    <Color x:Key="Tertiary">#7B3F61</Color>
+
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#1C1C1C</Color>
+    <Color x:Key="Magenta">#7B3F61</Color>
+    <Color x:Key="MidnightBlue">#6050DC</Color>
+    <Color x:Key="OffBlack">#111827</Color>
+
+    <!-- ========================================================= -->
+    <!-- Neutral gray system                                       -->
+    <!-- ========================================================= -->
+
+    <Color x:Key="Gray100">#FFFFFF</Color>
+    <Color x:Key="Gray200">#DCE6F0</Color>
+    <Color x:Key="Gray300">#C7D4E0</Color>
+    <Color x:Key="Gray400">#AEBAC7</Color>
+    <Color x:Key="Gray500">#8793A2</Color>
+    <Color x:Key="Gray600">#667085</Color>
+    <Color x:Key="Gray900">#2A3441</Color>
+    <Color x:Key="Gray950">#111827</Color>
+
+    <!-- ========================================================= -->
+    <!-- Logistics status colours                                  -->
+    <!-- ========================================================= -->
+
+    <Color x:Key="StatusAvailable">#2E8B57</Color>
+    <Color x:Key="StatusInTransit">#007BA7</Color>
+    <Color x:Key="StatusScheduled">#6050DC</Color>
+    <Color x:Key="StatusWarning">#FFC72C</Color>
+    <Color x:Key="StatusDelayed">#E76F00</Color>
+    <Color x:Key="StatusError">#C62828</Color>
+    <Color x:Key="StatusCompleted">#228B22</Color>
+    <Color x:Key="StatusCancelled">#7B3F61</Color>
+
+    <!-- ========================================================= -->
+    <!-- Brushes                                                   -->
+    <!-- ========================================================= -->
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}" />
+    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}" />
+    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}" />
+
+    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}" />
+    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}" />
+    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}" />
+    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}" />
+    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}" />
+    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}" />
+    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}" />
+    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}" />
+
+    <SolidColorBrush x:Key="BrandBackgroundBrush" Color="{StaticResource BrandBackground}" />
+    <SolidColorBrush x:Key="BrandSurfaceBrush" Color="{StaticResource BrandSurface}" />
+    <SolidColorBrush x:Key="BrandAccentBrush" Color="{StaticResource BrandAccent}" />
+    <SolidColorBrush x:Key="BrandDangerBrush" Color="{StaticResource BrandDanger}" />
+    <SolidColorBrush x:Key="BrandWarningBrush" Color="{StaticResource BrandWarning}" />
+    <SolidColorBrush x:Key="BrandSuccessBrush" Color="{StaticResource BrandSuccess}" />
+    <SolidColorBrush x:Key="BrandInfoBrush" Color="{StaticResource BrandInfo}" />
+
+</ResourceDictionary>
