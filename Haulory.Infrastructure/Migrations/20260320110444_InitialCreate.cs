@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Haulory.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class RebuildDevSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -28,6 +28,13 @@ namespace Haulory.Infrastructure.Migrations
                     RateType = table.Column<int>(type: "int", nullable: false),
                     RateValue = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    GstEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    GstRatePercent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    GstAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FuelSurchargeEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    FuelSurchargePercent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FuelSurchargeAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ReceiverName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     DeliveredAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -37,11 +44,36 @@ namespace Haulory.Infrastructure.Migrations
                     ClientEmail = table.Column<string>(type: "nvarchar(320)", maxLength: 320, nullable: true),
                     ClientAddressLine1 = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
                     ClientCity = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
-                    ClientCountry = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false)
+                    ClientCountry = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
+                    WaitTimeMinutes = table.Column<int>(type: "int", nullable: true),
+                    DamageNotes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    ShowDamageNotesOnPod = table.Column<bool>(type: "bit", nullable: false),
+                    ShowWaitTimeOnPod = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DeliveryReceipts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DocumentSettings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    GstEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    GstRatePercent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    FuelSurchargeEnabled = table.Column<bool>(type: "bit", nullable: false),
+                    FuelSurchargePercent = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    InvoicePrefix = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    PodPrefix = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    PaymentTermsDays = table.Column<int>(type: "int", nullable: false),
+                    ShowDamageNotesOnPod = table.Column<bool>(type: "bit", nullable: false),
+                    ShowWaitTimeOnPod = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DocumentSettings", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,16 +89,16 @@ namespace Haulory.Infrastructure.Migrations
                     StackTrace = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     InnerException = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExceptionType = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     AccountId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    OwnerId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     PageName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Platform = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     AppVersion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     AppBuild = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IsHandled = table.Column<bool>(type: "bit", nullable: false),
                     CreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    MetadataJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ReceivedUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ReceivedUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MetadataJson = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -458,6 +490,12 @@ namespace Haulory.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_DocumentSettings_OwnerUserId",
+                table: "DocumentSettings",
+                column: "OwnerUserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DriverInductions_DriverId",
                 table: "DriverInductions",
                 column: "DriverId");
@@ -686,6 +724,9 @@ namespace Haulory.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "DeliveryReceipts");
+
+            migrationBuilder.DropTable(
+                name: "DocumentSettings");
 
             migrationBuilder.DropTable(
                 name: "DriverInductions");

@@ -1,5 +1,6 @@
 using Haulory.Application.Features.Jobs;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Jobs;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
@@ -12,17 +13,23 @@ public sealed class JobWorkflowService
     private readonly IDeliveryReceiptRepository _deliveryReceiptRepository;
     private readonly IVehicleAssetRepository _vehicleAssetRepository;
     private readonly CreateJobHandler _createJobHandler;
+    private readonly IDocumentSettingsRepository _documentSettingsRepository;
+    private readonly IInvoiceCalculationService _invoiceCalculationService;
 
     public JobWorkflowService(
         IJobRepository jobRepository,
         IDeliveryReceiptRepository deliveryReceiptRepository,
         IVehicleAssetRepository vehicleAssetRepository,
-        CreateJobHandler createJobHandler)
+        CreateJobHandler createJobHandler,
+        IDocumentSettingsRepository documentSettingsRepository,
+        IInvoiceCalculationService invoiceCalculationService)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
         _vehicleAssetRepository = vehicleAssetRepository;
         _createJobHandler = createJobHandler;
+        _documentSettingsRepository = documentSettingsRepository;
+        _invoiceCalculationService = invoiceCalculationService;
     }
 
     public async Task<List<Guid>?> ValidateTrailersAsync(Guid ownerUserId, List<Guid> trailerIds)
@@ -44,9 +51,15 @@ public sealed class JobWorkflowService
         return trailerIds;
     }
 
-    public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, List<Guid> trailerIds)
-    {
-        var jobId = Guid.NewGuid();
+public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, List<Guid> trailerIds)
+{
+    var jobId = Guid.NewGuid();
+
+        var latestInvoiceNumber = await _jobRepository.GetLatestInvoiceNumberAsync(ownerUserId);
+        var invoiceNumber = InvoiceNumberGenerator.GetNext(latestInvoiceNumber);
+
+        while (await _jobRepository.InvoiceNumberExistsAsync(ownerUserId, invoiceNumber))
+            invoiceNumber = InvoiceNumberGenerator.Increment(invoiceNumber);
 
         await _createJobHandler.HandleAsync(
             new CreateJobCommand(
@@ -64,6 +77,7 @@ public sealed class JobWorkflowService
                 request.DeliveryAddress,
                 request.ReferenceNumber,
                 request.LoadDescription,
+                invoiceNumber,
                 request.RateType,
                 request.Quantity,
                 request.RateValue,
@@ -75,10 +89,10 @@ public sealed class JobWorkflowService
         );
 
         var created = await _jobRepository.GetByIdAsync(jobId)
-            ?? throw new InvalidOperationException("Job was created but could not be reloaded.");
+        ?? throw new InvalidOperationException("Job was created but could not be reloaded.");
 
-        return created;
-    }
+    return created;
+}
 
     public async Task<Job?> UpdateAsync(Guid ownerUserId, Guid id, UpdateJobRequest request, List<Guid> trailerIds)
     {
@@ -190,8 +204,53 @@ public sealed class JobWorkflowService
     {
         var existingReceipts = await _deliveryReceiptRepository.GetByJobIdAsync(job.OwnerUserId, job.Id);
 
-        if (existingReceipts.Any())
-            return existingReceipts.First().Id;
+        var settings = await _documentSettingsRepository.GetOrCreateAsync(job.OwnerUserId);
+
+        var calc = _invoiceCalculationService.Calculate(
+            rateValue: job.RateValue,
+            quantity: job.Quantity,
+            gstEnabled: settings.GstEnabled,
+            gstRatePercent: settings.GstRatePercent,
+            fuelSurchargeEnabled: settings.FuelSurchargeEnabled,
+            fuelSurchargePercent: settings.FuelSurchargePercent);
+
+        var existing = existingReceipts.FirstOrDefault();
+        if (existing != null)
+        {
+            existing.RefreshSnapshot(
+                clientCompanyName: job.ClientCompanyName,
+                clientContactName: job.ClientContactName,
+                clientEmail: job.ClientEmail,
+                clientAddressLine1: job.ClientAddressLine1,
+                clientCity: job.ClientCity,
+                clientCountry: job.ClientCountry,
+                referenceNumber: job.ReferenceNumber,
+                invoiceNumber: job.InvoiceNumber,
+                pickupCompany: job.PickupCompany,
+                pickupAddress: job.PickupAddress,
+                deliveryCompany: job.DeliveryCompany,
+                deliveryAddress: job.DeliveryAddress,
+                loadDescription: job.LoadDescription,
+                rateType: job.RateType,
+                rateValue: job.RateValue,
+                quantity: job.Quantity,
+                subtotal: calc.Subtotal,
+                gstEnabled: settings.GstEnabled,
+                gstRatePercent: settings.GstRatePercent,
+                gstAmount: calc.GstAmount,
+                fuelSurchargeEnabled: settings.FuelSurchargeEnabled,
+                fuelSurchargePercent: settings.FuelSurchargePercent,
+                fuelSurchargeAmount: calc.FuelSurchargeAmount,
+                total: calc.Total,
+                receiverName: job.ReceiverName ?? receiverName,
+                deliveredAtUtc: job.DeliveredAtUtc ?? DateTime.UtcNow,
+                signatureJson: job.DeliverySignatureJson ?? signatureJson,
+                waitTimeMinutes: job.WaitTimeMinutes,
+                damageNotes: job.DamageNotes);
+
+            await _deliveryReceiptRepository.UpdateAsync(existing);
+            return existing.Id;
+        }
 
         var receipt = new DeliveryReceipt(
             ownerUserId: job.OwnerUserId,
@@ -212,10 +271,19 @@ public sealed class JobWorkflowService
             rateType: job.RateType,
             rateValue: job.RateValue,
             quantity: job.Quantity,
-            total: job.Total,
+            subtotal: calc.Subtotal,
+            gstEnabled: settings.GstEnabled,
+            gstRatePercent: settings.GstRatePercent,
+            gstAmount: calc.GstAmount,
+            fuelSurchargeEnabled: settings.FuelSurchargeEnabled,
+            fuelSurchargePercent: settings.FuelSurchargePercent,
+            fuelSurchargeAmount: calc.FuelSurchargeAmount,
+            total: calc.Total,
             receiverName: job.ReceiverName ?? receiverName,
             deliveredAtUtc: job.DeliveredAtUtc ?? DateTime.UtcNow,
-            signatureJson: job.DeliverySignatureJson ?? signatureJson);
+            signatureJson: job.DeliverySignatureJson ?? signatureJson,
+            waitTimeMinutes: job.WaitTimeMinutes,
+            damageNotes: job.DamageNotes);
 
         await _deliveryReceiptRepository.AddAsync(receipt);
         return receipt.Id;

@@ -1,6 +1,6 @@
 using Haulory.Application.Interfaces.Services;
-using Haulory.Domain.Enums;
 using Haulory.Contracts.Vehicles;
+using Haulory.Domain.Enums;
 using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Services;
@@ -237,7 +237,7 @@ public class DashboardViewModel : BaseViewModel
         GoToJobsCommand = new Command(async () =>
         {
             await SafeRunner.RunAsync(
-                async () => await NavigateToFeatureAsync(AppFeature.Jobs, nameof(JobsCollectionPage)),
+                async () => await NavigateToFeatureAsync(AppFeature.Jobs, $"//{nameof(JobsCollectionPage)}"),
                 _crashLogger,
                 "DashboardViewModel.GoToJobsCommand",
                 nameof(DashboardPage));
@@ -246,7 +246,7 @@ public class DashboardViewModel : BaseViewModel
         GoToVehiclesCommand = new Command(async () =>
         {
             await SafeRunner.RunAsync(
-                async () => await NavigateToFeatureAsync(AppFeature.Vehicles, nameof(VehicleCollectionPage)),
+                async () => await NavigateToFeatureAsync(AppFeature.Vehicles, $"//{nameof(VehicleCollectionPage)}"),
                 _crashLogger,
                 "DashboardViewModel.GoToVehiclesCommand",
                 nameof(DashboardPage));
@@ -255,7 +255,7 @@ public class DashboardViewModel : BaseViewModel
         GoToDriversCommand = new Command(async () =>
         {
             await SafeRunner.RunAsync(
-                async () => await NavigateToFeatureAsync(AppFeature.Drivers, nameof(DriverCollectionPage)),
+                async () => await NavigateToFeatureAsync(AppFeature.Drivers, $"//{nameof(DriverCollectionPage)}"),
                 _crashLogger,
                 "DashboardViewModel.GoToDriversCommand",
                 nameof(DashboardPage));
@@ -264,7 +264,7 @@ public class DashboardViewModel : BaseViewModel
         GoToReportsCommand = new Command(async () =>
         {
             await SafeRunner.RunAsync(
-                async () => await NavigateToFeatureAsync(AppFeature.Reports, nameof(ReportsPage)),
+                async () => await NavigateToFeatureAsync(AppFeature.Reports, $"//{nameof(ReportsPage)}"),
                 _crashLogger,
                 "DashboardViewModel.GoToReportsCommand",
                 nameof(DashboardPage));
@@ -276,7 +276,7 @@ public class DashboardViewModel : BaseViewModel
                 return;
 
             await SafeRunner.RunAsync(
-                async () => await NavigateToFeatureAsync(AppFeature.Jobs, nameof(NeedsReviewPage)),
+                async () => await NavigateToFeatureAsync(AppFeature.Reports, $"//{nameof(NeedsReviewPage)}"),
                 _crashLogger,
                 "DashboardViewModel.GoToNeedsReviewCommand",
                 nameof(DashboardPage));
@@ -736,7 +736,7 @@ public class DashboardViewModel : BaseViewModel
     {
         var target = e.Current?.Location.OriginalString ?? string.Empty;
 
-        if (!target.Contains("DashboardPage", StringComparison.OrdinalIgnoreCase))
+        if (!target.Contains(nameof(DashboardPage), StringComparison.OrdinalIgnoreCase))
             return;
 
         await LoadAsync();

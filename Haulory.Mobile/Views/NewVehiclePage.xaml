@@ -7,7 +7,7 @@
     IsVisible="{Binding IsAddVehicleVisible}">
 
     <Shell.BackButtonBehavior>
-        <BackButtonBehavior IsVisible="False" />
+        <BackButtonBehavior IsVisible="True" />
     </Shell.BackButtonBehavior>
 
     <ScrollView>

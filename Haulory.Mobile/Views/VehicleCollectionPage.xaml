@@ -6,7 +6,7 @@
     BackgroundColor="{StaticResource BrandBackground}">
 
     <Shell.BackButtonBehavior>
-        <BackButtonBehavior IsVisible="False" />
+        <BackButtonBehavior IsVisible="True" />
     </Shell.BackButtonBehavior>
 
     <Grid

@@ -34,5 +34,13 @@ public class InvoiceReportDto
     public decimal GstAmount { get; set; }
     public decimal Total { get; set; }
 
+    public bool GstEnabled { get; set; }
+    public decimal GstRatePercent { get; set; }
+
+
+    public bool FuelSurchargeEnabled { get; set; }
+    public decimal FuelSurchargePercent { get; set; }
+    public decimal FuelSurchargeAmount { get; set; }
+
     public DateTime DeliveredAtUtc { get; set; }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Haulory.Infrastructure.Migrations
 {
     [DbContext(typeof(HauloryDbContext))]
-    [Migration("20260316181801_RebuildDevSchema")]
-    partial class RebuildDevSchema
+    [Migration("20260320110444_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,6 +59,10 @@ namespace Haulory.Infrastructure.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
+                    b.Property<string>("DamageNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<DateTime>("DeliveredAtUtc")
                         .HasColumnType("datetime2");
 
@@ -71,6 +75,24 @@ namespace Haulory.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("FuelSurchargeAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("FuelSurchargeEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("FuelSurchargePercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GstAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("GstEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("GstRatePercent")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("InvoiceNumber")
                         .IsRequired()
@@ -117,12 +139,24 @@ namespace Haulory.Infrastructure.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<bool>("ShowDamageNotesOnPod")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowWaitTimeOnPod")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SignatureJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("WaitTimeMinutes")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -134,6 +168,54 @@ namespace Haulory.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("DeliveryReceipts");
+                });
+
+            modelBuilder.Entity("Haulory.Domain.Entities.DocumentSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("FuelSurchargeEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("FuelSurchargePercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("GstEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("GstRatePercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("InvoicePrefix")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PaymentTermsDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PodPrefix")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("ShowDamageNotesOnPod")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowWaitTimeOnPod")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId")
+                        .IsUnique();
+
+                    b.ToTable("DocumentSettings");
                 });
 
             modelBuilder.Entity("Haulory.Domain.Entities.Driver", b =>
@@ -605,6 +687,10 @@ namespace Haulory.Infrastructure.Migrations
                     b.Property<Guid>("MobileCrashId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("OwnerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("PageName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -629,10 +715,6 @@ namespace Haulory.Infrastructure.Migrations
 
                     b.Property<string>("StackTrace")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 

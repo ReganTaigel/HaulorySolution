@@ -11,7 +11,7 @@ public class PdfInvoiceGenerator : IPdfInvoiceGenerator
     public byte[] GenerateInvoicePdf(InvoiceReportDto dto, byte[] signaturePngBytes)
     {
         var culture = CultureInfo.GetCultureInfo("en-NZ");
-
+        System.Diagnostics.Debug.WriteLine("========== PDF INVOICE GENERATOR HIT ==========");
         using var stream = new MemoryStream();
         using var document = SKDocument.CreatePdf(stream);
         if (document == null)
@@ -25,12 +25,12 @@ public class PdfInvoiceGenerator : IPdfInvoiceGenerator
         using var canvas = document.BeginPage(width, height);
 
         // ----- Fonts -----
-        using var fontTitle = new SKFont { Size = 22, Typeface = SKTypeface.Default };
-        using var fontBold = new SKFont { Size = 12, Typeface = SKTypeface.Default };
+        using var fontTitle = new SKFont { Size = 22, Typeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold) };
+        using var fontBold = new SKFont { Size = 12, Typeface = SKTypeface.FromFamilyName(null, SKFontStyle.Bold) };
         using var fontNormal = new SKFont { Size = 12, Typeface = SKTypeface.Default };
         using var fontSmall = new SKFont { Size = 10, Typeface = SKTypeface.Default };
 
-        // ----- Paint (Style Only) -----
+        // ----- Paint -----
         using var paintTitle = new SKPaint { IsAntialias = true, Color = SKColors.Black };
         using var paintBold = new SKPaint { IsAntialias = true, Color = SKColors.Black };
         using var paintNormal = new SKPaint { IsAntialias = true, Color = SKColors.Black };
@@ -75,7 +75,6 @@ public class PdfInvoiceGenerator : IPdfInvoiceGenerator
             line);
 
         // ---- Supplier (Top Right) ----
-        // These should already be BUSINESS snapshot fields from the receipt.
         canvas.DrawText(dto.SupplierBusinessName ?? string.Empty, xRight, ySupplier, SKTextAlign.Right, fontBold, paintBold);
         ySupplier += line;
 
@@ -114,7 +113,7 @@ public class PdfInvoiceGenerator : IPdfInvoiceGenerator
         PdfDrawHelpers.DrawHr(canvas, margin, y, width - margin);
         y += 18;
 
-        // ===== INVOICE DETAILS (just above table) =====
+        // ===== INVOICE DETAILS =====
         canvas.DrawText($"Invoice #: {dto.InvoiceNumber}", xLeft, y, SKTextAlign.Left, fontNormal, paintNormal);
         y += line;
 
@@ -147,26 +146,37 @@ public class PdfInvoiceGenerator : IPdfInvoiceGenerator
         canvas.DrawText(dto.RateTypeDisplay, col1, y, SKTextAlign.Left, fontNormal, paintNormal);
         canvas.DrawText(dto.RateValue.ToString("C", culture), col2, y, SKTextAlign.Left, fontNormal, paintNormal);
         canvas.DrawText(dto.Quantity.ToString("0.##", culture), col3, y, SKTextAlign.Left, fontNormal, paintNormal);
-
-        // Line total is the subtotal (single line item)
         canvas.DrawText(dto.Subtotal.ToString("C", culture), col4, y, SKTextAlign.Right, fontNormal, paintNormal);
+
         y += 26;
 
         void DrawRight(string label, string value, bool bold = false)
         {
             var font = bold ? fontBold : fontNormal;
             var paint = bold ? paintBold : paintNormal;
-            var text = $"{label} {value}";
-
-            canvas.DrawText(text, col4, y, SKTextAlign.Right, font, paint);
+            canvas.DrawText($"{label} {value}", col4, y, SKTextAlign.Right, font, paint);
         }
 
         DrawRight("Subtotal:", dto.Subtotal.ToString("C", culture));
         y += line;
 
-        if (dto.GstAmount > 0)
+        if (dto.FuelSurchargeEnabled && dto.FuelSurchargeAmount > 0)
         {
-            DrawRight("GST:", dto.GstAmount.ToString("C", culture));
+            var fuelLabel = dto.FuelSurchargePercent > 0
+                ? $"Fuel surcharge ({dto.FuelSurchargePercent:0.##}%):"
+                : "Fuel surcharge:";
+
+            DrawRight(fuelLabel, dto.FuelSurchargeAmount.ToString("C", culture));
+            y += line;
+        }
+
+        if (dto.GstEnabled && dto.GstAmount > 0)
+        {
+            var gstLabel = dto.GstRatePercent > 0
+                ? $"GST ({dto.GstRatePercent:0.##}%):"
+                : "GST:";
+
+            DrawRight(gstLabel, dto.GstAmount.ToString("C", culture));
             y += line;
         }
 

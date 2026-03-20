@@ -17,32 +17,28 @@ public class PodReportHandler
 
     public async Task<PodReportDto> HandleAsync(Guid ownerUserId, Guid receiptId)
     {
-        if (ownerUserId == Guid.Empty)
-            throw new ArgumentException("ownerUserId required.");
-
         var r = await _receipts.GetByIdAsync(ownerUserId, receiptId);
         if (r == null)
             throw new InvalidOperationException("Receipt not found.");
 
         var u = await _users.GetByIdAsync(ownerUserId);
         if (u == null)
-            throw new InvalidOperationException("Owner user not found.");
-
+            throw new InvalidOperationException("User account not found.");
+        System.Diagnostics.Debug.WriteLine(
+    $"[PodReportHandler] ReceiptId={r.Id}, JobId={r.JobId}, DamageNotes='{r.DamageNotes}', WaitTimeMinutes={r.WaitTimeMinutes}");
         return new PodReportDto
         {
             ReceiptId = r.Id,
             JobId = r.JobId,
 
-            // Supplier = main user profile
             SupplierBusinessName = u.BusinessName,
             SupplierEmail = u.BusinessEmail ?? u.Email,
-            SupplierAddressLine1 = u.BusinessAddress1 ?? "",
-            SupplierCity = u.BusinessCity ?? "",
+            SupplierAddressLine1 = u.BusinessAddress1 ?? string.Empty,
+            SupplierCity = u.BusinessCity ?? string.Empty,
             SupplierCountry = u.BusinessCountry ?? "New Zealand",
             SupplierGstNumber = u.SupplierGstNumber,
             SupplierNzbn = u.SupplierNzbn,
 
-            // Receipt snapshot
             ReferenceNumber = r.ReferenceNumber,
             InvoiceNumber = r.InvoiceNumber,
             DeliveredAtUtc = r.DeliveredAtUtc,
@@ -53,8 +49,11 @@ public class PodReportHandler
             DeliveryAddress = r.DeliveryAddress,
             LoadDescription = r.LoadDescription,
 
-            ReceiverName = r.ReceiverName,
-            SignatureJson = r.SignatureJson
+            ReceiverName = r.ReceiverName ?? string.Empty,
+            SignatureJson = r.SignatureJson ?? string.Empty,
+
+            DamageNotes = r.DamageNotes,
+            WaitTimeMinutes = r.WaitTimeMinutes
         };
     }
 }

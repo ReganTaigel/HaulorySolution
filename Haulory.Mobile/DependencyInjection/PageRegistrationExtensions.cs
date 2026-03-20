@@ -21,7 +21,7 @@ public static class PageRegistrationExtensions
         services.AddTransient<ManageInductionsPage>();
         services.AddTransient<InductionTemplatesPage>();
         services.AddTransient<AddWorkSiteTemplatePage>();
-
+        services.AddTransient<SettingsPage>();
         return services;
     }
 }

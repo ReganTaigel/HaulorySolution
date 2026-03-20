@@ -1,7 +1,6 @@
 ﻿using Haulory.Application.Interfaces.Services;
 using Haulory.Mobile.Features;
 using Haulory.Mobile.Views;
-using Microsoft.Maui.ApplicationModel;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -10,15 +9,19 @@ namespace Haulory.Mobile;
 
 public partial class AppShell : Shell
 {
-    public const string RouteDashboard = "DashboardPage";
-    public const string RouteLogin = "LoginPage";
-    public const string RouteRegister = "RegisterPage";
+    public const string RouteDashboard = nameof(DashboardPage);
+    public const string RouteLogin = nameof(LoginPage);
+    public const string RouteRegister = nameof(RegisterPage);
+    public const string RouteSettings = nameof(SettingsPage);
+
+    public const string RouteJobs = nameof(JobsCollectionPage);
+    public const string RouteVehicles = nameof(VehicleCollectionPage);
+    public const string RouteDrivers = nameof(DriverCollectionPage);
+    public const string RouteReports = nameof(ReportsPage);
+    public const string RouteNeedsReview = nameof(NeedsReviewPage);
 
     private readonly ISessionService _sessionService;
     private readonly IFeatureAccessService _featureAccessService;
-
-    private ToolbarItem? _homeToolbarItem;
-    private bool _homeToolbarInitialized;
 
     public AppShell(
         ISessionService sessionService,
@@ -30,103 +33,25 @@ public partial class AppShell : Shell
         _featureAccessService = featureAccessService;
 
         RegisterRoutes();
-        CreateHomeToolbarItem();
 
         Navigating += OnNavigating;
-        Navigated += OnNavigated;
     }
 
     public Task GoHomeAsync() => GoToAsync($"//{RouteDashboard}");
 
-    private async void OnHomeToolbarClicked(object? sender, EventArgs e)
-    {
-        try
-        {
-            await GoHomeAsync();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-        }
-    }
-
-    private void CreateHomeToolbarItem()
-    {
-        if (_homeToolbarInitialized)
-            return;
-
-        _homeToolbarItem = new ToolbarItem
-        {
-            Text = "Home",
-            Priority = 0,
-            Order = ToolbarItemOrder.Primary
-        };
-
-        _homeToolbarItem.Clicked += OnHomeToolbarClicked;
-        _homeToolbarInitialized = true;
-    }
-
-    private void OnNavigated(object? sender, ShellNavigatedEventArgs e)
-    {
-        try
-        {
-            var current = e.Current?.Location?.OriginalString ?? string.Empty;
-
-            var isAuthScreen =
-                current.Contains(RouteLogin, StringComparison.OrdinalIgnoreCase) ||
-                current.Contains(RouteRegister, StringComparison.OrdinalIgnoreCase);
-
-            var shouldShowHome = _sessionService.IsAuthenticated && !isAuthScreen;
-
-            if (_homeToolbarItem == null)
-                return;
-
-            MainThread.BeginInvokeOnMainThread(() =>
-            {
-                try
-                {
-                    if (shouldShowHome)
-                    {
-                        if (!ToolbarItems.Contains(_homeToolbarItem))
-                            ToolbarItems.Add(_homeToolbarItem);
-
-                        _homeToolbarItem.IsEnabled = true;
-                    }
-                    else
-                    {
-                        if (ToolbarItems.Contains(_homeToolbarItem))
-                            ToolbarItems.Remove(_homeToolbarItem);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine(ex);
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-        }
-    }
-
     private static void RegisterRoutes()
     {
+        // Detail / drill-down routes only
         Routing.RegisterRoute(nameof(NewJobPage), typeof(NewJobPage));
-        Routing.RegisterRoute(nameof(JobsCollectionPage), typeof(JobsCollectionPage));
         Routing.RegisterRoute(nameof(DeliverySignaturePage), typeof(DeliverySignaturePage));
-
         Routing.RegisterRoute(nameof(NewVehiclePage), typeof(NewVehiclePage));
-        Routing.RegisterRoute(nameof(VehicleCollectionPage), typeof(VehicleCollectionPage));
-
-        Routing.RegisterRoute(nameof(ReportsPage), typeof(ReportsPage));
-
-        Routing.RegisterRoute(nameof(DriverCollectionPage), typeof(DriverCollectionPage));
         Routing.RegisterRoute(nameof(NewDriverPage), typeof(NewDriverPage));
-        Routing.RegisterRoute(nameof(NeedsReviewPage), typeof(NeedsReviewPage));
         Routing.RegisterRoute(nameof(ManageInductionsPage), typeof(ManageInductionsPage));
         Routing.RegisterRoute(nameof(InductionTemplatesPage), typeof(InductionTemplatesPage));
         Routing.RegisterRoute(nameof(AddWorkSiteTemplatePage), typeof(AddWorkSiteTemplatePage));
+
+        // Do NOT register Shell pages here if they already exist in AppShell.xaml
+        // Example: DashboardPage, LoginPage, ReportsPage, SettingsPage, etc.
     }
 
     private static bool IsRoute(string target, string route) =>
@@ -135,12 +60,15 @@ public partial class AppShell : Shell
     private static readonly string[] ProtectedRoutes =
     {
         RouteDashboard,
-        nameof(DriverCollectionPage),
-        nameof(VehicleCollectionPage),
-        nameof(JobsCollectionPage),
-        nameof(ReportsPage),
+        RouteJobs,
+        RouteVehicles,
+        RouteDrivers,
+        RouteReports,
+        RouteNeedsReview,
+        RouteSettings,
         nameof(ManageInductionsPage),
         nameof(InductionTemplatesPage),
+        nameof(AddWorkSiteTemplatePage),
     };
 
     private static readonly string[] AuthRoutes =
@@ -164,7 +92,7 @@ public partial class AppShell : Shell
             return _featureAccessService.GetAccess(AppFeature.Inductions);
         }
 
-        if (target.Contains(nameof(DriverCollectionPage), StringComparison.OrdinalIgnoreCase))
+        if (target.Contains(RouteDrivers, StringComparison.OrdinalIgnoreCase))
         {
             return _featureAccessService.GetAccess(AppFeature.Drivers);
         }
@@ -174,7 +102,7 @@ public partial class AppShell : Shell
             return _featureAccessService.GetAccess(AppFeature.AddDriver);
         }
 
-        if (target.Contains(nameof(JobsCollectionPage), StringComparison.OrdinalIgnoreCase) ||
+        if (target.Contains(RouteJobs, StringComparison.OrdinalIgnoreCase) ||
             target.Contains(nameof(DeliverySignaturePage), StringComparison.OrdinalIgnoreCase))
         {
             return _featureAccessService.GetAccess(AppFeature.Jobs);
@@ -185,7 +113,7 @@ public partial class AppShell : Shell
             return _featureAccessService.GetAccess(AppFeature.AddJob);
         }
 
-        if (target.Contains(nameof(VehicleCollectionPage), StringComparison.OrdinalIgnoreCase))
+        if (target.Contains(RouteVehicles, StringComparison.OrdinalIgnoreCase))
         {
             return _featureAccessService.GetAccess(AppFeature.Vehicles);
         }
@@ -195,9 +123,15 @@ public partial class AppShell : Shell
             return _featureAccessService.GetAccess(AppFeature.AddVehicle);
         }
 
-        if (target.Contains(nameof(ReportsPage), StringComparison.OrdinalIgnoreCase))
+        if (target.Contains(RouteReports, StringComparison.OrdinalIgnoreCase) ||
+            target.Contains(RouteNeedsReview, StringComparison.OrdinalIgnoreCase))
         {
             return _featureAccessService.GetAccess(AppFeature.Reports);
+        }
+
+        if (target.Contains(RouteSettings, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
         }
 
         return null;
@@ -219,10 +153,12 @@ public partial class AppShell : Shell
             if (featureAccess is not null && !featureAccess.IsEnabled)
             {
                 e.Cancel();
+
                 await Current.DisplayAlertAsync(
                     "Unavailable",
                     featureAccess.Message ?? "This feature is unavailable.",
                     "OK");
+
                 return;
             }
 
@@ -233,6 +169,7 @@ public partial class AppShell : Shell
                     e.Cancel();
                     await GoToAsync($"//{RouteLogin}");
                 }
+
                 return;
             }
 
@@ -243,7 +180,6 @@ public partial class AppShell : Shell
                     e.Cancel();
                     await GoToAsync($"//{RouteDashboard}");
                 }
-                return;
             }
         }
         catch (Exception ex)

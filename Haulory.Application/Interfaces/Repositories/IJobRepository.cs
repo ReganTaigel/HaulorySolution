@@ -51,7 +51,7 @@ public interface IJobRepository
     #region Invoice
 
     Task<bool> InvoiceNumberExistsAsync(Guid ownerUserId, string invoiceNumber);
-
+    Task<string?> GetLatestInvoiceNumberAsync(Guid ownerUserId);
     #endregion
 
     #region Lifecycle

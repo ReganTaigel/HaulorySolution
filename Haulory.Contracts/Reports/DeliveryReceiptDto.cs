@@ -34,5 +34,22 @@ public sealed class DeliveryReceiptDto
     public string RateType { get; set; } = string.Empty;
     public decimal RateValue { get; set; }
     public decimal Quantity { get; set; }
+
     public decimal Total { get; set; }
+
+    // ✅ GST
+    public bool GstEnabled { get; set; }
+    public decimal GstRatePercent { get; set; }
+
+    // ✅ Fuel
+    public bool FuelSurchargeEnabled { get; set; }
+    public decimal FuelSurchargePercent { get; set; }
+    public decimal FuelSurchargeAmount { get; set; }
+
+    // ✅ POD / delivery extras
+    public string? DamageNotes { get; set; }
+    public int? WaitTimeMinutes { get; set; }
+
+    public bool ShowDamageNotesOnPod { get; set; }
+    public bool ShowWaitTimeOnPod { get; set; }
 }

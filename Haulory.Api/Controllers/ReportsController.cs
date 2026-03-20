@@ -108,6 +108,8 @@ public class ReportsController : ControllerBase
     [Produces("application/pdf")]
     public async Task<IActionResult> ExportPodPdf(Guid receiptId)
     {
+        System.Diagnostics.Debug.WriteLine(
+    $"[ExportPodPdf] ReceiptId={receiptId}");
         var ownerUserId = User.GetOwnerUserId();
 
         var dto = await _podReportHandler.HandleAsync(ownerUserId, receiptId);

@@ -21,7 +21,7 @@ public static class ViewModelRegistrationExtensions
         services.AddTransient<ManageInductionsViewModel>();
         services.AddTransient<InductionTemplatesViewModel>();
         services.AddTransient<AddWorkSiteTemplateViewModel>();
-
+        services.AddTransient<SettingsViewModel>();
         return services;
     }
 }

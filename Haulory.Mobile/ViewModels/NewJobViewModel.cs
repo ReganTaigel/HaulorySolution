@@ -65,7 +65,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
 
         SaveJobCommand = new Command(async () => await SaveAsync());
         CancelCommand = new Command(async () =>
-            await Shell.Current.GoToAsync(nameof(JobsCollectionPage)));
+            await Shell.Current.GoToAsync($"//{AppShell.RouteJobs}"));
 
         _state.RateType = RateType.PerLoad;
     }
@@ -532,7 +532,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
             async () =>
             {
                 await _editorService.SaveAsync(_state);
-                await Shell.Current.GoToAsync(nameof(JobsCollectionPage));
+                await Shell.Current.GoToAsync($"//{AppShell.RouteJobs}");
             },
             _crashLogger,
             "NewJobViewModel.SaveAsync",

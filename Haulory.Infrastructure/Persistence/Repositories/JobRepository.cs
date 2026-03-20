@@ -225,6 +225,17 @@ public class JobRepository : IJobRepository
             j.OwnerUserId == ownerUserId &&
             j.InvoiceNumber == token);
     }
+    public async Task<string?> GetLatestInvoiceNumberAsync(Guid ownerUserId)
+    {
+        if (ownerUserId == Guid.Empty)
+            throw new ArgumentException("ownerUserId required.");
 
+        return await _db.Jobs
+            .AsNoTracking()
+            .Where(j => j.OwnerUserId == ownerUserId && !string.IsNullOrWhiteSpace(j.InvoiceNumber))
+            .OrderByDescending(j => j.InvoiceNumber)
+            .Select(j => j.InvoiceNumber)
+            .FirstOrDefaultAsync();
+    }
     #endregion
 }

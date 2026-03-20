@@ -1,0 +1,57 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Haulory.Mobile.Views.SettingsPage"
+             Title="Settings">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="True" />
+    </Shell.BackButtonBehavior>
+    
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="Invoice Settings"
+                   FontSize="22"
+                   FontAttributes="Bold" />
+
+            <HorizontalStackLayout>
+                <Label Text="Enable GST" VerticalOptions="Center" />
+                <Switch IsToggled="{Binding GstEnabled}" />
+            </HorizontalStackLayout>
+
+            <Label Text="GST Rate (%)" />
+            <Entry Text="{Binding GstRatePercent}" Keyboard="Numeric" />
+
+            <HorizontalStackLayout>
+                <Label Text="Enable Fuel Surcharge" VerticalOptions="Center" />
+                <Switch IsToggled="{Binding FuelSurchargeEnabled}" />
+            </HorizontalStackLayout>
+
+            <Label Text="Fuel Surcharge (%)" />
+            <Entry Text="{Binding FuelSurchargePercent}" Keyboard="Numeric" />
+
+            <Label Text="Invoice Prefix" />
+            <Entry Text="{Binding InvoicePrefix}" />
+
+            <Label Text="POD Prefix" />
+            <Entry Text="{Binding PodPrefix}" />
+
+            <Label Text="Payment Terms (Days)" />
+            <Entry Text="{Binding PaymentTermsDays}" Keyboard="Numeric" />
+
+            <HorizontalStackLayout>
+                <Label Text="Show Damage Notes On POD" VerticalOptions="Center" />
+                <Switch IsToggled="{Binding ShowDamageNotesOnPod}" />
+            </HorizontalStackLayout>
+
+            <HorizontalStackLayout>
+                <Label Text="Show Wait Time On POD" VerticalOptions="Center" />
+                <Switch IsToggled="{Binding ShowWaitTimeOnPod}" />
+            </HorizontalStackLayout>
+
+
+            <Button Text="Save"
+                    Command="{Binding SaveCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

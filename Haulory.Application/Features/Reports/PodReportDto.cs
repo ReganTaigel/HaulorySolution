@@ -5,7 +5,6 @@ public class PodReportDto
     public Guid ReceiptId { get; set; }
     public Guid JobId { get; set; }
 
-    // Supplier snapshot (business)
     public string SupplierBusinessName { get; set; } = string.Empty;
     public string SupplierEmail { get; set; } = string.Empty;
     public string SupplierAddressLine1 { get; set; } = string.Empty;
@@ -26,4 +25,7 @@ public class PodReportDto
 
     public string ReceiverName { get; set; } = string.Empty;
     public string SignatureJson { get; set; } = string.Empty;
+
+    public string? DamageNotes { get; set; }
+    public int? WaitTimeMinutes { get; set; }
 }

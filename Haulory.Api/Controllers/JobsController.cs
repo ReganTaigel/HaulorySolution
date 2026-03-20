@@ -1,6 +1,8 @@
 using Haulory.Api.Extensions;
 using Haulory.Api.Jobs;
+using Haulory.Application.Features.Jobs;
 using Haulory.Application.Interfaces.Repositories;
+using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Jobs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,17 +24,24 @@ public sealed class JobsController : ControllerBase
         IJobRepository jobRepository,
         IDeliveryReceiptRepository deliveryReceiptRepository,
         IVehicleAssetRepository vehicleAssetRepository,
-        Haulory.Application.Features.Jobs.CreateJobHandler createJobHandler)
+        CreateJobHandler createJobHandler,
+        IDocumentSettingsRepository documentSettingsRepository,
+        IInvoiceCalculationService invoiceCalculationService,
+        JobRequestValidator validator,
+        JobResponseFactory responseFactory)
     {
         _jobRepository = jobRepository;
         _vehicleAssetRepository = vehicleAssetRepository;
-        _validator = new JobRequestValidator();
-        _responseFactory = new JobResponseFactory();
+        _validator = validator;
+        _responseFactory = responseFactory;
+
         _workflowService = new JobWorkflowService(
             jobRepository,
             deliveryReceiptRepository,
             vehicleAssetRepository,
-            createJobHandler);
+            createJobHandler,
+            documentSettingsRepository,
+            invoiceCalculationService);
     }
 
     [HttpGet]

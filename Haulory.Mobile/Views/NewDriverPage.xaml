@@ -7,7 +7,7 @@
     IsVisible="{Binding ShowAddDriver}">
 
     <Shell.BackButtonBehavior>
-        <BackButtonBehavior IsVisible="False" />
+        <BackButtonBehavior IsVisible="True" />
     </Shell.BackButtonBehavior>
 
     <ScrollView>

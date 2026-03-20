@@ -1,23 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <Shell
     x:Class="Haulory.Mobile.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:Haulory.Mobile.Views">
+    xmlns:views="clr-namespace:Haulory.Mobile.Views"
+    FlyoutBehavior="Flyout">
 
-
-    <!-- Startup page -->
+    <!-- Auth pages -->
     <ShellContent
         Route="LoginPage"
         ContentTemplate="{DataTemplate views:LoginPage}" />
 
-    <!-- Secondary (reachable via navigation) -->
     <ShellContent
         Route="RegisterPage"
         ContentTemplate="{DataTemplate views:RegisterPage}" />
 
-    <!-- Main app (after login) -->
-    <ShellContent
-        Route="DashboardPage"
-        ContentTemplate="{DataTemplate views:DashboardPage}" />
+    <!-- Main flyout -->
+    <FlyoutItem Title="Dashboard" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Dashboard"
+            Route="DashboardPage"
+            ContentTemplate="{DataTemplate views:DashboardPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Jobs" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Jobs"
+            Route="JobsCollectionPage"
+            ContentTemplate="{DataTemplate views:JobsCollectionPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Vehicles" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Vehicles"
+            Route="VehicleCollectionPage"
+            ContentTemplate="{DataTemplate views:VehicleCollectionPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Drivers" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Drivers"
+            Route="DriverCollectionPage"
+            ContentTemplate="{DataTemplate views:DriverCollectionPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Reports" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Reports"
+            Route="ReportsPage"
+            ContentTemplate="{DataTemplate views:ReportsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Needs Review" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Needs Review"
+            Route="NeedsReviewPage"
+            ContentTemplate="{DataTemplate views:NeedsReviewPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Settings" FlyoutDisplayOptions="AsSingleItem">
+        <ShellContent
+            Title="Settings"
+            Route="SettingsPage"
+            ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </FlyoutItem>
 
 </Shell>

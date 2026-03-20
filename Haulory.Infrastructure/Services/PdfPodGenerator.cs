@@ -4,13 +4,13 @@ using SkiaSharp;
 using System.IO;
 using System.Text.Json;
 
-
 namespace Haulory.Infrastructure.Services;
 
 public class PdfPodGenerator : IPdfPodGenerator
 {
     public byte[] GeneratePodPdf(PodReportDto dto)
     {
+        System.Diagnostics.Debug.WriteLine("========== PDF POD GENERATOR HIT ==========");
         using var stream = new MemoryStream();
         using var document = SKDocument.CreatePdf(stream);
         if (document == null)
@@ -124,8 +124,10 @@ public class PdfPodGenerator : IPdfPodGenerator
         y = PdfDrawHelpers.DrawMultiline(
             canvas,
             $"{dto.PickupCompany}\n{dto.PickupAddress}",
-            xLeft, y,
-            fontNormal, paintNormal,
+            xLeft,
+            y,
+            fontNormal,
+            paintNormal,
             SKTextAlign.Left,
             line);
 
@@ -138,8 +140,10 @@ public class PdfPodGenerator : IPdfPodGenerator
         y = PdfDrawHelpers.DrawMultiline(
             canvas,
             $"{dto.DeliveryCompany}\n{dto.DeliveryAddress}",
-            xLeft, y,
-            fontNormal, paintNormal,
+            xLeft,
+            y,
+            fontNormal,
+            paintNormal,
             SKTextAlign.Left,
             line);
 
@@ -154,14 +158,58 @@ public class PdfPodGenerator : IPdfPodGenerator
             y = PdfDrawHelpers.DrawMultiline(
                 canvas,
                 dto.LoadDescription,
-                xLeft, y,
-                fontNormal, paintNormal,
+                xLeft,
+                y,
+                fontNormal,
+                paintNormal,
                 SKTextAlign.Left,
                 line);
 
             y += 6;
         }
+        // ===== ADDITIONAL DETAILS =====
+        if (!string.IsNullOrWhiteSpace(dto.DamageNotes) || dto.WaitTimeMinutes.HasValue)
+        {
+            System.Diagnostics.Debug.WriteLine(
+    $"[PdfPodGenerator] DamageNotes='{dto.DamageNotes}', WaitTimeMinutes={dto.WaitTimeMinutes}");
+            y += 8;
+            PdfDrawHelpers.DrawHr(canvas, margin, y, width - margin);
+            y += 18;
 
+            canvas.DrawText("Additional Details", xLeft, y, SKTextAlign.Left, fontBold, paintBold);
+            y += line;
+
+            if (!string.IsNullOrWhiteSpace(dto.DamageNotes))
+            {
+                canvas.DrawText("Damage Notes", xLeft, y, SKTextAlign.Left, fontBold, paintBold);
+                y += line;
+
+                y = PdfDrawHelpers.DrawMultiline(
+                    canvas,
+                    dto.DamageNotes,
+                    xLeft,
+                    y,
+                    fontNormal,
+                    paintNormal,
+                    SKTextAlign.Left,
+                    line);
+
+                y += 8;
+            }
+
+            if (dto.WaitTimeMinutes.HasValue)
+            {
+                canvas.DrawText(
+                    $"Wait Time: {dto.WaitTimeMinutes.Value} minutes",
+                    xLeft,
+                    y,
+                    SKTextAlign.Left,
+                    fontNormal,
+                    paintNormal);
+
+                y += line;
+            }
+        }
         y += 10;
         PdfDrawHelpers.DrawHr(canvas, margin, y, width - margin);
         y += 18;

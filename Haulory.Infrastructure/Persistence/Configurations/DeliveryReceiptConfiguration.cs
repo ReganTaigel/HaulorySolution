@@ -24,6 +24,12 @@ public sealed class DeliveryReceiptConfiguration : IEntityTypeConfiguration<Deli
 
         entity.Property(r => r.RateValue).HasColumnType("decimal(18,2)");
         entity.Property(r => r.Quantity).HasColumnType("decimal(18,2)");
+
+        entity.Property(r => r.Subtotal).HasColumnType("decimal(18,2)");
+        entity.Property(r => r.GstRatePercent).HasColumnType("decimal(18,2)");
+        entity.Property(r => r.GstAmount).HasColumnType("decimal(18,2)");
+        entity.Property(r => r.FuelSurchargePercent).HasColumnType("decimal(18,2)");
+        entity.Property(r => r.FuelSurchargeAmount).HasColumnType("decimal(18,2)");
         entity.Property(r => r.Total).HasColumnType("decimal(18,2)");
 
         entity.Property(r => r.SignatureJson).IsRequired();
@@ -35,6 +41,8 @@ public sealed class DeliveryReceiptConfiguration : IEntityTypeConfiguration<Deli
         entity.Property(r => r.ClientAddressLine1).IsRequired().HasMaxLength(250);
         entity.Property(r => r.ClientCity).IsRequired().HasMaxLength(120);
         entity.Property(r => r.ClientCountry).IsRequired().HasMaxLength(120);
+
+        entity.Property(r => r.DamageNotes).HasMaxLength(1000);
 
         entity.HasIndex(r => r.DeliveredAtUtc);
     }

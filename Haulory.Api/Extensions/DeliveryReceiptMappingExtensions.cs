@@ -11,25 +11,32 @@ public static class DeliveryReceiptMappingExtensions
         {
             Id = receipt.Id,
             JobId = receipt.JobId,
-
-            ReferenceNumber = receipt.ReferenceNumber ?? string.Empty,
-            InvoiceNumber = receipt.InvoiceNumber ?? string.Empty,
-
-            PickupCompany = receipt.PickupCompany ?? string.Empty,
-            PickupAddress = receipt.PickupAddress ?? string.Empty,
-
-            DeliveryCompany = receipt.DeliveryCompany ?? string.Empty,
-            DeliveryAddress = receipt.DeliveryAddress ?? string.Empty,
-
-            LoadDescription = receipt.LoadDescription ?? string.Empty,
-
+            ReferenceNumber = receipt.ReferenceNumber,
+            InvoiceNumber = receipt.InvoiceNumber,
+            PickupCompany = receipt.PickupCompany,
+            PickupAddress = receipt.PickupAddress,
+            DeliveryCompany = receipt.DeliveryCompany,
+            DeliveryAddress = receipt.DeliveryAddress,
+            LoadDescription = receipt.LoadDescription,
             ReceiverName = receipt.ReceiverName,
             DeliveredAtUtc = receipt.DeliveredAtUtc,
-
             RateType = receipt.RateType.ToString(),
             RateValue = receipt.RateValue,
             Quantity = receipt.Quantity,
-            Total = receipt.Total
+            Total = receipt.Total,
+
+            GstEnabled = receipt.GstEnabled,
+            GstRatePercent = receipt.GstRatePercent,
+
+            FuelSurchargeEnabled = receipt.FuelSurchargeEnabled,
+            FuelSurchargePercent = receipt.FuelSurchargePercent,
+            FuelSurchargeAmount = receipt.FuelSurchargeAmount,
+
+            DamageNotes = receipt.DamageNotes,
+            WaitTimeMinutes = receipt.WaitTimeMinutes,
+
+            ShowDamageNotesOnPod = receipt.ShowDamageNotesOnPod,
+            ShowWaitTimeOnPod = receipt.ShowWaitTimeOnPod
         };
     }
 }

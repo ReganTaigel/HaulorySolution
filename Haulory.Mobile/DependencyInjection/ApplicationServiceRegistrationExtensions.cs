@@ -41,12 +41,14 @@ public static class ApplicationServiceRegistrationExtensions
         services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
         services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
 
+        services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
+
         services.AddSingleton<AuthApiService>();
         services.AddSingleton<DriversApiService>();
         services.AddSingleton<JobsApiService>();
         services.AddSingleton<VehiclesApiService>();
         services.AddSingleton<ReportsApiService>();
-
+        services.AddSingleton<DocumentSettingsApiService>();
         return services;
     }
 }

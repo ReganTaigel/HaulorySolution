@@ -1,3 +1,4 @@
+using Haulory.Api.Jobs;
 using Haulory.Api.Services;
 using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Jobs;
@@ -48,6 +49,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddDbContext<HauloryDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure()));
+
 builder.Services.AddDbContextFactory<HauloryDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -58,21 +64,31 @@ builder.Services.AddScoped<IDriverRepository, DriverRepository>();
 builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
 builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
 builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
-builder.Services.AddScoped<CreateVehicleHandler>();
 builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
 builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IJobRepository, JobRepository>();
-builder.Services.AddScoped<CreateJobHandler>();
 builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
+builder.Services.AddScoped<IDocumentSettingsRepository, DocumentSettingsRepository>();
+builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
+
+builder.Services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
+
+builder.Services.AddScoped<CreateVehicleHandler>();
+builder.Services.AddScoped<CreateJobHandler>();
 builder.Services.AddScoped<CreateDriverHandler>();
 builder.Services.AddScoped<CreateDriverFromUserHandler>();
+
+builder.Services.AddScoped<JobWorkflowService>();
+builder.Services.AddScoped<JobRequestValidator>();
+builder.Services.AddScoped<JobResponseFactory>();
+
 builder.Services.AddScoped<IInductionEvidenceFileStorage, InductionEvidenceFileStorage>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
 builder.Services.AddTransient<InvoiceReportHandler>();
 builder.Services.AddTransient<PodReportHandler>();
-builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
 builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
 builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
 

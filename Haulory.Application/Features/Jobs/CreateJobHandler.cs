@@ -46,13 +46,6 @@ public class CreateJobHandler
 
         var nextOrder = await _jobRepository.GetNextSortOrderAsync(command.OwnerUserId);
 
-        string invoiceNumber;
-        do
-        {
-            invoiceNumber = Guid.NewGuid().ToString("N")[..8];
-        }
-        while (await _jobRepository.InvoiceNumberExistsAsync(command.OwnerUserId, invoiceNumber));
-
         var job = new Job(
             jobId: command.JobId,
             ownerUserId: command.OwnerUserId,
@@ -71,7 +64,7 @@ public class CreateJobHandler
 
             referenceNumber: command.ReferenceNumber,
             loadDescription: command.LoadDescription,
-            invoiceNumber: invoiceNumber,
+            invoiceNumber: command.InvoiceNumber,
 
             rateType: command.RateType,
             rateValue: command.RateValue,

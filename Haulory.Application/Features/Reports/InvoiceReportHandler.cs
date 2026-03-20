@@ -29,10 +29,6 @@ public class InvoiceReportHandler
         if (u == null)
             throw new InvalidOperationException("User account not found.");
 
-        var subtotal = r.Total;
-        var gst = includeGst ? Math.Round(subtotal * gstRate, 2) : 0m;
-        var total = includeGst ? subtotal + gst : subtotal;
-
         return new InvoiceReportDto
         {
             ReceiptId = r.Id,
@@ -42,7 +38,6 @@ public class InvoiceReportHandler
             ReferenceNumber = r.ReferenceNumber,
             DeliveredAtUtc = r.DeliveredAtUtc,
 
-            // Supplier (main user profile)
             SupplierBusinessName = u.BusinessName,
             SupplierEmail = u.BusinessEmail ?? u.Email,
             SupplierAddressLine1 = u.BusinessAddress1 ?? string.Empty,
@@ -51,7 +46,6 @@ public class InvoiceReportHandler
             SupplierGstNumber = u.SupplierGstNumber,
             SupplierNzbn = u.SupplierNzbn,
 
-            // Client (snapshot stored on receipt)
             ClientCompanyName = r.ClientCompanyName,
             ClientContactName = r.ClientContactName,
             ClientEmail = r.ClientEmail,
@@ -59,14 +53,21 @@ public class InvoiceReportHandler
             ClientCity = r.ClientCity,
             ClientCountry = r.ClientCountry,
 
-            // Pricing snapshot stored on receipt
             RateTypeDisplay = r.RateType.ToString(),
             RateValue = r.RateValue,
             Quantity = r.Quantity,
 
-            Subtotal = subtotal,
-            GstAmount = gst,
-            Total = total
+            Subtotal = r.Subtotal,
+
+            FuelSurchargeEnabled = r.FuelSurchargeEnabled,
+            FuelSurchargePercent = r.FuelSurchargePercent,
+            FuelSurchargeAmount = r.FuelSurchargeAmount,
+
+            GstEnabled = r.GstEnabled,
+            GstRatePercent = r.GstRatePercent,
+            GstAmount = r.GstAmount,
+
+            Total = r.Total
         };
     }
 }

@@ -67,4 +67,10 @@ public class DeliveryReceiptRepository : IDeliveryReceiptRepository
             .OrderByDescending(r => r.DeliveredAtUtc)
             .ToListAsync();
     }
+
+    public async Task UpdateAsync(DeliveryReceipt receipt)
+    {
+        _db.DeliveryReceipts.Update(receipt);
+        await _db.SaveChangesAsync();
+    }
 }

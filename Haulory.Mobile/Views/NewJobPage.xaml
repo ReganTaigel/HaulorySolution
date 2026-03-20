@@ -7,7 +7,7 @@
     IsVisible="{Binding IsPageVisible}">
 
     <Shell.BackButtonBehavior>
-        <BackButtonBehavior IsVisible="False" />
+        <BackButtonBehavior IsVisible="True" />
     </Shell.BackButtonBehavior>
 
     <ScrollView>
@@ -556,16 +556,6 @@
                         Padding="12">
 
                         <VerticalStackLayout Spacing="10">
-
-                            <Border Style="{StaticResource InputBorderStyle}">
-                                <Entry
-                                    Placeholder="Invoice number"
-                                    Text="{Binding InvoiceNumber}"
-                                    FontSize="14"
-                                    HeightRequest="44"
-                                    TextColor="{StaticResource BrandInk}"
-                                    PlaceholderColor="{StaticResource Gray500}" />
-                            </Border>
 
                             <Label
                                 Text="Rate type"

@@ -238,7 +238,7 @@ public class ReportsViewModel : BaseViewModel
             {
                 var pdfBytes = await _reportsApiService.ExportInvoicePdfAsync(receiptId, IncludeGst, GstRate);
 
-                var filename = $"Invoice_{receiptId}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+                var filename = $"Invoice_{receiptId}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
                 var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
                 System.IO.File.WriteAllBytes(path, pdfBytes);
@@ -273,7 +273,7 @@ public class ReportsViewModel : BaseViewModel
             {
                 var pdfBytes = await _reportsApiService.ExportPodPdfAsync(receiptId);
 
-                var filename = $"POD_{receiptId}_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+                var filename = $"POD_{receiptId}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
                 var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
 
                 System.IO.File.WriteAllBytes(path, pdfBytes);
