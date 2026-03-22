@@ -22,6 +22,7 @@ public static class ViewModelRegistrationExtensions
         services.AddTransient<InductionTemplatesViewModel>();
         services.AddTransient<AddWorkSiteTemplateViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddSingleton<AppShellViewModel>();
         return services;
     }
 }

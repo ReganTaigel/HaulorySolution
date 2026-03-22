@@ -11,7 +11,6 @@
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Padding="20" Spacing="16">
 
-                <!-- HERO SUMMARY -->
                 <Border
                     Style="{StaticResource CardBorderStyle}"
                     Stroke="{StaticResource Gray200}"
@@ -111,7 +110,6 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- QUICK STATS -->
                 <Border
                     Style="{StaticResource CardBorderStyle}"
                     IsVisible="{Binding IsMainUser}"
@@ -135,7 +133,6 @@
                                 TextColor="{StaticResource Gray600}" />
                         </VerticalStackLayout>
 
-                        <!-- Delivered -->
                         <Border
                             StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -182,7 +179,6 @@
                             </Grid>
                         </Border>
 
-                        <!-- Revenue -->
                         <Border
                             StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -229,7 +225,6 @@
                             </Grid>
                         </Border>
 
-                        <!-- Needs review -->
                         <Border
                             StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -283,7 +278,6 @@
                             </Border.GestureRecognizers>
                         </Border>
 
-                        <!-- Latest completed -->
                         <Border
                             StrokeThickness="1"
                             Stroke="{StaticResource Gray200}"
@@ -337,14 +331,12 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- ACTIONS CARD -->
                 <Border
                     Style="{StaticResource CardBorderStyle}"
                     Padding="18">
 
                     <VerticalStackLayout Spacing="12">
 
-                        <!-- Header -->
                         <VerticalStackLayout Spacing="4">
                             <Label
                                 Text="Manage"
@@ -358,11 +350,9 @@
                                 TextColor="{StaticResource Gray600}" />
                         </VerticalStackLayout>
 
-                        <!-- Divider -->
                         <BoxView HeightRequest="1"
-                                     BackgroundColor="{StaticResource Gray200}" />
+                                 BackgroundColor="{StaticResource Gray200}" />
 
-                        <!-- Jobs -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="12"
                               Padding="0,6">
@@ -393,11 +383,9 @@
                             </Grid.GestureRecognizers>
                         </Grid>
 
-                        <!-- Divider -->
                         <BoxView HeightRequest="1"
-                                    BackgroundColor="{StaticResource Gray200}" />
+                                 BackgroundColor="{StaticResource Gray200}" />
 
-                        <!-- Vehicles -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="12"
                               Padding="0,6">
@@ -428,15 +416,14 @@
                             </Grid.GestureRecognizers>
                         </Grid>
 
-                        <!-- Divider -->
                         <BoxView HeightRequest="1"
-                                    BackgroundColor="{StaticResource Gray200}" />
+                                 BackgroundColor="{StaticResource Gray200}"
+                                 IsVisible="{Binding CanSeeDrivers}" />
 
-                        <!-- Drivers -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="12"
                               Padding="0,6"
-                              IsVisible="{Binding IsDriversVisible}">
+                              IsVisible="{Binding CanSeeDrivers}">
 
                             <Image Source="driver.svg"
                                    HeightRequest="20"
@@ -464,15 +451,14 @@
                             </Grid.GestureRecognizers>
                         </Grid>
 
-                        <!-- Divider -->
                         <BoxView HeightRequest="1"
-                                    BackgroundColor="{StaticResource Gray200}" />
+                                 BackgroundColor="{StaticResource Gray200}"
+                                 IsVisible="{Binding CanSeeReports}" />
 
-                        <!-- Reports -->
                         <Grid ColumnDefinitions="Auto,*,Auto"
                               ColumnSpacing="12"
                               Padding="0,6"
-                              IsVisible="{Binding IsReportsVisible}">
+                              IsVisible="{Binding CanSeeReports}">
 
                             <Image Source="reports.svg"
                                    HeightRequest="20"

@@ -174,34 +174,51 @@
                             IsVisible="{Binding IsReportsVisible}">
 
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout HorizontalOptions="Center"
-                                         VerticalOptions="Center"
-                                         Spacing="6"
-                                         Margin="0,18,0,0">
-
-                        <Border
-                            BackgroundColor="{StaticResource BrandTileFill}"
-                            Stroke="{StaticResource Gray300}"
+                    <Border
+                            Stroke="{StaticResource Gray200}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 18"
-                            Padding="12">
+                            StrokeShape="RoundRectangle 20"
+                            BackgroundColor="{StaticResource White}"
+                            Padding="18"
+                            Margin="0,18,0,0"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
 
-                            <Image Source="receipt.svg"
-                                   HeightRequest="26"
-                                   WidthRequest="26"/>
-                        </Border>
+                        <VerticalStackLayout
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                Spacing="10"
+                                Padding="12">
 
-                        <Label Text="No delivery receipts yet"
-                               FontSize="17"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource BrandTitle}" />
+                            <Border
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Stroke="{StaticResource Gray300}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 18"
+                                    Padding="12">
 
-                        <Label Text="Complete a delivery to see receipts here"
-                               FontSize="13"
-                               HorizontalTextAlignment="Center"
-                               TextColor="{StaticResource Gray600}" />
+                                <Image
+                                    Source="receipt.svg"
+                                    HeightRequest="26"
+                                    WidthRequest="26"/>
+                            </Border>
 
-                    </VerticalStackLayout>
+                            <Label
+                                Text="No delivery receipts yet"
+                                FontSize="17"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}"
+                                HorizontalTextAlignment="Center"/>
+
+                            <Label
+                                Text="Complete a delivery to see receipts here"
+                                FontSize="13"
+                                HorizontalTextAlignment="Center"
+                                TextColor="{StaticResource Gray600}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
                 </CollectionView.EmptyView>
 
                 <!-- Receipt item -->

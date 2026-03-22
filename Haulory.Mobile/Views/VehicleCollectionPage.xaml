@@ -72,64 +72,73 @@
                 Margin="0,2,0,0">
 
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout
-                        Padding="24"
-                        Spacing="10"
-                        HorizontalOptions="Center">
-
-                        <Border
-                            BackgroundColor="{StaticResource BrandTileFill}"
-                            Stroke="{StaticResource Gray300}"
+                    <Border
+                            Stroke="{StaticResource Gray200}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 18"
-                            Padding="12">
+                            StrokeShape="RoundRectangle 20"
+                            BackgroundColor="{StaticResource White}"
+                            Padding="18">
 
-                            <Image
-                                Source="vehicle.svg"
-                                HeightRequest="28"
-                                WidthRequest="28" />
-                        </Border>
+                        <VerticalStackLayout
+                                Padding="24"
+                                Spacing="10"
+                                HorizontalOptions="Center">
 
-                        <Label
-                            Text="No vehicles available"
-                            FontAttributes="Bold"
-                            FontSize="17"
-                            TextColor="{StaticResource BrandTitle}"
-                            HorizontalTextAlignment="Center"/>
+                            <Border
+                                    BackgroundColor="{StaticResource BrandTileFill}"
+                                    Stroke="{StaticResource Gray300}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 18"
+                                    Padding="12">
 
-                        <Label
-                            Text="Tap Add to create your first vehicle"
-                            FontSize="14"
-                            TextColor="{StaticResource Gray600}"
-                            HorizontalTextAlignment="Center">
+                                <Image
+                                        Source="vehicle.svg"
+                                        HeightRequest="28"
+                                        WidthRequest="28" />
+                            </Border>
 
-                            <Label.Triggers>
+                            <Label
+                                    Text="No vehicles available"
+                                    FontAttributes="Bold"
+                                    FontSize="17"
+                                    TextColor="{StaticResource BrandTitle}"
+                                    HorizontalTextAlignment="Center"/>
 
-                                <DataTrigger
-                                    TargetType="Label"
-                                    Binding="{Binding IsMainUser}"
-                                    Value="False">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
+                            <Label
+                                    Text="Tap Add to create your first vehicle"
+                                    FontSize="14"
+                                    TextColor="{StaticResource Gray600}"
+                                    HorizontalTextAlignment="Center">
 
-                                <DataTrigger
-                                    TargetType="Label"
-                                    Binding="{Binding IsAddVehicleVisible}"
-                                    Value="False">
-                                    <Setter Property="IsVisible" Value="False"/>
-                                </DataTrigger>
+                                <Label.Triggers>
 
-                            </Label.Triggers>
-                        </Label>
+                                    <DataTrigger
+                                                TargetType="Label"
+                                                Binding="{Binding IsMainUser}"
+                                                Value="False">
+                                        <Setter Property="IsVisible" Value="False"/>
+                                    </DataTrigger>
 
-                        <Label
-                            Text="No vehicles are assigned to your active jobs right now"
-                            FontSize="14"
-                            TextColor="{StaticResource Gray600}"
-                            HorizontalTextAlignment="Center"
-                            IsVisible="{Binding IsSubUser}"/>
+                                    <DataTrigger
+                                                TargetType="Label"
+                                                Binding="{Binding IsAddVehicleVisible}"
+                                                Value="False">
+                                        <Setter Property="IsVisible" Value="False"/>
+                                    </DataTrigger>
 
-                    </VerticalStackLayout>
+                                </Label.Triggers>
+                            </Label>
+
+                            <Label
+                                    Text="No vehicles are assigned to your active jobs right now"
+                                    FontSize="14"
+                                    TextColor="{StaticResource Gray600}"
+                                    HorizontalTextAlignment="Center"
+                                    IsVisible="{Binding IsSubUser}"/>
+
+                        </VerticalStackLayout>
+
+                    </Border>
                 </CollectionView.EmptyView>
 
                 <CollectionView.ItemTemplate>

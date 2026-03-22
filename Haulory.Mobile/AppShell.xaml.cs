@@ -23,6 +23,11 @@ public partial class AppShell : Shell
     private readonly ISessionService _sessionService;
     private readonly IFeatureAccessService _featureAccessService;
 
+    private bool IsMainUser =>
+        _sessionService.CurrentAccountId.HasValue &&
+        _sessionService.CurrentOwnerId.HasValue &&
+        _sessionService.CurrentAccountId.Value == _sessionService.CurrentOwnerId.Value;
+
     public AppShell(
         ISessionService sessionService,
         IFeatureAccessService featureAccessService)
@@ -41,9 +46,19 @@ public partial class AppShell : Shell
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
+        await HandleLogoutAsync();
+    }
+
+    private async void OnLogoutClicked(object? sender, TappedEventArgs e)
+    {
+        await HandleLogoutAsync();
+    }
+
+    private async Task HandleLogoutAsync()
+    {
         try
         {
-            bool confirm = await Current.DisplayAlert(
+            bool confirm = await Current.DisplayAlertAsync(
                 "Logout",
                 "Are you sure you want to sign out?",
                 "Yes",
@@ -60,6 +75,19 @@ public partial class AppShell : Shell
         {
             Debug.WriteLine(ex);
         }
+    }
+
+    private void ApplyRoleVisibility()
+    {
+        bool isSubUser =
+            _sessionService.CurrentAccountId.HasValue &&
+            _sessionService.CurrentOwnerId.HasValue &&
+            _sessionService.CurrentAccountId.Value != _sessionService.CurrentOwnerId.Value;
+
+        DriversFlyoutItem.IsVisible = !isSubUser;
+        ReportsFlyoutItem.IsVisible = !isSubUser;
+        NeedsReviewFlyoutItem.IsVisible = !isSubUser;
+        SettingsFlyoutItem.IsVisible = !isSubUser;
     }
 
     private static void RegisterRoutes()
@@ -163,6 +191,8 @@ public partial class AppShell : Shell
             if (!_sessionService.IsAuthenticated)
                 await _sessionService.RestoreAsync();
 
+            ApplyRoleVisibility();
+
             var target = e.Target?.Location?.OriginalString ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(target))
@@ -192,6 +222,25 @@ public partial class AppShell : Shell
                 return;
             }
 
+            if (_sessionService.IsAuthenticated && !IsMainUser)
+            {
+                if (target.Contains(RouteDrivers, StringComparison.OrdinalIgnoreCase) ||
+                    target.Contains(RouteReports, StringComparison.OrdinalIgnoreCase) ||
+                    target.Contains(RouteNeedsReview, StringComparison.OrdinalIgnoreCase) ||
+                    target.Contains(RouteSettings, StringComparison.OrdinalIgnoreCase))
+                {
+                    e.Cancel();
+
+                    await Current.DisplayAlertAsync(
+                        "Access denied",
+                        "Only the account owner can access this section.",
+                        "OK");
+
+                    await GoToAsync($"//{RouteDashboard}");
+                    return;
+                }
+            }
+
             if (_sessionService.IsAuthenticated && IsAuthRoute(target))
             {
                 if (!IsRoute(target, RouteDashboard))
@@ -206,6 +255,4 @@ public partial class AppShell : Shell
             Debug.WriteLine(ex);
         }
     }
-
-
 }

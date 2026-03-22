@@ -6,11 +6,32 @@
     xmlns:views="clr-namespace:Haulory.Mobile.Views"
     FlyoutBehavior="Flyout"
     Shell.NavBarHasShadow="False"
-    Shell.BackgroundColor="#007BA7"
-    Shell.ForegroundColor="#1F2937"
-    Shell.TitleColor="#FFFFFF"
-    Shell.DisabledColor="#E5E7EB"
-    Shell.UnselectedColor="#9CA3AF">
+    Shell.BackgroundColor="#007BA7">
+
+    <Shell.Resources>
+        <DataTemplate x:Key="FlyoutItemTemplate">
+            <Grid ColumnDefinitions="Auto,*"
+                  ColumnSpacing="16"
+                  Padding="18,14">
+                <Image
+                    Source="{Binding FlyoutIcon}"
+                    HeightRequest="24"
+                    WidthRequest="24"
+                    VerticalOptions="Center" />
+
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Title}"
+                    FontSize="16"
+                    TextColor="Black"
+                    VerticalTextAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+    </Shell.Resources>
+
+    <Shell.ItemTemplate>
+        <StaticResource Key="FlyoutItemTemplate" />
+    </Shell.ItemTemplate>
 
     <Shell.FlyoutHeader>
         <Grid HeightRequest="140"
@@ -31,7 +52,6 @@
             </VerticalStackLayout>
         </Grid>
     </Shell.FlyoutHeader>
-
 
     <ShellContent
         Route="LoginPage"
@@ -70,7 +90,8 @@
             ContentTemplate="{DataTemplate views:VehicleCollectionPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Drivers"
+    <FlyoutItem x:Name="DriversFlyoutItem"
+                Title="Drivers"
                 Icon="driver.png"
                 FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
@@ -79,7 +100,8 @@
             ContentTemplate="{DataTemplate views:DriverCollectionPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Reports"
+    <FlyoutItem x:Name="ReportsFlyoutItem"
+                Title="Reports"
                 Icon="reports.png"
                 FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
@@ -88,7 +110,8 @@
             ContentTemplate="{DataTemplate views:ReportsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Needs Review"
+    <FlyoutItem x:Name="NeedsReviewFlyoutItem"
+                Title="Needs Review"
                 Icon="warning.png"
                 FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
@@ -97,7 +120,8 @@
             ContentTemplate="{DataTemplate views:NeedsReviewPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Settings"
+    <FlyoutItem x:Name="SettingsFlyoutItem"
+                Title="Settings"
                 Icon="settings.png"
                 FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
@@ -106,8 +130,28 @@
             ContentTemplate="{DataTemplate views:SettingsPage}" />
     </FlyoutItem>
 
-    <MenuItem
-    Text="Logout"
-    IconImageSource="close.png"
-    Clicked="OnLogoutClicked" />
+    <Shell.FlyoutFooter>
+        <Grid Padding="18,10,18,24"
+          BackgroundColor="Transparent">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnLogoutClicked" />
+            </Grid.GestureRecognizers>
+
+            <Grid ColumnDefinitions="Auto,*"
+              ColumnSpacing="16">
+                <Image
+                Source="close.png"
+                HeightRequest="24"
+                WidthRequest="24"
+                VerticalOptions="Center" />
+
+                <Label
+                Grid.Column="1"
+                Text="Logout"
+                FontSize="16"
+                TextColor="Black"
+                VerticalTextAlignment="Center" />
+            </Grid>
+        </Grid>
+    </Shell.FlyoutFooter>
 </Shell>

@@ -78,6 +78,9 @@ public class DashboardViewModel : BaseViewModel
 
     public bool IsNeedsReviewVisible => IsMainUser && IsJobsVisible;
     public bool HasNeedsReviewJobs => NeedsReviewCount > 0;
+    public bool CanSeeDrivers => IsMainUser && IsDriversVisible;
+    public bool CanSeeReports => IsMainUser && IsReportsVisible;
+    public bool CanSeeNeedsReview => IsMainUser && IsJobsVisible;
 
     #endregion
 
@@ -254,6 +257,9 @@ public class DashboardViewModel : BaseViewModel
 
         GoToDriversCommand = new Command(async () =>
         {
+            if (!IsMainUser)
+                return;
+
             await SafeRunner.RunAsync(
                 async () => await NavigateToFeatureAsync(AppFeature.Drivers, $"//{nameof(DriverCollectionPage)}"),
                 _crashLogger,
@@ -263,6 +269,9 @@ public class DashboardViewModel : BaseViewModel
 
         GoToReportsCommand = new Command(async () =>
         {
+            if (!IsMainUser)
+                return;
+
             await SafeRunner.RunAsync(
                 async () => await NavigateToFeatureAsync(AppFeature.Reports, $"//{nameof(ReportsPage)}"),
                 _crashLogger,
@@ -376,8 +385,6 @@ public class DashboardViewModel : BaseViewModel
                 });
 
             RefreshFeatureBindings();
-
-
         }
         finally
         {
@@ -435,6 +442,14 @@ public class DashboardViewModel : BaseViewModel
 
     public async Task LoadCompletedReportSummaryAsync()
     {
+        if (!IsMainUser)
+        {
+            CompletedTodayCount = 0;
+            RevenueToday = 0;
+            LatestCompletedSummary = "No completed jobs yet";
+            return;
+        }
+
         var summary = await _reportsApiService.GetTodayAsync();
 
         CompletedTodayCount = summary.CompletedTodayCount;
@@ -690,6 +705,9 @@ public class DashboardViewModel : BaseViewModel
 
     private void RefreshFeatureBindings()
     {
+        OnPropertyChanged(nameof(IsMainUser));
+        OnPropertyChanged(nameof(IsSubUser));
+
         OnPropertyChanged(nameof(IsDriversVisible));
         OnPropertyChanged(nameof(IsJobsVisible));
         OnPropertyChanged(nameof(IsVehiclesVisible));
@@ -712,6 +730,9 @@ public class DashboardViewModel : BaseViewModel
 
         OnPropertyChanged(nameof(IsNeedsReviewVisible));
         OnPropertyChanged(nameof(HasNeedsReviewJobs));
+        OnPropertyChanged(nameof(CanSeeDrivers));
+        OnPropertyChanged(nameof(CanSeeReports));
+        OnPropertyChanged(nameof(CanSeeNeedsReview));
     }
 
     private void EnsureShellNavigationRefreshHook()

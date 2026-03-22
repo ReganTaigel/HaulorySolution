@@ -11,7 +11,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="16">
 
-            <!-- Page intro -->
             <Border Style="{StaticResource CardBorderStyle}"
                     Stroke="{StaticResource Gray200}"
                     StrokeShape="RoundRectangle 18"
@@ -45,117 +44,136 @@
 
                 <VerticalStackLayout Spacing="14">
 
-                    <Label Text="Invoice Settings"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="12">
+                        <Label Text="{Binding InvoiceSection.Title}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}"
+                               VerticalOptions="Center" />
 
-                    <!-- GST -->
-                    <Border BackgroundColor="{StaticResource White}"
-                            Stroke="{StaticResource Gray200}"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="14">
+                        <Label Grid.Column="1"
+                               Text="{Binding InvoiceSection.ExpandCollapseGlyph}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray600}"
+                               VerticalOptions="Center" />
 
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding InvoiceSection.ToggleExpandedCommand}" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
 
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="Enable GST"
-                                       FontAttributes="Bold"
-                                       FontSize="14"
-                                       TextColor="{StaticResource BrandInk}" />
-                                <Label Text="Apply GST to generated invoices."
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray600}" />
-                            </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="14"
+                                         IsVisible="{Binding InvoiceSection.IsExpanded}">
 
-                            <Border Grid.Column="1"
-                                    Padding="6"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 12">
+                        <!-- GST -->
+                        <Border BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14">
 
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding GstEnabled}"
-                                                 Value="True">
-                                        <Setter Property="BackgroundColor" Value="#007BA7"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding GstEnabled}"
-                                                 Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F8FAFC"/>
-                                    </DataTrigger>
-                                </Border.Triggers>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
 
-                                <Switch IsToggled="{Binding GstEnabled}"
-                                        OnColor="{StaticResource BrandAccent}" />
-                            </Border>
-                        </Grid>
-                    </Border>
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Enable GST"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{StaticResource BrandInk}" />
+                                    <Label Text="Apply GST to generated invoices."
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray600}" />
+                                </VerticalStackLayout>
 
-                    <!-- GST Rate -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="GST Rate (%)"
-                               TextColor="{StaticResource Gray600}" />
-                        <Border Style="{StaticResource InputBorderStyle}">
-                            <Entry Text="{Binding GstRatePercent}"
-                                   Keyboard="Numeric"
-                                   Placeholder="e.g. 15" />
+                                <Border Grid.Column="1"
+                                        Padding="6"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 12">
+
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding GstEnabled}"
+                                                     Value="True">
+                                            <Setter Property="BackgroundColor" Value="#007BA7"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding GstEnabled}"
+                                                     Value="False">
+                                            <Setter Property="BackgroundColor" Value="#F8FAFC"/>
+                                        </DataTrigger>
+                                    </Border.Triggers>
+
+                                    <Switch IsToggled="{Binding GstEnabled}"
+                                            OnColor="{StaticResource BrandAccent}" />
+                                </Border>
+                            </Grid>
                         </Border>
-                    </VerticalStackLayout>
 
-                    <!-- Fuel -->
-                    <Border BackgroundColor="{StaticResource White}"
-                            Stroke="{StaticResource Gray200}"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="14">
-
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="Enable Fuel Surcharge"
-                                       FontAttributes="Bold"
-                                       FontSize="14"
-                                       TextColor="{StaticResource BrandInk}" />
-                                <Label Text="Add a fuel surcharge percentage to invoices."
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray600}" />
-                            </VerticalStackLayout>
-
-                            <Border Grid.Column="1"
-                                    Padding="6"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 12">
-
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding FuelSurchargeEnabled}"
-                                                 Value="True">
-                                        <Setter Property="BackgroundColor" Value="#007BA7"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding FuelSurchargeEnabled}"
-                                                 Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F8FAFC"/>
-                                    </DataTrigger>
-                                </Border.Triggers>
-
-                                <Switch IsToggled="{Binding FuelSurchargeEnabled}"
-                                        OnColor="{StaticResource BrandAccent}" />
+                        <!-- GST Rate -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="GST Rate (%)"
+                                   TextColor="{StaticResource Gray600}" />
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry Text="{Binding GstRatePercent}"
+                                       Keyboard="Numeric"
+                                       Placeholder="e.g. 15" />
                             </Border>
-                        </Grid>
-                    </Border>
+                        </VerticalStackLayout>
 
-                    <!-- Fuel Rate -->
-                    <VerticalStackLayout Spacing="6">
-                        <Label Text="Fuel Surcharge (%)"
-                               TextColor="{StaticResource Gray600}" />
-                        <Border Style="{StaticResource InputBorderStyle}">
-                            <Entry Text="{Binding FuelSurchargePercent}"
-                                   Keyboard="Numeric"
-                                   Placeholder="e.g. 5" />
+                        <!-- Fuel -->
+                        <Border BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14">
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+
+                                <VerticalStackLayout Spacing="2">
+                                    <Label Text="Enable Fuel Surcharge"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{StaticResource BrandInk}" />
+                                    <Label Text="Add a fuel surcharge percentage to invoices."
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray600}" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="1"
+                                        Padding="6"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 12">
+
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding FuelSurchargeEnabled}"
+                                                     Value="True">
+                                            <Setter Property="BackgroundColor" Value="#007BA7"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding FuelSurchargeEnabled}"
+                                                     Value="False">
+                                            <Setter Property="BackgroundColor" Value="#F8FAFC"/>
+                                        </DataTrigger>
+                                    </Border.Triggers>
+
+                                    <Switch IsToggled="{Binding FuelSurchargeEnabled}"
+                                            OnColor="{StaticResource BrandAccent}" />
+                                </Border>
+                            </Grid>
                         </Border>
-                    </VerticalStackLayout>
 
+                        <!-- Fuel Rate -->
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Fuel Surcharge (%)"
+                                   TextColor="{StaticResource Gray600}" />
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry Text="{Binding FuelSurchargePercent}"
+                                       Keyboard="Numeric"
+                                       Placeholder="e.g. 5" />
+                            </Border>
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
@@ -167,99 +185,117 @@
 
                 <VerticalStackLayout Spacing="14">
 
-                    <Label Text="POD Settings"
-                           FontSize="18"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
+                    <Grid ColumnDefinitions="*,Auto"
+                          ColumnSpacing="12">
+                        <Label Text="{Binding PodSection.Title}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}"
+                               VerticalOptions="Center" />
 
-                    <!-- Damage -->
-                    <Border BackgroundColor="{StaticResource White}"
-                            Stroke="{StaticResource Gray200}"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="14">
+                        <Label Grid.Column="1"
+                               Text="{Binding PodSection.ExpandCollapseGlyph}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray600}"
+                               VerticalOptions="Center" />
 
-                        <Grid ColumnDefinitions="*,Auto">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding PodSection.ToggleExpandedCommand}" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
 
-                            <VerticalStackLayout>
-                                <Label Text="Show Damage Notes On POD"
-                                       FontAttributes="Bold"
-                                       FontSize="14"
-                                       TextColor="{StaticResource BrandInk}" />
-                                <Label Text="Include recorded damage notes on the POD."
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray600}" />
-                            </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="14"
+                                         IsVisible="{Binding PodSection.IsExpanded}">
 
-                            <Border Grid.Column="1"
-                                    Padding="6"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 12">
+                        <!-- Damage -->
+                        <Border BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14">
 
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding ShowDamageNotesOnPod}"
-                                                 Value="True">
-                                        <Setter Property="BackgroundColor" Value="#007BA7"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding ShowDamageNotesOnPod}"
-                                                 Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F8FAFC"/>
-                                    </DataTrigger>
-                                </Border.Triggers>
+                            <Grid ColumnDefinitions="*,Auto">
 
-                                <Switch IsToggled="{Binding ShowDamageNotesOnPod}"
-                                        OnColor="{StaticResource BrandAccent}" />
-                            </Border>
-                        </Grid>
-                    </Border>
+                                <VerticalStackLayout>
+                                    <Label Text="Show Damage Notes On POD"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{StaticResource BrandInk}" />
+                                    <Label Text="Include recorded damage notes on the POD."
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray600}" />
+                                </VerticalStackLayout>
 
-                    <!-- Wait Time -->
-                    <Border BackgroundColor="{StaticResource White}"
-                            Stroke="{StaticResource Gray200}"
-                            StrokeShape="RoundRectangle 14"
-                            Padding="14">
+                                <Border Grid.Column="1"
+                                        Padding="6"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 12">
 
-                        <Grid ColumnDefinitions="*,Auto">
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ShowDamageNotesOnPod}"
+                                                     Value="True">
+                                            <Setter Property="BackgroundColor" Value="#007BA7"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ShowDamageNotesOnPod}"
+                                                     Value="False">
+                                            <Setter Property="BackgroundColor" Value="#F8FAFC"/>
+                                        </DataTrigger>
+                                    </Border.Triggers>
 
-                            <VerticalStackLayout>
-                                <Label Text="Show Wait Time On POD"
-                                       FontAttributes="Bold"
-                                       FontSize="14"
-                                       TextColor="{StaticResource BrandInk}" />
-                                <Label Text="Include wait time details on the POD."
-                                       FontSize="12"
-                                       TextColor="{StaticResource Gray600}" />
-                            </VerticalStackLayout>
+                                    <Switch IsToggled="{Binding ShowDamageNotesOnPod}"
+                                            OnColor="{StaticResource BrandAccent}" />
+                                </Border>
+                            </Grid>
+                        </Border>
 
-                            <Border Grid.Column="1"
-                                    Padding="6"
-                                    Stroke="{StaticResource Gray300}"
-                                    StrokeShape="RoundRectangle 12">
+                        <!-- Wait Time -->
+                        <Border BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="14">
 
-                                <Border.Triggers>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding ShowWaitTimeOnPod}"
-                                                 Value="True">
-                                        <Setter Property="BackgroundColor" Value="#007BA7"/>
-                                    </DataTrigger>
-                                    <DataTrigger TargetType="Border"
-                                                 Binding="{Binding ShowWaitTimeOnPod}"
-                                                 Value="False">
-                                        <Setter Property="BackgroundColor" Value="#F8FAFC"/>
-                                    </DataTrigger>
-                                </Border.Triggers>
+                            <Grid ColumnDefinitions="*,Auto">
 
-                                <Switch IsToggled="{Binding ShowWaitTimeOnPod}"
-                                        OnColor="{StaticResource BrandAccent}" />
-                            </Border>
-                        </Grid>
-                    </Border>
+                                <VerticalStackLayout>
+                                    <Label Text="Show Wait Time On POD"
+                                           FontAttributes="Bold"
+                                           FontSize="14"
+                                           TextColor="{StaticResource BrandInk}" />
+                                    <Label Text="Include wait time details on the POD."
+                                           FontSize="12"
+                                           TextColor="{StaticResource Gray600}" />
+                                </VerticalStackLayout>
 
+                                <Border Grid.Column="1"
+                                        Padding="6"
+                                        Stroke="{StaticResource Gray300}"
+                                        StrokeShape="RoundRectangle 12">
+
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ShowWaitTimeOnPod}"
+                                                     Value="True">
+                                            <Setter Property="BackgroundColor" Value="#007BA7"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Border"
+                                                     Binding="{Binding ShowWaitTimeOnPod}"
+                                                     Value="False">
+                                            <Setter Property="BackgroundColor" Value="#F8FAFC"/>
+                                        </DataTrigger>
+                                    </Border.Triggers>
+
+                                    <Switch IsToggled="{Binding ShowWaitTimeOnPod}"
+                                            OnColor="{StaticResource BrandAccent}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Save -->
             <Border Style="{StaticResource CardBorderStyle}"
                     Stroke="{StaticResource Gray200}"
                     StrokeShape="RoundRectangle 18"
