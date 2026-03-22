@@ -1,5 +1,6 @@
 using Haulory.Api.Extensions;
 using Haulory.Api.Vehicles;
+using Haulory.Application.Features.Vehicles;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Contracts.Vehicles;
@@ -18,13 +19,16 @@ public sealed class VehiclesController : ControllerBase
     private readonly CreateVehicleHandler _createVehicleHandler;
     private readonly VehicleSetRequestValidator _validator;
     private readonly VehicleSetMapper _mapper;
+    private readonly DeleteVehicle _deleteVehicle;
 
     public VehiclesController(
         IVehicleAssetRepository vehicleRepository,
-        CreateVehicleHandler createVehicleHandler)
+        CreateVehicleHandler createVehicleHandler,
+        DeleteVehicle deleteVehicle)
     {
         _vehicleRepository = vehicleRepository;
         _createVehicleHandler = createVehicleHandler;
+        _deleteVehicle = deleteVehicle;
         _validator = new VehicleSetRequestValidator();
         _mapper = new VehicleSetMapper();
     }
@@ -137,4 +141,22 @@ public sealed class VehiclesController : ControllerBase
             Assets = assets.Select(x => x.ToDto()).ToList()
         });
     }
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var ownerUserId = User.GetOwnerUserId();
+
+        var vehicle = await _vehicleRepository.GetByIdAsync(id);
+        if (vehicle is null || vehicle.OwnerUserId != ownerUserId)
+            return NotFound();
+
+        var deleted = await _deleteVehicle.DeleteAsync(id, cancellationToken);
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
+    }
+
 }

@@ -172,7 +172,7 @@ public sealed class NewVehicleRequestMapper
     private static string? GetPowerUnitConfigurationForApi(NewVehicleFormState state)
     {
         if (state.VehicleType == VehicleType.TractorUnit)
-            return "Tractor";
+            return null;
 
         return state.PowerUnitBodyType switch
         {

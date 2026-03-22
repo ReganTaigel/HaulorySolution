@@ -39,9 +39,31 @@ public partial class AppShell : Shell
 
     public Task GoHomeAsync() => GoToAsync($"//{RouteDashboard}");
 
+    private async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            bool confirm = await Current.DisplayAlert(
+                "Logout",
+                "Are you sure you want to sign out?",
+                "Yes",
+                "No");
+
+            if (!confirm)
+                return;
+
+            await _sessionService.ClearAsync();
+            FlyoutIsPresented = false;
+            await GoToAsync($"//{RouteLogin}");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+        }
+    }
+
     private static void RegisterRoutes()
     {
-        // Detail / drill-down routes only
         Routing.RegisterRoute(nameof(NewJobPage), typeof(NewJobPage));
         Routing.RegisterRoute(nameof(DeliverySignaturePage), typeof(DeliverySignaturePage));
         Routing.RegisterRoute(nameof(NewVehiclePage), typeof(NewVehiclePage));
@@ -49,9 +71,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ManageInductionsPage), typeof(ManageInductionsPage));
         Routing.RegisterRoute(nameof(InductionTemplatesPage), typeof(InductionTemplatesPage));
         Routing.RegisterRoute(nameof(AddWorkSiteTemplatePage), typeof(AddWorkSiteTemplatePage));
-
-        // Do NOT register Shell pages here if they already exist in AppShell.xaml
-        // Example: DashboardPage, LoginPage, ReportsPage, SettingsPage, etc.
     }
 
     private static bool IsRoute(string target, string route) =>
@@ -187,4 +206,6 @@ public partial class AppShell : Shell
             Debug.WriteLine(ex);
         }
     }
+
+
 }

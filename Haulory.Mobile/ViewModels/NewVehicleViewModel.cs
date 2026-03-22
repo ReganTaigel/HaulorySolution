@@ -384,7 +384,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
                         IsEditMode ? "Vehicle updated successfully." : "Vehicle saved successfully.",
                         "OK");
 
-                    await Shell.Current.GoToAsync(nameof(VehicleCollectionPage));
+                    await Shell.Current.GoToAsync($"//{nameof(VehicleCollectionPage)}");
                 },
                 _crashLogger,
                 "NewVehicleViewModel.ExecuteSaveVehicleAsync",

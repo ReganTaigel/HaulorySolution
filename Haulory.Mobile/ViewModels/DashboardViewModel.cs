@@ -377,13 +377,7 @@ public class DashboardViewModel : BaseViewModel
 
             RefreshFeatureBindings();
 
-            System.Diagnostics.Debug.WriteLine(
-                $"[Dashboard After Refresh] " +
-                $"JobsVisible={IsJobsVisible}, " +
-                $"VehiclesVisible={IsVehiclesVisible}, " +
-                $"DriversVisible={IsDriversVisible}, " +
-                $"ReportsVisible={IsReportsVisible}, " +
-                $"NeedsReviewCount={NeedsReviewCount}");
+
         }
         finally
         {

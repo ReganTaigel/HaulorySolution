@@ -62,11 +62,10 @@
             </VisualStateGroupList>
         </Setter>
     </Style>
-
     <Style x:Key="PrimaryButtonStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
         <Setter Property="TextColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="HeightRequest" Value="52" />
         <Setter Property="FontAttributes" Value="Bold" />
         <Setter Property="Padding" Value="16,0" />
@@ -75,7 +74,7 @@
     <Style x:Key="AccentButtonStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="{StaticResource BrandAccent}" />
         <Setter Property="TextColor" Value="{StaticResource White}" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="14" />
         <Setter Property="HeightRequest" Value="52" />
         <Setter Property="FontAttributes" Value="Bold" />
         <Setter Property="Padding" Value="16,0" />
@@ -462,6 +461,7 @@
     <Style TargetType="Switch">
         <Setter Property="OnColor" Value="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Secondary}}" />
         <Setter Property="ThumbColor" Value="{StaticResource White}" />
+        <Setter Property="Scale" Value="1.1" />
         <Setter Property="VisualStateManager.VisualStateGroups">
             <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">
@@ -470,6 +470,7 @@
                         <VisualState.Setters>
                             <Setter Property="OnColor" Value="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray600}}" />
                             <Setter Property="ThumbColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
+                            <Setter Property="Opacity" Value="0.6" />
                         </VisualState.Setters>
                     </VisualState>
                     <VisualState x:Name="On">
@@ -480,7 +481,8 @@
                     </VisualState>
                     <VisualState x:Name="Off">
                         <VisualState.Setters>
-                            <Setter Property="ThumbColor" Value="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}" />
+                            <Setter Property="ThumbColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource White}}" />
+                            <Setter Property="Opacity" Value="1" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>
@@ -502,7 +504,7 @@
     </Style>
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource BrandBackground}, Dark={StaticResource OffBlack}}" />
+        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource OffBlack}}" />
         <Setter Property="Shell.ForegroundColor" Value="{AppThemeBinding Light={StaticResource BrandInk}, Dark={StaticResource White}}" />
         <Setter Property="Shell.TitleColor" Value="{AppThemeBinding Light={StaticResource BrandTitle}, Dark={StaticResource White}}" />
         <Setter Property="Shell.DisabledColor" Value="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}" />
@@ -532,19 +534,24 @@
     <!-- ========================================================= -->
 
     <Style x:Key="CardBorderStyle" TargetType="Border">
-        <Setter Property="Stroke" Value="{StaticResource Gray300}" />
-        <Setter Property="StrokeThickness" Value="1" />
-        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
-        <Setter Property="BackgroundColor" Value="{StaticResource BrandSurface}" />
-        <Setter Property="Padding" Value="16" />
-        <Setter Property="Margin" Value="0,0,0,12" />
-    </Style>
-
-    <Style x:Key="DashboardTileBorderStyle" TargetType="Border">
         <Setter Property="Stroke" Value="{StaticResource Gray200}" />
         <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Shadow">
+            <Shadow
+            Brush="#000000"
+            Opacity="0.08"
+            Radius="10"
+            Offset="0,4" />
+        </Setter>
+    </Style>
+    <Style x:Key="DashboardTileBorderStyle" TargetType="Border">
+        <Setter Property="Stroke" Value="{StaticResource Gray200}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
         <Setter Property="StrokeShape" Value="RoundRectangle 20" />
-        <Setter Property="BackgroundColor" Value="{StaticResource BrandSurface}" />
         <Setter Property="Padding" Value="18" />
     </Style>
 
@@ -587,4 +594,5 @@
         <Setter Property="Padding" Value="16" />
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
+    
 </ResourceDictionary>

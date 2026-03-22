@@ -15,24 +15,35 @@
                 Spacing="24"
                 VerticalOptions="Center">
 
-                <!-- Brand Header -->
-                <VerticalStackLayout
-                    Spacing="8"
-                    HorizontalOptions="Center">
+                <Border
+                        Style="{StaticResource CardBorderStyle}"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="18"
+                        Margin="0,0,0,12">
 
-                    <Label
-                        Text="Haulory"
-                        FontSize="34"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource BrandTitle}"
-                        HorizontalTextAlignment="Center" />
+                    <VerticalStackLayout
+                                        Spacing="6"
+                                        HorizontalOptions="Center">
 
-                    <Label
-                        Text="Transport and logistics management"
-                        FontSize="14"
-                        TextColor="{StaticResource Gray600}"
-                        HorizontalTextAlignment="Center" />
-                </VerticalStackLayout>
+                        <!-- App name -->
+                        <Label
+                            Text="Haulory"
+                            FontSize="30"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}"
+                            HorizontalTextAlignment="Center" />
+
+                        <!-- Tagline -->
+                        <Label
+                            Text="Transport and logistics management"
+                            FontSize="14"
+                            TextColor="{StaticResource Gray600}"
+                            HorizontalTextAlignment="Center" />
+
+                    </VerticalStackLayout>
+
+                </Border>
 
                 <!-- Login card -->
                 <Border
@@ -160,40 +171,6 @@
                 </Border>
             </VerticalStackLayout>
         </ScrollView>
-
-        <!-- Footer -->
-        <Border
-            Grid.Row="1"
-            BackgroundColor="{StaticResource BrandSurface}"
-            StrokeThickness="1"
-            Stroke="{StaticResource Gray200}"
-            StrokeShape="RoundRectangle 18,18,0,0"
-            Padding="18,12">
-
-            <HorizontalStackLayout
-                HorizontalOptions="Center"
-                Spacing="6">
-
-                <Label
-                    Text="Secure transport, fleet, and compliance management"
-                    FontSize="12"
-                    TextColor="{StaticResource Gray600}"
-                    VerticalOptions="Center" />
-
-                <Label
-                    Text="•"
-                    FontSize="12"
-                    TextColor="{StaticResource Gray500}"
-                    VerticalOptions="Center" />
-
-                <Label
-                    Text="Haulory"
-                    FontSize="12"
-                    FontAttributes="Bold"
-                    TextColor="{StaticResource BrandTitle}"
-                    VerticalOptions="Center" />
-            </HorizontalStackLayout>
-        </Border>
 
     </Grid>
 </ContentPage>

@@ -57,7 +57,11 @@ public sealed class NewVehicleValidator
         (!ShowHeavyConfig(state) || state.HeavyConfiguration != null);
 
     public bool IsHeavyVehicle(NewVehicleFormState state) =>
-        state.VehicleType is VehicleType.RigidTruckMedium or VehicleType.RigidTruckHeavy or VehicleType.TrailerHeavy;
+        state.VehicleType is
+            VehicleType.RigidTruckMedium or
+            VehicleType.RigidTruckHeavy or
+            VehicleType.TractorUnit or
+            VehicleType.TrailerHeavy;
 
     public ComplianceCertificateType RequiredCertificate(NewVehicleFormState state) =>
         IsHeavyVehicle(state) ? ComplianceCertificateType.Cof : ComplianceCertificateType.Wof;

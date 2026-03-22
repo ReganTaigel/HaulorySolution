@@ -4,65 +4,110 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Haulory.Mobile.Views"
-    FlyoutBehavior="Flyout">
+    FlyoutBehavior="Flyout"
+    Shell.NavBarHasShadow="False"
+    Shell.BackgroundColor="#007BA7"
+    Shell.ForegroundColor="#1F2937"
+    Shell.TitleColor="#FFFFFF"
+    Shell.DisabledColor="#E5E7EB"
+    Shell.UnselectedColor="#9CA3AF">
 
-    <!-- Auth pages -->
+    <Shell.FlyoutHeader>
+        <Grid HeightRequest="140"
+              Padding="20,50,20,16"
+              BackgroundColor="#007BA7">
+
+            <VerticalStackLayout Spacing="6">
+                <Label
+                    Text="Haulory"
+                    FontSize="24"
+                    FontAttributes="Bold"
+                    TextColor="#FFFFFF" />
+
+                <Label
+                    Text="Transport management"
+                    FontSize="13"
+                    TextColor="#FFFFFF" />
+            </VerticalStackLayout>
+        </Grid>
+    </Shell.FlyoutHeader>
+
+
     <ShellContent
         Route="LoginPage"
+        FlyoutItemIsVisible="False"
         ContentTemplate="{DataTemplate views:LoginPage}" />
 
     <ShellContent
         Route="RegisterPage"
+        FlyoutItemIsVisible="False"
         ContentTemplate="{DataTemplate views:RegisterPage}" />
 
-    <!-- Main flyout -->
-    <FlyoutItem Title="Dashboard" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Dashboard"
+                Icon="dashboard.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Dashboard"
             Route="DashboardPage"
             ContentTemplate="{DataTemplate views:DashboardPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Jobs" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Jobs"
+                Icon="jobs.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Jobs"
             Route="JobsCollectionPage"
             ContentTemplate="{DataTemplate views:JobsCollectionPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Vehicles" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Vehicles"
+                Icon="vehicle.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Vehicles"
             Route="VehicleCollectionPage"
             ContentTemplate="{DataTemplate views:VehicleCollectionPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Drivers" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Drivers"
+                Icon="driver.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Drivers"
             Route="DriverCollectionPage"
             ContentTemplate="{DataTemplate views:DriverCollectionPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Reports" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Reports"
+                Icon="reports.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Reports"
             Route="ReportsPage"
             ContentTemplate="{DataTemplate views:ReportsPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Needs Review" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Needs Review"
+                Icon="warning.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Needs Review"
             Route="NeedsReviewPage"
             ContentTemplate="{DataTemplate views:NeedsReviewPage}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Settings" FlyoutDisplayOptions="AsSingleItem">
+    <FlyoutItem Title="Settings"
+                Icon="settings.png"
+                FlyoutDisplayOptions="AsSingleItem">
         <ShellContent
             Title="Settings"
             Route="SettingsPage"
             ContentTemplate="{DataTemplate views:SettingsPage}" />
     </FlyoutItem>
 
+    <MenuItem
+    Text="Logout"
+    IconImageSource="close.png"
+    Clicked="OnLogoutClicked" />
 </Shell>

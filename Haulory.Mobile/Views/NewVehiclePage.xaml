@@ -13,43 +13,6 @@
     <ScrollView>
         <VerticalStackLayout Spacing="14" Padding="20">
 
-            <!-- PAGE HEADER -->
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  VerticalOptions="Center">
-
-                <Border
-                    Grid.Column="0"
-                    BackgroundColor="{StaticResource Gray100}"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="10"
-                    VerticalOptions="Center">
-
-                    <Image
-                        Source="vehicle.svg"
-                        HeightRequest="22"
-                        WidthRequest="22" />
-                </Border>
-
-                <VerticalStackLayout
-                    Grid.Column="1"
-                    Spacing="3"
-                    VerticalOptions="Center">
-
-                    <Label
-                        Text="Add vehicle"
-                        FontSize="26"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource BrandTitle}" />
-
-                    <Label
-                        Text="Capture vehicle details, compliance, and configuration"
-                        FontSize="14"
-                        TextColor="{StaticResource Gray600}" />
-                </VerticalStackLayout>
-            </Grid>
 
             <!-- VEHICLE SETUP -->
             <Border

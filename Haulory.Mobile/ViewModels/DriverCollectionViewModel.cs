@@ -71,6 +71,7 @@ public class DriverCollectionViewModel : BaseViewModel
     public ICommand RefreshCommand { get; }
     public ICommand ManageInductionsCommand { get; }
     public ICommand ToggleDriverExpandedCommand { get; }
+    public ICommand EditDriverCommand { get; }
 
     #endregion
 
@@ -119,6 +120,23 @@ public class DriverCollectionViewModel : BaseViewModel
             }
 
             item.IsExpanded = !item.IsExpanded;
+        });
+        EditDriverCommand = new Command<DriverListItem>(async item =>
+        {
+            if (item == null)
+                return;
+
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    if (!await EnsureFeatureEnabledAsync(AppFeature.AddDriver))
+                        return;
+
+                    await Shell.Current.GoToAsync($"{nameof(NewDriverPage)}?driverId={item.Id}");
+                },
+                _crashLogger,
+                "DriverCollectionViewModel.EditDriverCommand",
+                nameof(DriverCollectionPage));
         });
     }
 

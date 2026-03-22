@@ -48,6 +48,25 @@ public class VehicleCollectionViewModel : BaseViewModel
     public ICommand EditVehicleCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ToggleVehicleExpandedCommand { get; }
+    public ICommand DeleteVehicleCommand { get; }
+
+    #endregion
+
+    #region Bindable Properties
+
+    private bool _isRefreshing;
+    public bool IsRefreshing
+    {
+        get => _isRefreshing;
+        set
+        {
+            if (_isRefreshing == value)
+                return;
+
+            _isRefreshing = value;
+            OnPropertyChanged();
+        }
+    }
 
     #endregion
 
@@ -102,7 +121,22 @@ public class VehicleCollectionViewModel : BaseViewModel
                 nameof(VehicleCollectionPage));
         });
 
-        RefreshCommand = new Command(async () => await LoadAsync());
+        RefreshCommand = new Command(async () =>
+        {
+            if (IsRefreshing)
+                return;
+
+            IsRefreshing = true;
+
+            try
+            {
+                await LoadAsync();
+            }
+            finally
+            {
+                IsRefreshing = false;
+            }
+        });
 
         ToggleVehicleExpandedCommand = new Command<VehicleListItemViewModel>(item =>
         {
@@ -116,6 +150,49 @@ public class VehicleCollectionViewModel : BaseViewModel
             }
 
             item.IsExpanded = !item.IsExpanded;
+        });
+
+        DeleteVehicleCommand = new Command<VehicleListItemViewModel>(async item =>
+        {
+            if (!IsMainUser)
+                return;
+
+            if (item == null || item.Id == Guid.Empty)
+                return;
+
+            var label = $"{item.Year} {item.Make} {item.Model}".Trim();
+            var displayName = string.IsNullOrWhiteSpace(item.Rego)
+                ? label
+                : $"{label} ({item.Rego})";
+
+            var confirm = await Shell.Current.DisplayAlertAsync(
+                "Delete vehicle",
+                $"Are you sure you want to delete {displayName}?",
+                "Delete",
+                "Cancel");
+
+            if (!confirm)
+                return;
+
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    await _vehiclesApiService.DeleteVehicleAsync(item.Id);
+                    await LoadAsync();
+
+                    await Shell.Current.DisplayAlertAsync(
+                        "Deleted",
+                        "Vehicle deleted successfully.",
+                        "OK");
+                },
+                _crashLogger,
+                "VehicleCollectionViewModel.DeleteVehicleCommand",
+                nameof(VehicleCollectionPage),
+                metadataJson: $"{{\"VehicleId\":\"{item.Id}\"}}",
+                onError: async ex =>
+                {
+                    await Shell.Current.DisplayAlertAsync("Delete failed", ex.Message, "OK");
+                });
         });
     }
 

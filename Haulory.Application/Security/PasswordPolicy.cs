@@ -30,17 +30,17 @@ public static class PasswordPolicy
 
         // Require at least 2 digits
         int digitCount = password.Count(char.IsDigit);
-        if (digitCount < 2)
+        if (digitCount < 1)
         {
-            errorMessage = "Password must contain at least 2 numbers.";
+            errorMessage = "Password must contain at least 1 numbers.";
             return false;
         }
 
         // Require at least 2 special characters
         int specialCount = password.Count(c => !char.IsLetterOrDigit(c));
-        if (specialCount < 2)
+        if (specialCount < 1)
         {
-            errorMessage = "Password must contain at least 2 special characters.";
+            errorMessage = "Password must contain at least 1 special characters.";
             return false;
         }
 

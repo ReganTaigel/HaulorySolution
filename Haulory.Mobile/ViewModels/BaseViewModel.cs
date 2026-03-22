@@ -69,14 +69,14 @@ public abstract class BaseViewModel : INotifyPropertyChanged
     protected bool IsFeatureVisible(AppFeature feature)
     {
         var result = FeatureAccessService?.IsVisible(feature) ?? true;
-        System.Diagnostics.Debug.WriteLine($"[IsFeatureVisible] {feature} => {result}");
+
         return result;
     }
 
     protected bool IsFeatureEnabled(AppFeature feature)
     {
         var result = FeatureAccessService?.IsEnabled(feature) ?? true;
-        System.Diagnostics.Debug.WriteLine($"[IsFeatureEnabled] {feature} => {result}");
+ 
         return result;
     }
 

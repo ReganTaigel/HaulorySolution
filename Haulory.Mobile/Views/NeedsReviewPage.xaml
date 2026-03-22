@@ -16,37 +16,6 @@
         <!-- HEADER -->
         <VerticalStackLayout Grid.Row="0" Spacing="12">
 
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  VerticalOptions="Center">
-
-                <Border
-                    Grid.Column="0"
-                    BackgroundColor="{StaticResource Gray100}"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="10"
-                    VerticalOptions="Center">
-
-                    <Image
-                        Source="warning.svg"
-                        HeightRequest="22"
-                        WidthRequest="22" />
-                </Border>
-
-                <VerticalStackLayout Grid.Column="1" Spacing="3">
-                    <Label Text="Needs Review"
-                           FontSize="28"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
-
-                    <Label Text="Review completed jobs with wait time or damage notes"
-                           FontSize="14"
-                           TextColor="{StaticResource Gray600}" />
-                </VerticalStackLayout>
-            </Grid>
-
             <Border Style="{StaticResource CardBorderStyle}"
                     Stroke="{StaticResource Gray300}"
                     Padding="14">
@@ -83,34 +52,51 @@
                             Margin="0,2,0,0">
 
                 <CollectionView.EmptyView>
-                    <VerticalStackLayout Padding="24"
-                                         Spacing="8"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Center">
+                    <Border
+                            Style="{StaticResource CardBorderStyle}"
+                            Stroke="{StaticResource Gray200}"
+                            StrokeShape="RoundRectangle 20"
+                            Padding="20"
+                            Margin="0,12,0,0">
 
-                        <Border
-                            BackgroundColor="{StaticResource BrandTileFill}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 18"
-                            Padding="12">
+                        <VerticalStackLayout
+                                        Spacing="10"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center">
 
-                            <Image Source="checklist.svg"
-                                   HeightRequest="26"
-                                   WidthRequest="26" />
-                        </Border>
+                            <!-- Icon -->
+                            <Border
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 18"
+                                Padding="12"
+                                HorizontalOptions="Center">
 
-                        <Label Text="No jobs need review"
-                               FontSize="17"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource BrandTitle}"
-                               HorizontalTextAlignment="Center" />
+                                <Image
+                                    Source="checklist.svg"
+                                    HeightRequest="26"
+                                    WidthRequest="26" />
+                            </Border>
 
-                        <Label Text="Exception deliveries will appear here"
-                               FontSize="14"
-                               TextColor="{StaticResource Gray600}"
-                               HorizontalTextAlignment="Center" />
-                    </VerticalStackLayout>
+                            <!-- Title -->
+                            <Label
+                                Text="No jobs need review"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}"
+                                HorizontalTextAlignment="Center" />
+
+                            <!-- Subtitle -->
+                            <Label
+                                Text="Exception deliveries will appear here"
+                                FontSize="13"
+                                TextColor="{StaticResource Gray600}"
+                                HorizontalTextAlignment="Center"/>
+
+                        </VerticalStackLayout>
+
+                    </Border>
                 </CollectionView.EmptyView>
 
                 <CollectionView.ItemTemplate>

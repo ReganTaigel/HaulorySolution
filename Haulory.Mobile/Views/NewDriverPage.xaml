@@ -13,44 +13,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
-            <!-- PAGE HEADER -->
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  VerticalOptions="Center">
-
-                <Border
-                    Grid.Column="0"
-                    BackgroundColor="{StaticResource Gray100}"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="10"
-                    VerticalOptions="Center">
-
-                    <Image
-                        Source="user.svg"
-                        HeightRequest="22"
-                        WidthRequest="22" />
-                </Border>
-
-                <VerticalStackLayout
-                    Grid.Column="1"
-                    Spacing="3"
-                    VerticalOptions="Center">
-
-                    <Label
-                        Text="Add People"
-                        FontSize="26"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource BrandTitle}" />
-
-                    <Label
-                        Text="Create a driver profile and emergency contact"
-                        FontSize="14"
-                        TextColor="{StaticResource Gray600}" />
-                </VerticalStackLayout>
-            </Grid>
-
             <!-- DRIVER DETAILS -->
             <Border
                 Style="{StaticResource CardBorderStyle}"
@@ -84,8 +46,14 @@
                         Padding="12">
 
                         <VerticalStackLayout Spacing="10">
-
+                            
+                            <Label Text="First Name"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
                             <Border Style="{StaticResource InputBorderStyle}">
+
                                 <Entry
                                     Placeholder="First name"
                                     Text="{Binding FirstName}"
@@ -93,9 +61,16 @@
                                     HeightRequest="44"
                                     TextColor="{StaticResource BrandInk}"
                                     PlaceholderColor="{StaticResource Gray500}" />
+                                
                             </Border>
-
+                            
+                            <Label Text="Last Name"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
                             <Border Style="{StaticResource InputBorderStyle}">
+                                
                                 <Entry
                                     Placeholder="Last name"
                                     Text="{Binding LastName}"
@@ -103,9 +78,33 @@
                                     HeightRequest="44"
                                     TextColor="{StaticResource BrandInk}"
                                     PlaceholderColor="{StaticResource Gray500}" />
+                                
                             </Border>
-
+                            
+                            <Label
+                                    Text="Phone number"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                            
                             <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                        Placeholder="Optional"
+                                        Keyboard="Telephone"
+                                        Text="{Binding PhoneNumber}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+                            
+                            <Label Text="Email"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                
                                 <Entry
                                     Placeholder="Email"
                                     Keyboard="Email"
@@ -114,31 +113,47 @@
                                     HeightRequest="44"
                                     TextColor="{StaticResource BrandInk}"
                                     PlaceholderColor="{StaticResource Gray500}" />
+                                
                             </Border>
-
-                            <Border Style="{StaticResource InputBorderStyle}">
-                                <Entry
-                                    Placeholder="Licence number (optional)"
-                                    Text="{Binding LicenceNumber}"
-                                    FontSize="14"
-                                    HeightRequest="44"
-                                    TextColor="{StaticResource BrandInk}"
-                                    PlaceholderColor="{StaticResource Gray500}" />
-                            </Border>
+                            
+                            <VerticalStackLayout Spacing="6">
+                                
+                                <Label
+                                    Text="Date of birth"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    
+                                    <DatePicker
+                                        Date="{Binding DateOfBirthLocal}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                    
+                                </Border>
+                            </VerticalStackLayout>
 
                             <!-- CREATE LOGIN -->
                             <Border
-                                StrokeThickness="1"
-                                Stroke="{StaticResource Gray200}"
-                                StrokeShape="RoundRectangle 14"
-                                BackgroundColor="{StaticResource BrandSurface}"
-                                Padding="12"
-                                Margin="0,4,0,0">
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="12"
+                                    Margin="0,4,0,0"
+                                    IsVisible="{Binding ShowCreateLoginSection}">
 
                                 <VerticalStackLayout Spacing="10">
 
                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        
                                         <VerticalStackLayout Spacing="3">
+                                            
                                             <Label
                                                 Text="Create login for this driver"
                                                 FontSize="13"
@@ -150,15 +165,18 @@
                                                 FontSize="13"
                                                 LineHeight="1.15"
                                                 TextColor="{StaticResource Gray600}" />
+                                            
                                         </VerticalStackLayout>
 
                                         <Switch
                                             Grid.Column="1"
                                             IsToggled="{Binding CreateLoginAccount}"
                                             VerticalOptions="Center" />
+                                        
                                     </Grid>
 
                                     <VerticalStackLayout Spacing="6">
+                                        
                                         <VerticalStackLayout.Triggers>
                                             <DataTrigger
                                                 TargetType="VerticalStackLayout"
@@ -234,56 +252,22 @@
                         <VerticalStackLayout Spacing="12">
 
                             <VerticalStackLayout Spacing="6">
+
                                 <Label
-                                    Text="Phone number"
+                                    Text="Licence Number"
                                     FontSize="13"
                                     FontAttributes="Bold"
                                     TextColor="{StaticResource BrandTitle}" />
+                                
                                 <Border Style="{StaticResource InputBorderStyle}">
+                                    
                                     <Entry
-                                        Placeholder="Optional"
-                                        Keyboard="Telephone"
-                                        Text="{Binding PhoneNumber}"
+                                        Placeholder="Licence number (optional)"
+                                        Text="{Binding LicenceNumber}"
                                         FontSize="14"
                                         HeightRequest="44"
                                         TextColor="{StaticResource BrandInk}"
                                         PlaceholderColor="{StaticResource Gray500}" />
-                                </Border>
-                            </VerticalStackLayout>
-
-                            <VerticalStackLayout Spacing="6">
-                                <Label
-                                    Text="Date of birth"
-                                    FontSize="13"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource BrandTitle}" />
-                                <Border
-                                    StrokeThickness="1"
-                                    Stroke="{StaticResource Gray200}"
-                                    StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="{StaticResource BrandSurface}"
-                                    Padding="10,6">
-                                    <DatePicker
-                                        Date="{Binding DateOfBirthLocal}"
-                                        TextColor="{StaticResource BrandInk}" />
-                                </Border>
-                            </VerticalStackLayout>
-
-                            <VerticalStackLayout Spacing="6">
-                                <Label
-                                    Text="Licence expiry"
-                                    FontSize="13"
-                                    FontAttributes="Bold"
-                                    TextColor="{StaticResource BrandTitle}" />
-                                <Border
-                                    StrokeThickness="1"
-                                    Stroke="{StaticResource Gray200}"
-                                    StrokeShape="RoundRectangle 12"
-                                    BackgroundColor="{StaticResource BrandSurface}"
-                                    Padding="10,6">
-                                    <DatePicker
-                                        Date="{Binding LicenceExpiryLocal}"
-                                        TextColor="{StaticResource BrandInk}" />
                                 </Border>
                             </VerticalStackLayout>
 
@@ -303,7 +287,7 @@
                                         PlaceholderColor="{StaticResource Gray500}" />
                                 </Border>
                             </VerticalStackLayout>
-
+                            
                             <VerticalStackLayout Spacing="6">
                                 <Label
                                     Text="Class / endorsements"
@@ -338,6 +322,25 @@
                                         TextColor="{StaticResource BrandInk}" />
                                 </Border>
                             </VerticalStackLayout>
+                            
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Licence expiry"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding LicenceExpiryLocal}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
 
                             <VerticalStackLayout Spacing="6">
                                 <Label
@@ -589,7 +592,7 @@
 
             <!-- SAVE -->
             <Button
-                Text="Save driver"
+                Text="{Binding SaveButtonText}"
                 Command="{Binding SaveDriverCommand}"
                 IsVisible="{Binding ShowAddDriver}"
                 IsEnabled="{Binding CanSave}"

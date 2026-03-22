@@ -8,6 +8,9 @@ public class SettingsViewModel : BaseViewModel
 {
     private readonly DocumentSettingsApiService _settingsApiService;
 
+    public SettingsSectionViewModel InvoiceSection { get; }
+    public SettingsSectionViewModel PodSection { get; }
+
     public bool GstEnabled { get; set; }
     public decimal GstRatePercent { get; set; }
     public bool FuelSurchargeEnabled { get; set; }
@@ -18,12 +21,15 @@ public class SettingsViewModel : BaseViewModel
     public bool ShowDamageNotesOnPod { get; set; }
     public bool ShowWaitTimeOnPod { get; set; }
 
-
     public ICommand SaveCommand { get; }
 
     public SettingsViewModel(DocumentSettingsApiService settingsApiService)
     {
         _settingsApiService = settingsApiService;
+
+        InvoiceSection = new SettingsSectionViewModel("Invoice Settings", true);
+        PodSection = new SettingsSectionViewModel("POD Settings", false);
+
         SaveCommand = new Command(async () => await SaveAsync());
     }
 

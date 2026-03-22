@@ -2,7 +2,6 @@
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using SkiaSharp;
 
 namespace Haulory.Infrastructure.Persistence.Repositories;
 
@@ -33,13 +32,18 @@ public sealed class VehicleAssetRepository : IVehicleAssetRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var asset = await _db.VehicleAssets.FindAsync(id);
-        if (asset == null) return;
+        var asset = await _db.VehicleAssets
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+
+        if (asset == null)
+            return false;
 
         _db.VehicleAssets.Remove(asset);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<IReadOnlyList<VehicleAsset>> GetAllAsync()

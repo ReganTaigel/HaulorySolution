@@ -14,106 +14,56 @@
         Padding="20"
         RowSpacing="14"
         IsVisible="{Binding IsVehiclesVisible}">
+        <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray200}"
+                StrokeShape="RoundRectangle 18"
+                Padding="14">
 
-        <!-- HEADER -->
-        <VerticalStackLayout Grid.Row="0" Spacing="12">
+            <Grid ColumnDefinitions="Auto,*,Auto"
+                  ColumnSpacing="12"
+                  VerticalOptions="Center">
 
-            <Grid ColumnDefinitions="*,Auto"
-                  ColumnSpacing="12">
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="{StaticResource BrandTileFill}"
+                    Stroke="{StaticResource Gray200}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="8"
+                    VerticalOptions="Center">
 
-                <Grid ColumnDefinitions="Auto,*"
-                      ColumnSpacing="12"
-                      VerticalOptions="Center">
+                    <Image
+                        Source="vehicle.svg"
+                        HeightRequest="20"
+                        WidthRequest="20" />
+                </Border>
 
-                    <Border
-                        Grid.Column="0"
-                        BackgroundColor="{StaticResource Gray100}"
-                        Stroke="{StaticResource Gray300}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 16"
-                        Padding="10"
-                        VerticalOptions="Center">
-
-                        <Image
-                            Source="vehicle.svg"
-                            HeightRequest="22"
-                            WidthRequest="22" />
-                    </Border>
-
-                    <VerticalStackLayout
-                        Grid.Column="1"
-                        Spacing="3"
-                        VerticalOptions="Center">
-
-                        <Label
-                            Text="Vehicles"
-                            FontSize="28"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource BrandTitle}" />
-
-                        <Label
-                            Text="Keep your fleet compliant and ready"
-                            FontSize="14"
-                            TextColor="{StaticResource Gray600}" />
-                    </VerticalStackLayout>
-                </Grid>
+                <Label
+                    Grid.Column="1"
+                    Text="Add and manage vehicles, trailers, and fleet assets."
+                    FontSize="14"
+                    TextColor="{StaticResource Gray600}"
+                    VerticalTextAlignment="Center" />
 
                 <Button
-                    Grid.Column="1"
-                    Text="Add"
+                    Grid.Column="2"
+                    Text="Add Vehicle"
                     Command="{Binding GoToNewVehicleCommand}"
                     IsVisible="{Binding IsAddVehicleVisible}"
                     IsEnabled="{Binding IsAddVehicleEnabled}"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HeightRequest="44"
                     Padding="16,0" />
+
             </Grid>
-
-            <Border
-                Style="{StaticResource CardBorderStyle}"
-                Stroke="{StaticResource Gray300}"
-                Padding="14">
-
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-
-                    <Border
-                        BackgroundColor="{StaticResource BrandTileFill}"
-                        Stroke="{StaticResource Gray300}"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 12"
-                        Padding="8"
-                        VerticalOptions="Start">
-
-                        <Image
-                            Source="warning.svg"
-                            HeightRequest="18"
-                            WidthRequest="18" />
-                    </Border>
-
-                    <VerticalStackLayout Grid.Column="1" Spacing="4">
-
-                        <Label
-                            Text="Tip"
-                            FontSize="13"
-                            TextColor="{StaticResource Gray600}" />
-
-                        <Label
-                            Text="Tap a vehicle card to show or hide details"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource BrandTitle}" />
-
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
-
-        </VerticalStackLayout>
+        </Border>
 
         <!-- LIST -->
         <RefreshView
             Grid.Row="1"
             Command="{Binding RefreshCommand}"
-            IsRefreshing="{Binding IsBusy}"
+            IsRefreshing="{Binding IsRefreshing}"
             IsEnabled="{Binding IsVehiclesEnabled}">
 
             <CollectionView
@@ -192,26 +142,30 @@
                             <VerticalStackLayout Spacing="14">
 
                                 <!-- tappable header -->
-                                <Grid ColumnDefinitions="*,Auto"
-                                      ColumnSpacing="12">
+                                <Grid ColumnDefinitions="*"
+                                        ColumnSpacing="12">
 
+                                    <!-- Make the WHOLE header tappable -->
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer
                                             Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ToggleVehicleExpandedCommand}"
                                             CommandParameter="{Binding .}" />
                                     </Grid.GestureRecognizers>
 
-                                    <VerticalStackLayout Grid.Column="0" Spacing="8">
+                                    <VerticalStackLayout Spacing="8">
 
-                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <!-- TOP ROW -->
+                                        <Grid ColumnDefinitions="Auto,*,Auto"
+                                                ColumnSpacing="10">
 
+                                            <!-- Icon -->
                                             <Border
                                                 BackgroundColor="{StaticResource Gray100}"
                                                 Stroke="{StaticResource Gray300}"
                                                 StrokeThickness="1"
                                                 StrokeShape="RoundRectangle 12"
                                                 Padding="8"
-                                                VerticalOptions="Start">
+                                                VerticalOptions="Center">
 
                                                 <Image
                                                     Source="vehicle.svg"
@@ -219,6 +173,7 @@
                                                     WidthRequest="18" />
                                             </Border>
 
+                                            <!-- Vehicle info -->
                                             <VerticalStackLayout Grid.Column="1" Spacing="6">
 
                                                 <Label
@@ -228,63 +183,87 @@
 
                                                     <Label.Text>
                                                         <MultiBinding StringFormat="{}{0} {1} {2}">
-                                                            <Binding Path="Year"/>
-                                                            <Binding Path="Make"/>
-                                                            <Binding Path="Model"/>
+                                                            <Binding Path="Year" />
+                                                            <Binding Path="Make" />
+                                                            <Binding Path="Model" />
                                                         </MultiBinding>
                                                     </Label.Text>
 
                                                 </Label>
 
-                                                <Border
-                                                    StrokeThickness="1"
-                                                    Stroke="{StaticResource Gray300}"
-                                                    StrokeShape="RoundRectangle 12"
-                                                    BackgroundColor="{StaticResource BrandTileFill}"
-                                                    Padding="10,6">
+                                                <HorizontalStackLayout Spacing="8">
 
-                                                    <Label
-                                                        Text="{Binding VehicleTypeDisplay}"
-                                                        FontSize="13"
-                                                        TextColor="{StaticResource BrandInk}" />
+                                                    <Border
+                                                            StrokeThickness="1"
+                                                            Stroke="{StaticResource Gray300}"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            BackgroundColor="{StaticResource BrandTileFill}"
+                                                            Padding="10,6">
 
-                                                </Border>
+                                                        <Label
+                                                                Text="{Binding VehicleTypeDisplay}"
+                                                                FontSize="13"
+                                                                TextColor="{StaticResource BrandInk}" />
+                                                    </Border>
+
+                                                    <Border
+                                                            StrokeThickness="1"
+                                                            Stroke="{StaticResource Gray300}"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            BackgroundColor="{StaticResource Gray100}"
+                                                            Padding="10,6">
+
+                                                        <Label
+                                                            Text="{Binding Rego}"
+                                                            FontSize="13"
+                                                            FontAttributes="Bold"
+                                                            TextColor="{StaticResource BrandTitle}" />
+                                                    </Border>
+
+                                                </HorizontalStackLayout>
 
                                             </VerticalStackLayout>
+
                                         </Grid>
 
-                                        <Label
-                                            Text="{Binding ExpandText}"
-                                            FontSize="13"
-                                            FontAttributes="Bold"
-                                            TextColor="{StaticResource Primary}" />
+                                        <!-- EXPAND TEXT + CHEVRON INLINE -->
+                                        <HorizontalStackLayout Spacing="6">
+
+                                            <Label
+                                                    Text="{Binding ExpandText}"
+                                                    FontSize="13"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource Primary}" />
+
+                                            <Label
+                                                    Text="{Binding ExpandIcon}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource Gray600}" />
+
+                                        </HorizontalStackLayout>
+
                                     </VerticalStackLayout>
 
-                                    <Label
-                                        Grid.Column="1"
-                                        Text="{Binding ExpandIcon}"
-                                        FontSize="16"
-                                        FontAttributes="Bold"
-                                        TextColor="{StaticResource Gray600}"
-                                        VerticalOptions="Start" />
                                 </Grid>
 
                                 <!-- expandable details -->
                                 <VerticalStackLayout
-                                    Spacing="14"
-                                    IsVisible="{Binding IsExpanded}">
+                                            Spacing="10"
+                                            IsVisible="{Binding IsExpanded}">
 
                                     <!-- COMPLIANCE -->
                                     <Border
-                                        StrokeThickness="1"
-                                        Stroke="{StaticResource Gray300}"
-                                        StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="{StaticResource BrandTileFill}"
-                                        Padding="12">
+                                            StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="{StaticResource Gray100}"
+                                            Padding="12">
 
-                                        <VerticalStackLayout Spacing="8">
+                                        <VerticalStackLayout Spacing="10">
 
-                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                    ColumnSpacing="8">
                                                 <Image
                                                     Source="warning.svg"
                                                     HeightRequest="16"
@@ -299,53 +278,114 @@
                                                     TextColor="{StaticResource BrandTitle}" />
                                             </Grid>
 
-                                            <Label
-                                                Text="{Binding Rego, StringFormat='Rego: {0}'}"
-                                                FontSize="14"
-                                                TextColor="{StaticResource BrandInk}" />
+                                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                                  RowDefinitions="Auto,Auto"
+                                                  ColumnSpacing="10"
+                                                  RowSpacing="8">
 
-                                            <Label
-                                                Text="{Binding RegoExpiryDisplay, StringFormat='Expires: {0}'}"
-                                                FontSize="14"
-                                                TextColor="{StaticResource BrandInk}" />
+                                                <Label
+                                                    Text="Rego"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
 
-                                            <Label
-                                                Text="{Binding RegoStatusInlineDisplay}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandTitle}" />
+                                                <Label
+                                                        Grid.Column="1"
+                                                        Text="{Binding Rego}"
+                                                        FontSize="14"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource BrandInk}" />
 
-                                            <Label
-                                                Text="{Binding CertificateNameDisplay, StringFormat='{0} expiry'}"
-                                                FontSize="14"
-                                                TextColor="{StaticResource BrandInk}" />
+                                                <Border
+                                                        Grid.Column="2"
+                                                        StrokeThickness="1"
+                                                        Stroke="{StaticResource BrandAccent}"
+                                                        StrokeShape="RoundRectangle 10"
+                                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                                        Padding="8,3">
+                                                    <Label
+                                                        Text="{Binding RegoStatusInlineDisplay}"
+                                                        FontSize="12"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource BrandAccent}" />
+                                                </Border>
 
-                                            <Label
-                                                Text="{Binding CertificateExpiryDisplay}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandTitle}" />
+                                                <Label
+                                                        Grid.Row="1"
+                                                        Text="Expires"
+                                                        FontSize="13"
+                                                        TextColor="{StaticResource Gray600}" />
 
-                                            <Label
-                                                Text="{Binding CertStatusInlineDisplay}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandTitle}" />
+                                                <Label
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Text="{Binding RegoExpiryDisplay}"
+                                                    FontSize="14"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                            </Grid>
+
+                                            <BoxView HeightRequest="1"
+                                                     BackgroundColor="{StaticResource Gray300}" />
+
+                                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                                      RowDefinitions="Auto,Auto"
+                                                      ColumnSpacing="10"
+                                                      RowSpacing="8">
+
+                                                <Label
+                                                    Text="{Binding CertificateNameDisplay}"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
+
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Text="{Binding CertificateExpiryDisplay}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandInk}" />
+
+                                                <Border
+                                                        Grid.Column="2"
+                                                        StrokeThickness="1"
+                                                        Stroke="{StaticResource BrandAccent}"
+                                                        StrokeShape="RoundRectangle 10"
+                                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                                        Padding="8,3">
+                                                    <Label
+                                                        Text="{Binding CertStatusInlineDisplay}"
+                                                        FontSize="12"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{StaticResource BrandAccent}" />
+                                                </Border>
+
+                                                <Label
+                                                    Grid.Row="1"
+                                                    Text="Type"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
+
+                                                <Label
+                                                    Grid.Row="1"
+                                                    Grid.Column="1"
+                                                    Text="{Binding CertificateNameDisplay, StringFormat='{}{0} expiry'}"
+                                                    FontSize="14"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                            </Grid>
 
                                         </VerticalStackLayout>
                                     </Border>
 
                                     <!-- ODOMETER -->
                                     <Border
-                                        StrokeThickness="1"
-                                        Stroke="{StaticResource Gray300}"
-                                        StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="{StaticResource BrandTileFill}"
-                                        Padding="12">
+                                            StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="{StaticResource Gray100}"
+                                            Padding="12">
 
-                                        <VerticalStackLayout Spacing="6">
+                                        <VerticalStackLayout Spacing="8">
 
-                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                     ColumnSpacing="8">
                                                 <Image
                                                     Source="odometer.svg"
                                                     HeightRequest="16"
@@ -360,27 +400,37 @@
                                                     TextColor="{StaticResource BrandTitle}" />
                                             </Grid>
 
-                                            <Label
-                                                Text="{Binding OdometerFullDisplay, StringFormat='Current: {0}'}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandInk}" />
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                     ColumnSpacing="10">
+                                                <Label
+                                                    Text="Current"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
+
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Text="{Binding OdometerFullDisplay}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                            </Grid>
 
                                         </VerticalStackLayout>
                                     </Border>
 
                                     <!-- RUC -->
                                     <Border
-                                        StrokeThickness="1"
-                                        Stroke="{StaticResource Gray300}"
-                                        StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="{StaticResource BrandTileFill}"
-                                        Padding="12"
-                                        IsVisible="{Binding IsRucApplicable}">
+                                            StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="{StaticResource Gray100}"
+                                            Padding="12"
+                                            IsVisible="{Binding IsRucApplicable}">
 
-                                        <VerticalStackLayout Spacing="8">
+                                        <VerticalStackLayout Spacing="10">
 
-                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                    ColumnSpacing="8">
                                                 <Image
                                                     Source="receipt.svg"
                                                     HeightRequest="16"
@@ -395,42 +445,85 @@
                                                     TextColor="{StaticResource BrandTitle}" />
                                             </Grid>
 
-                                            <Label
-                                                FontSize="14"
-                                                TextColor="{StaticResource BrandInk}">
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                     ColumnSpacing="10">
+                                                <Label
+                                                    Text="Licence"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
 
-                                                <Label.Text>
-                                                    <MultiBinding StringFormat="Licence: {0} to {1}">
-                                                        <Binding Path="RucLicenceStartDisplay"/>
-                                                        <Binding Path="RucLicenceEndDisplay"/>
-                                                    </MultiBinding>
-                                                </Label.Text>
+                                                <Label
+                                                        Grid.Column="1"
+                                                        FontSize="14"
+                                                        TextColor="{StaticResource BrandInk}">
+                                                    <Label.Text>
+                                                        <MultiBinding StringFormat="{}{0} to {1}">
+                                                            <Binding Path="RucLicenceStartDisplay" />
+                                                            <Binding Path="RucLicenceEndDisplay" />
+                                                        </MultiBinding>
+                                                    </Label.Text>
+                                                </Label>
+                                            </Grid>
 
-                                            </Label>
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                    ColumnSpacing="10">
+                                                <Label
+                                                        Text="Remaining"
+                                                        FontSize="13"
+                                                        TextColor="{StaticResource Gray600}" />
 
-                                            <Label
-                                                Text="{Binding RucRemainingDisplay, StringFormat='Remaining: {0}'}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandTitle}" />
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Text="{Binding RucRemainingDisplay}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandTitle}" />
+                                            </Grid>
 
-                                            <Label
-                                                Text="{Binding IsRucOverdueYesNo, StringFormat='Overdue: {0}'}"
-                                                FontSize="14"
-                                                FontAttributes="Bold"
-                                                TextColor="{StaticResource BrandTitle}" />
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                    ColumnSpacing="10">
+                                                <Label
+                                                    Text="Overdue"
+                                                    FontSize="13"
+                                                    TextColor="{StaticResource Gray600}" />
+
+                                                <Label
+                                                    Grid.Column="1"
+                                                    Text="{Binding IsRucOverdueYesNo}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{StaticResource BrandTitle}" />
+                                            </Grid>
 
                                         </VerticalStackLayout>
                                     </Border>
 
-                                    <!-- edit button -->
-                                    <Button
-                                        Text="Edit vehicle"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditVehicleCommand}"
-                                        CommandParameter="{Binding .}"
-                                        IsVisible="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IsMainUser}"
-                                        Style="{StaticResource PrimaryButtonStyle}"
-                                        HeightRequest="44" />
+                                    <!-- ACTIONS -->
+                                    <Grid ColumnDefinitions="*,*"
+                                          ColumnSpacing="10"
+                                          Margin="0,4,0,0">
+
+                                        <Button
+                                                Grid.Column="0"
+                                                Text="Edit"
+                                                HeightRequest="44"
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditVehicleCommand}"
+                                                CommandParameter="{Binding .}" />
+
+                                        <Button
+                                                Grid.Column="1"
+                                                Text="Delete"
+                                                HeightRequest="44"
+                                                BackgroundColor="{StaticResource White}"
+                                                TextColor="{StaticResource BrandDanger}"
+                                                BorderColor="{StaticResource BrandDanger}"
+                                                BorderWidth="1"
+                                                CornerRadius="12"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteVehicleCommand}"
+                                                CommandParameter="{Binding .}" />
+
+                                    </Grid>
 
                                 </VerticalStackLayout>
 

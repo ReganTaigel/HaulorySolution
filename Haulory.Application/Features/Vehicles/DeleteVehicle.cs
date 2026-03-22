@@ -23,11 +23,7 @@ public class DeleteVehicle
 
     public async Task<bool> DeleteAsync(Guid vehicleAssetId, CancellationToken ct = default)
     {
-        // Deletes a vehicle asset by Id
-        // Assumes repository handles existence validation internally
-        await _repo.DeleteAsync(vehicleAssetId);
-
-        return true;
+        return await _repo.DeleteAsync(vehicleAssetId, ct);
     }
 
     #endregion

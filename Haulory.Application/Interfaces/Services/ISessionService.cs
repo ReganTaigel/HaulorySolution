@@ -14,4 +14,5 @@ public interface ISessionService
     Task SetAccountAsync(Guid accountId, Guid ownerId, string jwtToken);
 
     Task ClearAsync();
+
 }

@@ -2,6 +2,7 @@ using Haulory.Application.Interfaces.Services;
 using Haulory.Contracts.Auth;
 using Haulory.Mobile.Diagnostics;
 using Haulory.Mobile.Services;
+using Haulory.Mobile.Views;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Storage;
 using System;
@@ -182,17 +183,10 @@ public class RegisterViewModel : BaseViewModel
         !string.IsNullOrEmpty(Password) &&
         Password == ConfirmPassword;
 
-    public string PasswordsMatchMessage =>
-        string.IsNullOrEmpty(ConfirmPassword) ? string.Empty :
-        PasswordsMatch ? "Passwords match" : "Passwords do not match";
-
-    public Color PasswordsMatchColor => PasswordsMatch ? Colors.Green : Colors.Red;
-
     private void RaisePasswordMatchState()
     {
         OnPropertyChanged(nameof(PasswordsMatch));
-        OnPropertyChanged(nameof(PasswordsMatchMessage));
-        OnPropertyChanged(nameof(PasswordsMatchColor));
+      
     }
 
     #endregion
@@ -229,7 +223,7 @@ public class RegisterViewModel : BaseViewModel
     #region Commands
 
     public ICommand RegisterCommand { get; }
-
+    public ICommand GoToLoginCommand { get; }
     #endregion
 
     #region Constructor
@@ -244,7 +238,10 @@ public class RegisterViewModel : BaseViewModel
         _crashLogger = crashLogger;
 
         RegisterCommand = new Command(async () => await ExecuteRegisterAsync(), () => CanRegister);
-
+        GoToLoginCommand = new Command(async () =>
+        {
+            await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
+        });
         RefreshRegisterState();
     }
 

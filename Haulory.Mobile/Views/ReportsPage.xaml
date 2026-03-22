@@ -12,36 +12,42 @@
     <ScrollView>
         <VerticalStackLayout Padding="24" Spacing="14">
 
-            <!-- Header -->
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  IsVisible="{Binding IsReportsVisible}">
+            <Border
+                    Style="{StaticResource CardBorderStyle}"
+                    Stroke="{StaticResource Gray200}"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="14"
+                    IsVisible="{Binding IsReportsVisible}">
 
-                <Border
-                    BackgroundColor="{StaticResource Gray100}"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="10">
+                <Grid ColumnDefinitions="Auto,*"
+                        ColumnSpacing="12">
 
-                    <Image
-                        Source="reports.svg"
-                        HeightRequest="22"
-                        WidthRequest="22" />
-                </Border>
+                    <!-- Icon -->
+                    <Border
+                            BackgroundColor="{StaticResource BrandTileFill}"
+                            Stroke="{StaticResource Gray200}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="8"
+                            VerticalOptions="Center">
 
-                <VerticalStackLayout Grid.Column="1" Spacing="3">
-                    <Label Text="Reports"
-                           FontSize="26"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource BrandTitle}" />
+                        <Image
+                            Source="reports.svg"
+                            HeightRequest="20"
+                            WidthRequest="20" />
+                    </Border>
 
-                    <Label Text="Delivered jobs and totals for the selected date"
-                           FontSize="14"
-                           TextColor="{StaticResource Gray600}" />
-                </VerticalStackLayout>
+                    <!-- Description only -->
+                    <Label
+                        Grid.Column="1"
+                        Text="Delivered jobs and totals for the selected date"
+                        FontSize="14"
+                        TextColor="{StaticResource Gray600}"
+                        VerticalTextAlignment="Center" />
 
-            </Grid>
+                </Grid>
+
+            </Border>
 
             <!-- Stats row -->
             <Grid ColumnDefinitions="*,*"
@@ -105,7 +111,7 @@
                         <Label Text="{Binding TotalRevenue, StringFormat='{0:N2}'}"
                                FontSize="24"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource BrandAccent}" />
+                               TextColor="{StaticResource BrandSuccess}" />
 
                         <Label Text="Total for date"
                                FontSize="13"

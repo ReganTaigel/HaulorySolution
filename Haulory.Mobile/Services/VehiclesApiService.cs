@@ -67,5 +67,6 @@ public sealed class VehiclesApiService : ApiServiceBase
         UpdateVehicleRequest request,
         CancellationToken cancellationToken = default)
         => PutAsync<VehicleDto>($"api/vehicles/{vehicleId}", request, cancellationToken);
-
+    public Task DeleteVehicleAsync(Guid vehicleId, CancellationToken cancellationToken = default)
+    => DeleteAsync($"api/vehicles/{vehicleId}", cancellationToken);
 }

@@ -3,6 +3,7 @@ using Haulory.Api.Services;
 using Haulory.Application.Features.Drivers;
 using Haulory.Application.Features.Jobs;
 using Haulory.Application.Features.Reports;
+using Haulory.Application.Features.Vehicles;
 using Haulory.Application.Features.Vehicles.CreateVehicleSet;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
@@ -74,6 +75,7 @@ builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
 
 builder.Services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
 
+builder.Services.AddScoped<DeleteVehicle>();
 builder.Services.AddScoped<CreateVehicleHandler>();
 builder.Services.AddScoped<CreateJobHandler>();
 builder.Services.AddScoped<CreateDriverHandler>();

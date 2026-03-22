@@ -13,44 +13,6 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
-            <!-- PAGE HEADER -->
-            <Grid ColumnDefinitions="Auto,*"
-                  ColumnSpacing="12"
-                  VerticalOptions="Center">
-
-                <Border
-                    Grid.Column="0"
-                    BackgroundColor="{StaticResource Gray100}"
-                    Stroke="{StaticResource Gray300}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 16"
-                    Padding="10"
-                    VerticalOptions="Center">
-
-                    <Image
-                        Source="jobs.svg"
-                        HeightRequest="22"
-                        WidthRequest="22" />
-                </Border>
-
-                <VerticalStackLayout
-                    Grid.Column="1"
-                    Spacing="3"
-                    VerticalOptions="Center">
-
-                    <Label
-                        Text="{Binding PageTitle}"
-                        FontSize="26"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource BrandTitle}" />
-
-                    <Label
-                        Text="{Binding PageSubtitle}"
-                        FontSize="14"
-                        TextColor="{StaticResource Gray600}" />
-                </VerticalStackLayout>
-            </Grid>
-
             <!-- REVIEW SUMMARY -->
             <Border
                 Style="{StaticResource CardBorderStyle}"

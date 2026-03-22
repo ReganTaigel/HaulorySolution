@@ -97,7 +97,7 @@ public sealed class FeatureAccessService : IFeatureAccessService
             AppFeature.AddDriver => FeatureAccess.Enabled(),
             AppFeature.Users => FeatureAccess.Enabled(),
 
-            AppFeature.Inductions => FeatureAccess.Hidden(),
+            AppFeature.Inductions => FeatureAccess.Enabled(),
 
             AppFeature.Reports => FeatureAccess.Enabled(),
             AppFeature.ExportPod => FeatureAccess.Enabled(),

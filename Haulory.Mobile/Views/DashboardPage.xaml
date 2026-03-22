@@ -3,58 +3,18 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.DashboardPage"
+    Title="Dashboard"
     BackgroundColor="{StaticResource BrandBackground}">
-
 
     <Grid RowDefinitions="*,Auto">
 
         <ScrollView Grid.Row="0">
-            <VerticalStackLayout Padding="20,28,20,24" Spacing="18">
-
-                <!-- HEADER -->
-                <VerticalStackLayout Spacing="8">
-                    <Grid ColumnDefinitions="Auto,*"
-                          ColumnSpacing="12"
-                          VerticalOptions="Center">
-
-                        <Border
-                            Grid.Column="0"
-                            BackgroundColor="{StaticResource Gray100}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 16"
-                            Padding="10"
-                            VerticalOptions="Center">
-
-                            <Image
-                                Source="dashboard.svg"
-                                HeightRequest="22"
-                                WidthRequest="22" />
-                        </Border>
-
-                        <VerticalStackLayout
-                            Grid.Column="1"
-                            Spacing="2"
-                            VerticalOptions="Center">
-
-                            <Label
-                                Text="Dashboard"
-                                FontSize="30"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource BrandTitle}" />
-
-                            <Label
-                                Text="Business overview"
-                                FontSize="14"
-                                TextColor="{StaticResource Gray600}" />
-                        </VerticalStackLayout>
-                    </Grid>
-                </VerticalStackLayout>
+            <VerticalStackLayout Padding="20" Spacing="16">
 
                 <!-- HERO SUMMARY -->
                 <Border
                     Style="{StaticResource CardBorderStyle}"
-                    Stroke="{StaticResource Gray300}"
+                    Stroke="{StaticResource Gray200}"
                     StrokeShape="RoundRectangle 20"
                     Padding="18">
 
@@ -63,8 +23,8 @@
                         <Grid ColumnDefinitions="Auto,*"
                               ColumnSpacing="10">
                             <Border
-                                BackgroundColor="{StaticResource Gray100}"
-                                Stroke="{StaticResource Gray300}"
+                                BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="8"
@@ -99,8 +59,8 @@
                         <Grid ColumnDefinitions="Auto,*"
                               ColumnSpacing="10">
                             <Border
-                                BackgroundColor="{StaticResource Gray100}"
-                                Stroke="{StaticResource Gray300}"
+                                BackgroundColor="{StaticResource White}"
+                                Stroke="{StaticResource Gray200}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="8"
@@ -155,16 +115,16 @@
                 <Border
                     Style="{StaticResource CardBorderStyle}"
                     IsVisible="{Binding IsMainUser}"
-                    Stroke="{StaticResource Gray300}"
+                    Stroke="{StaticResource Gray200}"
                     StrokeShape="RoundRectangle 20"
                     Padding="18">
 
                     <VerticalStackLayout Spacing="14">
 
-                        <VerticalStackLayout Spacing="3">
+                        <VerticalStackLayout Spacing="4">
                             <Label
                                 Text="Quick stats"
-                                FontSize="19"
+                                FontSize="20"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource BrandTitle}" />
 
@@ -178,15 +138,15 @@
                         <!-- Delivered -->
                         <Border
                             StrokeThickness="1"
-                            Stroke="{StaticResource Gray300}"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource BrandTileFill}"
+                            BackgroundColor="{StaticResource White}"
                             Padding="14">
 
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                                 <Border
                                     BackgroundColor="{StaticResource Gray100}"
-                                    Stroke="{StaticResource Gray300}"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 10"
                                     Padding="8"
@@ -203,11 +163,13 @@
                                         Text="Delivered"
                                         FontSize="13"
                                         FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandTitle}" />
+                                        TextColor="{StaticResource BrandTitle}"
+                                        Opacity="0.9" />
                                     <Label
                                         Text="Jobs completed today"
                                         FontSize="13"
-                                        TextColor="{StaticResource Gray600}" />
+                                        TextColor="{StaticResource Gray600}"
+                                        Opacity="0.8" />
                                 </VerticalStackLayout>
 
                                 <Label
@@ -223,15 +185,15 @@
                         <!-- Revenue -->
                         <Border
                             StrokeThickness="1"
-                            Stroke="{StaticResource Gray300}"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource BrandTileFill}"
+                            BackgroundColor="{StaticResource White}"
                             Padding="14">
 
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                                 <Border
                                     BackgroundColor="{StaticResource Gray100}"
-                                    Stroke="{StaticResource Gray300}"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 10"
                                     Padding="8"
@@ -248,11 +210,13 @@
                                         Text="Revenue today"
                                         FontSize="13"
                                         FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandTitle}" />
+                                        TextColor="{StaticResource BrandTitle}"
+                                        Opacity="0.9" />
                                     <Label
                                         Text="Track earnings and trends"
                                         FontSize="13"
-                                        TextColor="{StaticResource Gray600}" />
+                                        TextColor="{StaticResource Gray600}"
+                                        Opacity="0.8" />
                                 </VerticalStackLayout>
 
                                 <Label
@@ -260,7 +224,7 @@
                                     Text="{Binding RevenueToday, StringFormat='{0:N2}'}"
                                     FontSize="22"
                                     FontAttributes="Bold"
-                                    TextColor="{StaticResource BrandAccent}"
+                                    TextColor="{StaticResource StatusCompleted}"
                                     VerticalTextAlignment="Center" />
                             </Grid>
                         </Border>
@@ -268,15 +232,15 @@
                         <!-- Needs review -->
                         <Border
                             StrokeThickness="1"
-                            Stroke="{StaticResource Gray300}"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource BrandTileFill}"
+                            BackgroundColor="{StaticResource White}"
                             Padding="14">
 
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
                                 <Border
                                     BackgroundColor="{StaticResource Gray100}"
-                                    Stroke="{StaticResource Gray300}"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 10"
                                     Padding="8"
@@ -293,12 +257,14 @@
                                         Text="Needs review"
                                         FontSize="13"
                                         FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandTitle}" />
+                                        TextColor="{StaticResource BrandTitle}"
+                                        Opacity="0.9" />
                                     <Label
                                         Text="{Binding NeedsReviewSummary}"
                                         FontSize="13"
                                         LineHeight="1.15"
                                         TextColor="{StaticResource Gray600}"
+                                        Opacity="0.8"
                                         LineBreakMode="TailTruncation"
                                         MaxLines="2" />
                                 </VerticalStackLayout>
@@ -320,15 +286,15 @@
                         <!-- Latest completed -->
                         <Border
                             StrokeThickness="1"
-                            Stroke="{StaticResource Gray300}"
+                            Stroke="{StaticResource Gray200}"
                             StrokeShape="RoundRectangle 16"
-                            BackgroundColor="{StaticResource BrandTileFill}"
+                            BackgroundColor="{StaticResource White}"
                             Padding="14">
 
                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                                 <Border
                                     BackgroundColor="{StaticResource Gray100}"
-                                    Stroke="{StaticResource Gray300}"
+                                    Stroke="{StaticResource Gray200}"
                                     StrokeThickness="1"
                                     StrokeShape="RoundRectangle 10"
                                     Padding="8"
@@ -345,7 +311,8 @@
                                         Text="Latest completed"
                                         FontSize="13"
                                         FontAttributes="Bold"
-                                        TextColor="{StaticResource BrandTitle}" />
+                                        TextColor="{StaticResource BrandTitle}"
+                                        Opacity="0.9" />
                                     <Label
                                         Text="{Binding LatestCompletedSummary}"
                                         FontSize="15"
@@ -357,7 +324,8 @@
                                     <Label
                                         Text="Open Reports for details"
                                         FontSize="13"
-                                        TextColor="{StaticResource Gray600}" />
+                                        TextColor="{StaticResource Gray600}"
+                                        Opacity="0.8" />
                                 </VerticalStackLayout>
                             </Grid>
 
@@ -369,315 +337,174 @@
                     </VerticalStackLayout>
                 </Border>
 
-                <!-- ACTIONS -->
-                <VerticalStackLayout Spacing="10">
-                    <Label
-                        Text="Manage"
-                        FontSize="19"
-                        FontAttributes="Bold"
-                        Margin="2,2,0,0"
-                        TextColor="{StaticResource BrandTitle}" />
-
-                    <Label
-                        Text="Open the areas you use every day."
-                        FontSize="13"
-                        TextColor="{StaticResource Gray600}"
-                        Margin="2,0,0,0" />
-                </VerticalStackLayout>
-
-                <!-- Jobs -->
+                <!-- ACTIONS CARD -->
                 <Border
-                    Style="{StaticResource ActionCardBorderStyle}"
-                    Padding="16"
-                    IsVisible="{Binding IsJobsVisible}">
+                    Style="{StaticResource CardBorderStyle}"
+                    Padding="18">
 
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border
-                            BackgroundColor="{StaticResource Gray100}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12"
-                            Padding="8"
-                            VerticalOptions="Center">
+                    <VerticalStackLayout Spacing="12">
 
-                            <Image
-                                Source="jobs.svg"
-                                HeightRequest="18"
-                                WidthRequest="18" />
-                        </Border>
-
-                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                        <!-- Header -->
+                        <VerticalStackLayout Spacing="4">
                             <Label
-                                Text="Jobs"
-                                FontSize="16"
+                                Text="Manage"
+                                FontSize="19"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource BrandTitle}" />
+
                             <Label
-                                Text="Create, allocate, and track deliveries"
+                                Text="Open the areas you use every day."
                                 FontSize="13"
-                                LineHeight="1.15"
                                 TextColor="{StaticResource Gray600}" />
                         </VerticalStackLayout>
 
-                        <Button
-                            Grid.Column="2"
-                            Text="Open"
-                            Command="{Binding GoToJobsCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            HeightRequest="44"
-                            Padding="16,0"
-                            IsEnabled="{Binding IsJobsEnabled}" />
-                    </Grid>
+                        <!-- Divider -->
+                        <BoxView HeightRequest="1"
+                                     BackgroundColor="{StaticResource Gray200}" />
 
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToJobsCommand}" />
-                    </Border.GestureRecognizers>
-                </Border>
+                        <!-- Jobs -->
+                        <Grid ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12"
+                              Padding="0,6">
 
-                <!-- Vehicles -->
-                <Border
-                    Style="{StaticResource ActionCardBorderStyle}"
-                    Padding="16"
-                    IsVisible="{Binding IsVehiclesVisible}">
+                            <Image Source="jobs.svg"
+                                   HeightRequest="20"
+                                   WidthRequest="20"
+                                   VerticalOptions="Center" />
 
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border
-                            BackgroundColor="{StaticResource Gray100}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12"
-                            Padding="8"
-                            VerticalOptions="Center">
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Jobs"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="Create and track deliveries"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
 
-                            <Image
-                                Source="vehicle.svg"
-                                HeightRequest="18"
-                                WidthRequest="18" />
-                        </Border>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   FontSize="20"
+                                   TextColor="{StaticResource Gray400}"
+                                   VerticalOptions="Center" />
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label
-                                Text="Vehicles"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource BrandTitle}" />
-                            <Label
-                                Text="Manage units, configurations, and assets"
-                                FontSize="13"
-                                LineHeight="1.15"
-                                TextColor="{StaticResource Gray600}" />
-                        </VerticalStackLayout>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToJobsCommand}" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
 
-                        <Button
-                            Grid.Column="2"
-                            Text="Open"
-                            Command="{Binding GoToVehiclesCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            HeightRequest="44"
-                            Padding="16,0"
-                            IsEnabled="{Binding IsVehiclesEnabled}" />
-                    </Grid>
+                        <!-- Divider -->
+                        <BoxView HeightRequest="1"
+                                    BackgroundColor="{StaticResource Gray200}" />
 
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToVehiclesCommand}" />
-                    </Border.GestureRecognizers>
-                </Border>
+                        <!-- Vehicles -->
+                        <Grid ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12"
+                              Padding="0,6">
 
-                <!-- Drivers -->
-                <Border
-                    Style="{StaticResource ActionCardBorderStyle}"
-                    Padding="16"
-                    IsVisible="{Binding IsDriversVisible}">
+                            <Image Source="vehicle.svg"
+                                   HeightRequest="20"
+                                   WidthRequest="20"
+                                   VerticalOptions="Center" />
 
-                    <Border.Triggers>
-                        <DataTrigger TargetType="Border"
-                                     Binding="{Binding IsMainUser}"
-                                     Value="False">
-                            <Setter Property="IsVisible" Value="False" />
-                        </DataTrigger>
-                    </Border.Triggers>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Vehicles"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="Manage fleet and assets"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
 
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border
-                            BackgroundColor="{StaticResource Gray100}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12"
-                            Padding="8"
-                            VerticalOptions="Center">
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   FontSize="20"
+                                   TextColor="{StaticResource Gray400}"
+                                   VerticalOptions="Center" />
 
-                            <Image
-                                Source="driver.svg"
-                                HeightRequest="18"
-                                WidthRequest="18" />
-                        </Border>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToVehiclesCommand}" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label
-                                Text="Drivers"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource BrandTitle}" />
-                            <Label
-                                Text="Profiles, licences, compliance, and contacts"
-                                FontSize="13"
-                                LineHeight="1.15"
-                                TextColor="{StaticResource Gray600}" />
-                        </VerticalStackLayout>
+                        <!-- Divider -->
+                        <BoxView HeightRequest="1"
+                                    BackgroundColor="{StaticResource Gray200}" />
 
-                        <Button
-                            Grid.Column="2"
-                            Text="Open"
-                            Command="{Binding GoToDriversCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            HeightRequest="44"
-                            Padding="16,0"
-                            IsEnabled="{Binding IsDriversEnabled}" />
-                    </Grid>
+                        <!-- Drivers -->
+                        <Grid ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12"
+                              Padding="0,6"
+                              IsVisible="{Binding IsDriversVisible}">
 
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToDriversCommand}" />
-                    </Border.GestureRecognizers>
-                </Border>
+                            <Image Source="driver.svg"
+                                   HeightRequest="20"
+                                   WidthRequest="20"
+                                   VerticalOptions="Center" />
 
-                <!-- Reports -->
-                <Border
-                    Style="{StaticResource ActionCardBorderStyle}"
-                    Padding="16"
-                    IsVisible="{Binding IsReportsVisible}">
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Drivers"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="Profiles and compliance"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
 
-                    <Border.Triggers>
-                        <DataTrigger TargetType="Border"
-                                     Binding="{Binding IsMainUser}"
-                                     Value="False">
-                            <Setter Property="IsVisible" Value="False" />
-                        </DataTrigger>
-                    </Border.Triggers>
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   FontSize="20"
+                                   TextColor="{StaticResource Gray400}"
+                                   VerticalOptions="Center" />
 
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border
-                            BackgroundColor="{StaticResource Gray100}"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12"
-                            Padding="8"
-                            VerticalOptions="Center">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToDriversCommand}" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
 
-                            <Image
-                                Source="reports.svg"
-                                HeightRequest="18"
-                                WidthRequest="18" />
-                        </Border>
+                        <!-- Divider -->
+                        <BoxView HeightRequest="1"
+                                    BackgroundColor="{StaticResource Gray200}" />
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label
-                                Text="Reports"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource BrandTitle}" />
-                            <Label
-                                Text="Revenue, delivered jobs, and performance"
-                                FontSize="13"
-                                LineHeight="1.15"
-                                TextColor="{StaticResource Gray600}" />
-                        </VerticalStackLayout>
+                        <!-- Reports -->
+                        <Grid ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12"
+                              Padding="0,6"
+                              IsVisible="{Binding IsReportsVisible}">
 
-                        <Button
-                            Grid.Column="2"
-                            Text="Open"
-                            Command="{Binding GoToReportsCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            HeightRequest="44"
-                            Padding="16,0"
-                            IsEnabled="{Binding IsReportsEnabled}" />
-                    </Grid>
+                            <Image Source="reports.svg"
+                                   HeightRequest="20"
+                                   WidthRequest="20"
+                                   VerticalOptions="Center" />
 
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding GoToReportsCommand}" />
-                    </Border.GestureRecognizers>
-                </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Reports"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       TextColor="{StaticResource BrandTitle}" />
+                                <Label Text="Revenue and performance"
+                                       FontSize="12"
+                                       TextColor="{StaticResource Gray600}" />
+                            </VerticalStackLayout>
 
-                <!-- LOGOUT -->
-                <Border
-                    StrokeThickness="1"
-                    Stroke="{StaticResource BrandDanger}"
-                    StrokeShape="RoundRectangle 20"
-                    BackgroundColor="{StaticResource BrandDeep}"
-                    Padding="16"
-                    Margin="0,8,0,6">
+                            <Label Grid.Column="2"
+                                   Text="›"
+                                   FontSize="20"
+                                   TextColor="{StaticResource Gray400}"
+                                   VerticalOptions="Center" />
 
-                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                        <Border
-                            BackgroundColor="#FFFFFF14"
-                            Stroke="{StaticResource BrandDanger}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12"
-                            Padding="8"
-                            VerticalOptions="Center">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding GoToReportsCommand}" />
+                            </Grid.GestureRecognizers>
+                        </Grid>
 
-                            <Image
-                                Source="close.svg"
-                                HeightRequest="18"
-                                WidthRequest="18" />
-                        </Border>
-
-                        <VerticalStackLayout Grid.Column="1" Spacing="3">
-                            <Label
-                                Text="Logout"
-                                FontSize="16"
-                                FontAttributes="Bold"
-                                TextColor="{StaticResource White}" />
-                            <Label
-                                Text="Sign out of Haulory on this device"
-                                FontSize="13"
-                                TextColor="{StaticResource Gray200}" />
-                        </VerticalStackLayout>
-
-                        <Button
-                            Grid.Column="2"
-                            Text="Sign out"
-                            Command="{Binding LogoutCommand}"
-                            Style="{StaticResource DangerButtonStyle}"
-                            HeightRequest="44"
-                            Padding="16,0" />
-                    </Grid>
-
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding LogoutCommand}" />
-                    </Border.GestureRecognizers>
+                    </VerticalStackLayout>
                 </Border>
 
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Footer -->
-        <Border
-            Grid.Row="1"
-            BackgroundColor="{StaticResource Gray100}"
-            StrokeThickness="1"
-            Stroke="{StaticResource Gray300}"
-            StrokeShape="RoundRectangle 18,18,0,0"
-            Padding="18,12">
-
-            <HorizontalStackLayout
-                HorizontalOptions="Center"
-                Spacing="6">
-
-                <Label
-                    Text="Transport, fleet, and compliance management"
-                    FontSize="13"
-                    TextColor="{StaticResource Gray600}"
-                    VerticalOptions="Center" />
-
-                <Label
-                    Text="Haulory"
-                    FontSize="13"
-                    FontAttributes="Bold"
-                    TextColor="{StaticResource BrandTitle}"
-                    VerticalOptions="Center" />
-            </HorizontalStackLayout>
-        </Border>
-
     </Grid>
 </ContentPage>
-   
