@@ -23,7 +23,7 @@ public sealed class NewJobEditorService
         var job = await _jobsApiService.GetJobByIdAsync(jobId);
         if (job == null)
             throw new InvalidOperationException("The selected job could not be loaded.");
-
+        state.SelectedCustomerId = job.CustomerId;
         state.EditingJobId = jobId;
         state.ClientCompanyName = job.ClientCompanyName ?? string.Empty;
         state.ClientContactName = job.ClientContactName;

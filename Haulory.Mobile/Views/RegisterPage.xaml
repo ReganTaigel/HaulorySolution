@@ -5,7 +5,8 @@
     xmlns:converters="clr-namespace:Haulory.Mobile.Converters"
     x:Class="Haulory.Mobile.Views.RegisterPage"
     Shell.NavBarIsVisible="False"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    SafeAreaEdges="Container">
 
     <ContentPage.Resources>
         <ResourceDictionary>

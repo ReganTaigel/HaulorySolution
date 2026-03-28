@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewDriverPage"
     BackgroundColor="{StaticResource BrandBackground}"
-    IsVisible="{Binding ShowAddDriver}">
+    IsVisible="{Binding ShowAddDriver}"
+    SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -591,15 +592,21 @@
             </Border>
 
             <!-- SAVE -->
-            <Button
-                Text="{Binding SaveButtonText}"
-                Command="{Binding SaveDriverCommand}"
-                IsVisible="{Binding ShowAddDriver}"
-                IsEnabled="{Binding CanSave}"
-                Style="{StaticResource PrimaryButtonStyle}"
-                HeightRequest="50"
-                Margin="0,4,0,8" />
+            <Border
+                    BackgroundColor="{StaticResource White}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 20"
+                    IsVisible="{Binding ShowAddDriver}"
+                    Padding="12"
+                    Margin="0,4,0,8">
 
+                <Button
+                    Text="{Binding SaveButtonText}"
+                    Command="{Binding SaveDriverCommand}"
+                    IsEnabled="{Binding CanSave}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HeightRequest="50" />
+            </Border>
             <BoxView HeightRequest="6" Opacity="0" />
 
         </VerticalStackLayout>

@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.DashboardPage"
     Title="Dashboard"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    SafeAreaEdges="Container">
 
     <Grid RowDefinitions="*,Auto">
 

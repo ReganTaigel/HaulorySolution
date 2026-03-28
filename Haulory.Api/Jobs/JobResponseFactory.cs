@@ -8,6 +8,7 @@ public sealed class JobResponseFactory
     public JobDto ToDto(Job job)
         => new()
         {
+            CustomerId = job.CustomerId,
             Id = job.Id,
             OwnerUserId = job.OwnerUserId,
             AssignedToUserId = job.AssignedToUserId,

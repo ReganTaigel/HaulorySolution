@@ -20,6 +20,7 @@ public sealed class UpdateJobRequest
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
 
+    public Guid? CustomerId { get; set; }
     public RateType RateType { get; set; }
     public decimal RateValue { get; set; }
     public decimal Quantity { get; set; }

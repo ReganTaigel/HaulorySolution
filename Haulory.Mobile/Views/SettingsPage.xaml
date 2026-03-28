@@ -2,7 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Haulory.Mobile.Views.SettingsPage"
              Title="Settings"
-             BackgroundColor="{StaticResource BrandBackground}">
+             BackgroundColor="{StaticResource BrandBackground}"
+             SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -114,9 +115,12 @@
                             <Label Text="GST Rate (%)"
                                    TextColor="{StaticResource Gray600}" />
                             <Border Style="{StaticResource InputBorderStyle}">
-                                <Entry Text="{Binding GstRatePercent}"
-                                       Keyboard="Numeric"
-                                       Placeholder="e.g. 15" />
+                                <Entry
+                                        Text="{Binding GstRate}"
+                                        Keyboard="Numeric"
+                                        TextColor="#1F2937"
+                                        Placeholder="e.g. 15"
+                                        PlaceholderColor="#9CA3AF" />
                             </Border>
                         </VerticalStackLayout>
 
@@ -167,9 +171,12 @@
                             <Label Text="Fuel Surcharge (%)"
                                    TextColor="{StaticResource Gray600}" />
                             <Border Style="{StaticResource InputBorderStyle}">
-                                <Entry Text="{Binding FuelSurchargePercent}"
-                                       Keyboard="Numeric"
-                                       Placeholder="e.g. 5" />
+                                <Entry
+                                    Text="{Binding FuelSurchargeRate}"
+                                    Keyboard="Numeric"
+                                    TextColor="#1F2937"
+                                    Placeholder="e.g. 5"
+                                    PlaceholderColor="#9CA3AF" />
                             </Border>
                         </VerticalStackLayout>
 

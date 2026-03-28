@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.JobsCollectionPage"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -76,21 +77,29 @@
             IsVisible="{Binding IsSubUser}">
 
             <CollectionView.EmptyView>
-                <Grid>
-                    <VerticalStackLayout
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center"
-                        Spacing="6"
-                        Padding="24">
+                <Border
+                        Margin="24,16,24,24"
+                        Padding="0"
+                        BackgroundColor="White"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24">
 
-                        <Label
-                            Text="No assigned jobs right now"
-                            FontSize="17"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource BrandTitle}"
-                            HorizontalTextAlignment="Center" />
-                    </VerticalStackLayout>
-                </Grid>
+                    <Grid>
+                        <VerticalStackLayout
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center"
+                                    Spacing="6"
+                                    Padding="24">
+
+                            <Label
+                                Text="No assigned jobs right now"
+                                FontSize="17"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}"
+                                HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
@@ -314,36 +323,44 @@
             IsVisible="{Binding IsMainUser}">
 
             <CollectionView.EmptyView>
-                <Grid>
-                    <VerticalStackLayout
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center"
-                        Spacing="6"
-                        Padding="24">
+                <Border
+                        Margin="24,16,24,24"
+                        Padding="0"
+                        BackgroundColor="White"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24">
 
-                        <Label
-                            Text="No jobs yet"
-                            FontSize="17"
-                            FontAttributes="Bold"
-                            TextColor="{StaticResource BrandTitle}"
-                            HorizontalTextAlignment="Center" />
+                    <Grid>
+                        <VerticalStackLayout
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            Spacing="6"
+                                            Padding="24">
 
-                        <Label
-                            Text="Use Add to create your first job."
-                            FontSize="14"
-                            TextColor="{StaticResource Gray600}"
-                            HorizontalTextAlignment="Center">
-                            <Label.Triggers>
-                                <DataTrigger
-                                    TargetType="Label"
-                                    Binding="{Binding IsAddJobVisible}"
-                                    Value="False">
-                                    <Setter Property="IsVisible" Value="False" />
-                                </DataTrigger>
-                            </Label.Triggers>
-                        </Label>
-                    </VerticalStackLayout>
-                </Grid>
+                            <Label
+                                    Text="No jobs yet"
+                                    FontSize="17"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"
+                                    HorizontalTextAlignment="Center" />
+
+                            <Label
+                                Text="Use Add to create your first job."
+                                FontSize="14"
+                                TextColor="{StaticResource Gray600}"
+                                HorizontalTextAlignment="Center">
+                                <Label.Triggers>
+                                    <DataTrigger
+                                                TargetType="Label"
+                                                Binding="{Binding IsAddJobVisible}"
+                                                Value="False">
+                                        <Setter Property="IsVisible" Value="False" />
+                                    </DataTrigger>
+                                </Label.Triggers>
+                            </Label>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>

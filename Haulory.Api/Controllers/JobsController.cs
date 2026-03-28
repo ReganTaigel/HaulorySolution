@@ -28,7 +28,8 @@ public sealed class JobsController : ControllerBase
         IDocumentSettingsRepository documentSettingsRepository,
         IInvoiceCalculationService invoiceCalculationService,
         JobRequestValidator validator,
-        JobResponseFactory responseFactory)
+        JobResponseFactory responseFactory,
+        ICustomerRepository customerRepository)
     {
         _jobRepository = jobRepository;
         _vehicleAssetRepository = vehicleAssetRepository;
@@ -41,7 +42,8 @@ public sealed class JobsController : ControllerBase
             vehicleAssetRepository,
             createJobHandler,
             documentSettingsRepository,
-            invoiceCalculationService);
+            invoiceCalculationService,
+            customerRepository);
     }
 
     [HttpGet]

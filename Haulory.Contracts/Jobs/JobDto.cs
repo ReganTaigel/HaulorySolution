@@ -11,6 +11,8 @@ public sealed class JobDto
     // IMPORTANT for ordering
     public int SortOrder { get; set; }
 
+    public Guid? CustomerId { get; set; }
+
     public string ReferenceNumber { get; set; } = string.Empty;
     public string LoadDescription { get; set; } = string.Empty;
 

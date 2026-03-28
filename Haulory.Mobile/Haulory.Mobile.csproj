@@ -16,11 +16,11 @@
 		<ApplicationTitle>Haulory.Mobile</ApplicationTitle>
 		<ApplicationId>com.haulory.mobile</ApplicationId>
 
-		<ApplicationDisplayVersion>1.2.2</ApplicationDisplayVersion>
-		<ApplicationVersion>5</ApplicationVersion>
+		<ApplicationDisplayVersion>0.2.5</ApplicationDisplayVersion>
+		<ApplicationVersion>8</ApplicationVersion>
 
-		<Version>1.2.2</Version>
-		<PackageVersion>1.2.2</PackageVersion>
+		<Version>0.2.5</Version>
+		<PackageVersion>0.2.5</PackageVersion>
 
 		<WindowsPackageType>None</WindowsPackageType>
 
@@ -54,6 +54,9 @@
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#007BA7" BaseSize="128,128" />
 		<MauiImage Include="Resources\Images\*" />
 		<MauiFont Include="Resources\Fonts\*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <AndroidResource Remove="Platforms\Android\Resources\values\styles.xml" />
 	</ItemGroup>
 
 	<ItemGroup>

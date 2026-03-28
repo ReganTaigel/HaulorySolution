@@ -175,6 +175,37 @@ public class DeliverySignatureViewModel : BaseViewModel
 
     #endregion
 
+    #region Signature Section Expand
+
+    private bool _isSignatureExpanded = true;
+
+    public bool IsSignatureExpanded
+    {
+        get => _isSignatureExpanded;
+        set
+        {
+            if (_isSignatureExpanded == value)
+                return;
+
+            _isSignatureExpanded = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SignatureExpandIcon));
+            OnPropertyChanged(nameof(SignatureExpandText));
+        }
+    }
+
+    public string SignatureExpandIcon => IsSignatureExpanded ? "▲" : "▼";
+
+    public string SignatureExpandText =>
+        IsSignatureExpanded ? "Hide signature" : "Show signature";
+
+    public ICommand ToggleSignatureCommand => new Command(() =>
+    {
+        IsSignatureExpanded = !IsSignatureExpanded;
+    });
+
+    #endregion
+
     #region Load
 
     private async Task LoadJobSafeAsync()

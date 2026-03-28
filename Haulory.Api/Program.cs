@@ -1,3 +1,4 @@
+using Haulory.Api.Controllers;
 using Haulory.Api.Jobs;
 using Haulory.Api.Services;
 using Haulory.Application.Features.Drivers;
@@ -60,39 +61,38 @@ builder.Services.AddDbContextFactory<HauloryDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
-builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
-builder.Services.AddScoped<IDriverRepository, DriverRepository>();
-builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
-builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
-builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
-builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
-builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IJobRepository, JobRepository>();
-builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
-builder.Services.AddScoped<IDocumentSettingsRepository, DocumentSettingsRepository>();
-builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
+    builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
+    builder.Services.AddScoped<IDriverRepository, DriverRepository>();
+    builder.Services.AddScoped<IDriverInductionRepository, DriverInductionRepository>();
+    builder.Services.AddScoped<IWorkSiteRepository, WorkSiteRepository>();
+    builder.Services.AddScoped<IInductionRequirementRepository, InductionRequirementRepository>();
+    builder.Services.AddScoped<IVehicleAssetRepository, VehicleAssetRepository>();
+    builder.Services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    builder.Services.AddScoped<IJobRepository, JobRepository>();
+    builder.Services.AddScoped<IDeliveryReceiptRepository, DeliveryReceiptRepository>();
+    builder.Services.AddScoped<IDocumentSettingsRepository, DocumentSettingsRepository>();
+    builder.Services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
+    builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+    builder.Services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
 
-builder.Services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
+    builder.Services.AddScoped<DeleteVehicle>();
+    builder.Services.AddScoped<CreateVehicleHandler>();
+    builder.Services.AddScoped<CreateJobHandler>();
+    builder.Services.AddScoped<CreateDriverHandler>();
+    builder.Services.AddScoped<CreateDriverFromUserHandler>();
 
-builder.Services.AddScoped<DeleteVehicle>();
-builder.Services.AddScoped<CreateVehicleHandler>();
-builder.Services.AddScoped<CreateJobHandler>();
-builder.Services.AddScoped<CreateDriverHandler>();
-builder.Services.AddScoped<CreateDriverFromUserHandler>();
+    builder.Services.AddScoped<JobWorkflowService>();
+    builder.Services.AddScoped<JobRequestValidator>();
+    builder.Services.AddScoped<JobResponseFactory>();
+    builder.Services.AddScoped<IInductionEvidenceFileStorage, InductionEvidenceFileStorage>();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-builder.Services.AddScoped<JobWorkflowService>();
-builder.Services.AddScoped<JobRequestValidator>();
-builder.Services.AddScoped<JobResponseFactory>();
-
-builder.Services.AddScoped<IInductionEvidenceFileStorage, InductionEvidenceFileStorage>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-builder.Services.AddTransient<InvoiceReportHandler>();
-builder.Services.AddTransient<PodReportHandler>();
-builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
-builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
+    builder.Services.AddTransient<InvoiceReportHandler>();
+    builder.Services.AddTransient<PodReportHandler>();
+    builder.Services.AddTransient<IPdfInvoiceGenerator, PdfInvoiceGenerator>();
+    builder.Services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
              ?? throw new InvalidOperationException("JWT key is missing.");

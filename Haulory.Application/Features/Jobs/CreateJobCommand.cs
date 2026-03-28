@@ -4,6 +4,7 @@ namespace Haulory.Application.Features.Jobs;
 
 public sealed record CreateJobCommand(
     Guid OwnerUserId,
+    Guid? CustomerId,
     Guid JobId,
     string ClientCompanyName,
     string? ClientContactName,

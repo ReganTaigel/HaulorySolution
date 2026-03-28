@@ -1,6 +1,7 @@
 using Haulory.Application.Features.Jobs;
 using Haulory.Application.Interfaces.Repositories;
 using Haulory.Application.Interfaces.Services;
+using Haulory.Contracts.Customers;
 using Haulory.Contracts.Jobs;
 using Haulory.Domain.Entities;
 using Haulory.Domain.Enums;
@@ -15,6 +16,7 @@ public sealed class JobWorkflowService
     private readonly CreateJobHandler _createJobHandler;
     private readonly IDocumentSettingsRepository _documentSettingsRepository;
     private readonly IInvoiceCalculationService _invoiceCalculationService;
+    private readonly ICustomerRepository _customerRepository;
 
     public JobWorkflowService(
         IJobRepository jobRepository,
@@ -22,7 +24,8 @@ public sealed class JobWorkflowService
         IVehicleAssetRepository vehicleAssetRepository,
         CreateJobHandler createJobHandler,
         IDocumentSettingsRepository documentSettingsRepository,
-        IInvoiceCalculationService invoiceCalculationService)
+        IInvoiceCalculationService invoiceCalculationService,
+        ICustomerRepository customerRepository)
     {
         _jobRepository = jobRepository;
         _deliveryReceiptRepository = deliveryReceiptRepository;
@@ -30,6 +33,7 @@ public sealed class JobWorkflowService
         _createJobHandler = createJobHandler;
         _documentSettingsRepository = documentSettingsRepository;
         _invoiceCalculationService = invoiceCalculationService;
+        _customerRepository = customerRepository;
     }
 
     public async Task<List<Guid>?> ValidateTrailersAsync(Guid ownerUserId, List<Guid> trailerIds)
@@ -51,9 +55,9 @@ public sealed class JobWorkflowService
         return trailerIds;
     }
 
-public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, List<Guid> trailerIds)
-{
-    var jobId = Guid.NewGuid();
+    public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, List<Guid> trailerIds)
+    {
+        var jobId = Guid.NewGuid();
 
         var latestInvoiceNumber = await _jobRepository.GetLatestInvoiceNumberAsync(ownerUserId);
         var invoiceNumber = InvoiceNumberGenerator.GetNext(latestInvoiceNumber);
@@ -61,9 +65,23 @@ public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, L
         while (await _jobRepository.InvoiceNumberExistsAsync(ownerUserId, invoiceNumber))
             invoiceNumber = InvoiceNumberGenerator.Increment(invoiceNumber);
 
+        if (string.IsNullOrWhiteSpace(invoiceNumber))
+            throw new InvalidOperationException("Failed to generate invoice number.");
+
+        var customerId = await EnsureCustomerAsync(
+            ownerUserId,
+            request.CustomerId,
+            request.ClientCompanyName,
+            request.ClientContactName,
+            request.ClientEmail,
+            request.ClientAddressLine1,
+            request.ClientCity,
+            request.ClientCountry);
+
         await _createJobHandler.HandleAsync(
             new CreateJobCommand(
                 ownerUserId,
+                customerId,
                 jobId,
                 request.ClientCompanyName,
                 request.ClientContactName,
@@ -89,10 +107,10 @@ public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, L
         );
 
         var created = await _jobRepository.GetByIdAsync(jobId)
-        ?? throw new InvalidOperationException("Job was created but could not be reloaded.");
+            ?? throw new InvalidOperationException("Job was created but could not be reloaded.");
 
-    return created;
-}
+        return created;
+    }
 
     public async Task<Job?> UpdateAsync(Guid ownerUserId, Guid id, UpdateJobRequest request, List<Guid> trailerIds)
     {
@@ -101,7 +119,18 @@ public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, L
         if (job is null || job.OwnerUserId != ownerUserId)
             return null;
 
+        var customerId = await EnsureCustomerAsync(
+            ownerUserId,
+            request.CustomerId,
+            request.ClientCompanyName,
+            request.ClientContactName,
+            request.ClientEmail,
+            request.ClientAddressLine1,
+            request.ClientCity,
+            request.ClientCountry);
+
         job.UpdateDetails(
+            customerId,
             request.ClientCompanyName,
             request.ClientContactName,
             request.ClientEmail,
@@ -288,4 +317,54 @@ public async Task<Job> CreateAsync(Guid ownerUserId, CreateJobRequest request, L
         await _deliveryReceiptRepository.AddAsync(receipt);
         return receipt.Id;
     }
+
+    private async Task<Guid?> EnsureCustomerAsync(Guid ownerUserId, Guid? customerId, string companyName, string? contactName, string? email, string addressLine1, string city,  string country)
+        {
+            if (string.IsNullOrWhiteSpace(companyName) ||
+                string.IsNullOrWhiteSpace(addressLine1) ||
+                string.IsNullOrWhiteSpace(city) ||
+                string.IsNullOrWhiteSpace(country))
+            {
+                return customerId;
+            }
+
+            if (customerId.HasValue && customerId.Value != Guid.Empty)
+            {
+                var existing = await _customerRepository.GetByIdForUpdateAsync(customerId.Value);
+                if (existing == null || existing.OwnerUserId != ownerUserId)
+                    throw new InvalidOperationException("Selected customer was not found.");
+
+                existing.UpdateDetails(companyName, contactName, email, addressLine1, city, country);
+                await _customerRepository.UpdateAsync(existing);
+                return existing.Id;
+            }
+
+            var matched = await _customerRepository.FindMatchAsync(
+                ownerUserId,
+                companyName,
+                email,
+                addressLine1,
+                city,
+                country);
+
+            if (matched != null)
+            {
+                matched.UpdateDetails(companyName, contactName, email, addressLine1, city, country);
+                await _customerRepository.UpdateAsync(matched);
+                return matched.Id;
+            }
+
+            var customer = new Customer(
+                Guid.NewGuid(),
+                ownerUserId,
+                companyName,
+                contactName,
+                email,
+                addressLine1,
+                city,
+                country);
+
+            await _customerRepository.AddAsync(customer);
+            return customer.Id;
+        }
 }

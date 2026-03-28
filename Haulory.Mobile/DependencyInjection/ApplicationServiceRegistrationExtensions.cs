@@ -40,7 +40,7 @@ public static class ApplicationServiceRegistrationExtensions
         services.AddTransient<IPdfPodGenerator, PdfPodGenerator>();
         services.AddScoped<IVehicleDayRunRepository, VehicleDayRunRepository>();
         services.AddScoped<IComplianceEnsurer, ComplianceEnsurer>();
-
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IInvoiceCalculationService, InvoiceCalculationService>();
 
         services.AddSingleton<AuthApiService>();
@@ -48,6 +48,7 @@ public static class ApplicationServiceRegistrationExtensions
         services.AddSingleton<JobsApiService>();
         services.AddSingleton<VehiclesApiService>();
         services.AddSingleton<ReportsApiService>();
+        services.AddTransient<CustomersApiService>();
         services.AddSingleton<DocumentSettingsApiService>();
         return services;
     }

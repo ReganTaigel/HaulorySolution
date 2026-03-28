@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewVehiclePage"
     BackgroundColor="{StaticResource BrandBackground}"
-    IsVisible="{Binding IsAddVehicleVisible}">
+    IsVisible="{Binding IsAddVehicleVisible}"
+    SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -605,11 +606,11 @@
 
             <!-- USAGE AND ROAD TAX -->
             <Border
-                Style="{StaticResource CardBorderStyle}"
-                Stroke="{StaticResource Gray300}"
-                StrokeShape="RoundRectangle 18"
-                Padding="16"
-                IsVisible="{Binding ShowFuelType}">
+                    Style="{StaticResource CardBorderStyle}"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="16"
+                    IsVisible="{Binding CertificateComplete}">
 
                 <VerticalStackLayout Spacing="14">
 
@@ -637,6 +638,7 @@
 
                     <!-- Fuel type -->
                     <Border
+                        IsVisible="{Binding ShowFuelType}"
                         StrokeThickness="1"
                         Stroke="{StaticResource Gray200}"
                         StrokeShape="RoundRectangle 14"
@@ -912,15 +914,21 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- SAVE BUTTON -->
-            <Button
-                Text="Save vehicle"
-                Command="{Binding SaveVehicleCommand}"
-                IsEnabled="{Binding CanSaveVehicleAction}"
+            <Border
+                BackgroundColor="{StaticResource White}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 20"
                 IsVisible="{Binding ShowSaveButton}"
-                Style="{StaticResource PrimaryButtonStyle}"
-                HeightRequest="50"
-                Margin="0,8,0,10" />
+                Padding="12">
+
+                <Button
+                        Text="Save vehicle"
+                        Command="{Binding SaveVehicleCommand}"
+                        IsEnabled="{Binding CanSaveVehicleAction}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="50" />
+
+            </Border>
 
             <BoxView HeightRequest="6" Opacity="0" />
 

@@ -4,6 +4,7 @@ namespace Haulory.Mobile.Features.Jobs.NewJob;
 
 public sealed class NewJobFormState
 {
+    public Guid? SelectedCustomerId { get; set; }
     public Guid? EditingJobId { get; set; }
     public bool IsLoadingExistingJob { get; set; }
     public bool IsPickupOnly { get; set; }

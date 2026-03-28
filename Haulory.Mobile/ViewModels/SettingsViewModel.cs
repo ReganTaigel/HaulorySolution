@@ -8,18 +8,117 @@ public class SettingsViewModel : BaseViewModel
 {
     private readonly DocumentSettingsApiService _settingsApiService;
 
+    private bool _gstEnabled;
+    private string _gstRatePercent = string.Empty;
+    private bool _fuelSurchargeEnabled;
+    private string _fuelSurchargePercent = string.Empty;
+    private string _invoicePrefix = "INV";
+    private string _podPrefix = "POD";
+    private int _paymentTermsDays = 7;
+    private bool _showDamageNotesOnPod;
+    private bool _showWaitTimeOnPod;
+
     public SettingsSectionViewModel InvoiceSection { get; }
     public SettingsSectionViewModel PodSection { get; }
 
-    public bool GstEnabled { get; set; }
-    public decimal GstRatePercent { get; set; }
-    public bool FuelSurchargeEnabled { get; set; }
-    public decimal FuelSurchargePercent { get; set; }
-    public string InvoicePrefix { get; set; } = "INV";
-    public string PodPrefix { get; set; } = "POD";
-    public int PaymentTermsDays { get; set; } = 7;
-    public bool ShowDamageNotesOnPod { get; set; }
-    public bool ShowWaitTimeOnPod { get; set; }
+    public bool GstEnabled
+    {
+        get => _gstEnabled;
+        set
+        {
+            if (_gstEnabled == value) return;
+            _gstEnabled = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string GstRatePercent
+    {
+        get => _gstRatePercent;
+        set
+        {
+            if (_gstRatePercent == value) return;
+            _gstRatePercent = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool FuelSurchargeEnabled
+    {
+        get => _fuelSurchargeEnabled;
+        set
+        {
+            if (_fuelSurchargeEnabled == value) return;
+            _fuelSurchargeEnabled = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string FuelSurchargePercent
+    {
+        get => _fuelSurchargePercent;
+        set
+        {
+            if (_fuelSurchargePercent == value) return;
+            _fuelSurchargePercent = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string InvoicePrefix
+    {
+        get => _invoicePrefix;
+        set
+        {
+            if (_invoicePrefix == value) return;
+            _invoicePrefix = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public string PodPrefix
+    {
+        get => _podPrefix;
+        set
+        {
+            if (_podPrefix == value) return;
+            _podPrefix = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public int PaymentTermsDays
+    {
+        get => _paymentTermsDays;
+        set
+        {
+            if (_paymentTermsDays == value) return;
+            _paymentTermsDays = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool ShowDamageNotesOnPod
+    {
+        get => _showDamageNotesOnPod;
+        set
+        {
+            if (_showDamageNotesOnPod == value) return;
+            _showDamageNotesOnPod = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public bool ShowWaitTimeOnPod
+    {
+        get => _showWaitTimeOnPod;
+        set
+        {
+            if (_showWaitTimeOnPod == value) return;
+            _showWaitTimeOnPod = value;
+            OnPropertyChanged();
+        }
+    }
 
     public ICommand SaveCommand { get; }
 
@@ -40,26 +139,18 @@ public class SettingsViewModel : BaseViewModel
             var settings = await _settingsApiService.GetAsync();
             if (settings == null)
                 return;
-
             GstEnabled = settings.GstEnabled;
-            GstRatePercent = settings.GstRatePercent;
+            GstRatePercent = settings.GstRatePercent.ToString("0.##");
+            OnPropertyChanged(nameof(GstRatePercent));
+
             FuelSurchargeEnabled = settings.FuelSurchargeEnabled;
-            FuelSurchargePercent = settings.FuelSurchargePercent;
+            FuelSurchargePercent = settings.FuelSurchargePercent.ToString("0.##");
+            OnPropertyChanged(nameof(FuelSurchargePercent));
             InvoicePrefix = settings.InvoicePrefix;
             PodPrefix = settings.PodPrefix;
             PaymentTermsDays = settings.PaymentTermsDays;
             ShowDamageNotesOnPod = settings.ShowDamageNotesOnPod;
             ShowWaitTimeOnPod = settings.ShowWaitTimeOnPod;
-
-            OnPropertyChanged(nameof(GstEnabled));
-            OnPropertyChanged(nameof(GstRatePercent));
-            OnPropertyChanged(nameof(FuelSurchargeEnabled));
-            OnPropertyChanged(nameof(FuelSurchargePercent));
-            OnPropertyChanged(nameof(InvoicePrefix));
-            OnPropertyChanged(nameof(PodPrefix));
-            OnPropertyChanged(nameof(PaymentTermsDays));
-            OnPropertyChanged(nameof(ShowDamageNotesOnPod));
-            OnPropertyChanged(nameof(ShowWaitTimeOnPod));
         }
         catch (Exception ex)
         {
@@ -71,12 +162,24 @@ public class SettingsViewModel : BaseViewModel
     {
         try
         {
+            if (!decimal.TryParse(GstRatePercent, out var gstRate))
+            {
+                await Shell.Current.DisplayAlertAsync("Validation", "Enter a valid GST rate.", "OK");
+                return;
+            }
+
+            if (!decimal.TryParse(FuelSurchargePercent, out var fuelRate))
+            {
+                await Shell.Current.DisplayAlertAsync("Validation", "Enter a valid fuel surcharge rate.", "OK");
+                return;
+            }
+
             var request = new UpdateDocumentSettingsRequest
             {
                 GstEnabled = GstEnabled,
-                GstRatePercent = GstRatePercent,
+                GstRatePercent = gstRate,
                 FuelSurchargeEnabled = FuelSurchargeEnabled,
-                FuelSurchargePercent = FuelSurchargePercent,
+                FuelSurchargePercent = fuelRate,
                 InvoicePrefix = InvoicePrefix,
                 PodPrefix = PodPrefix,
                 PaymentTermsDays = PaymentTermsDays,

@@ -45,6 +45,14 @@ public sealed class JobConfiguration : IEntityTypeConfiguration<Job>
         entity.HasIndex(j => j.DriverId);
         entity.HasIndex(j => j.VehicleAssetId);
 
+        entity.Property(j => j.CustomerId).IsRequired(false);
+        entity.HasIndex(j => j.CustomerId);
+
+        entity.HasOne<Customer>()
+              .WithMany()
+              .HasForeignKey(j => j.CustomerId)
+              .OnDelete(DeleteBehavior.SetNull);
+
         entity.HasOne<UserAccount>()
               .WithMany()
               .HasForeignKey(j => j.OwnerUserId)

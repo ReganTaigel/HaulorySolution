@@ -9,6 +9,7 @@ public static class JobMappingExtensions
     {
         return new JobDto
         {
+            CustomerId = job.CustomerId,
             Id = job.Id,
             OwnerUserId = job.OwnerUserId,
             AssignedToUserId = job.AssignedToUserId,

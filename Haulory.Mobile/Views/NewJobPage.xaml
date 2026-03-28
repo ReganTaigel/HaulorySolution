@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Haulory.Mobile.Views.NewJobPage"
     BackgroundColor="{StaticResource BrandBackground}"
-    IsVisible="{Binding IsPageVisible}">
+    IsVisible="{Binding IsPageVisible}"
+    SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -121,7 +122,21 @@
                         Padding="12">
 
                         <VerticalStackLayout Spacing="10">
+                            <Label
+                                Text="Saved customer"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource BrandTitle}" />
 
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Picker
+                                    Title="Select saved customer"
+                                    ItemsSource="{Binding Customers}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
+                                    TitleColor="{StaticResource Gray500}"
+                                    TextColor="{StaticResource BrandInk}" />
+                            </Border>
                             <Border Style="{StaticResource InputBorderStyle}">
                                 <Entry
                                     Placeholder="Company name"
@@ -665,13 +680,22 @@
             </Border>
 
             <!-- SAVE -->
-            <Button
-                Text="{Binding SaveButtonText}"
-                Command="{Binding SaveJobCommand}"
-                IsVisible="{Binding IsSaveVisible}"
-                IsEnabled="{Binding IsSaveEnabled}"
-                Style="{StaticResource PrimaryButtonStyle}"
-                HeightRequest="50" />
+            <Border
+                BackgroundColor="{StaticResource White}"
+                Stroke="{StaticResource Gray300}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 20"
+                Padding="16"
+                Margin="16,0">
+
+                <Button
+                        Text="{Binding SaveButtonText}"
+                        Command="{Binding SaveJobCommand}"
+                        IsVisible="{Binding IsSaveVisible}"
+                        IsEnabled="{Binding IsSaveEnabled}"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HeightRequest="50" />
+            </Border>
 
             <BoxView HeightRequest="6" Opacity="0" />
 

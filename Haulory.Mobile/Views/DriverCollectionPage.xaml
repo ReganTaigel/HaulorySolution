@@ -2,7 +2,8 @@
     x:Class="Haulory.Mobile.Views.DriverCollectionPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource BrandBackground}">
+    BackgroundColor="{StaticResource BrandBackground}"
+    SafeAreaEdges="Container">
 
     <Shell.BackButtonBehavior>
         <BackButtonBehavior IsVisible="True" />
@@ -92,30 +93,43 @@
                         Margin="0,2,0,0">
 
             <CollectionView.EmptyView>
-                <VerticalStackLayout Padding="24"
-                                     Spacing="10"
-                                     HorizontalOptions="Center"
-                                     VerticalOptions="Center">
-
-                    <Border
-                        BackgroundColor="{StaticResource BrandTileFill}"
+                <Border
+                        BackgroundColor="{StaticResource White}"
                         Stroke="{StaticResource Gray300}"
                         StrokeThickness="1"
-                        StrokeShape="RoundRectangle 18"
-                        Padding="12">
+                        StrokeShape="RoundRectangle 20"
+                        Padding="24"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
 
-                        <Image
-                            Source="driver.svg"
-                            HeightRequest="28"
-                            WidthRequest="28" />
-                    </Border>
+                    <VerticalStackLayout
+                            Spacing="10"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
 
-                    <Label Text="No drivers added yet"
-                           FontAttributes="Bold"
-                           FontSize="17"
-                           TextColor="{StaticResource BrandTitle}"
-                           HorizontalTextAlignment="Center" />
-                </VerticalStackLayout>
+                        <!-- Icon -->
+                        <Border
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 18"
+                                Padding="12">
+
+                            <Image
+                                Source="driver.svg"
+                                HeightRequest="28"
+                                WidthRequest="28" />
+                        </Border>
+
+                        <!-- Text -->
+                        <Label
+                            Text="No drivers added yet"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            TextColor="{StaticResource BrandTitle}"
+                            HorizontalTextAlignment="Center" />
+
+                    </VerticalStackLayout>
+                </Border>
             </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>

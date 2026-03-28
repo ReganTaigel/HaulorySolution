@@ -4,6 +4,8 @@ namespace Haulory.Contracts.Jobs;
 
 public sealed class CreateJobRequest
 {
+    public Guid? CustomerId { get; set; }
+
     public string ClientCompanyName { get; set; } = string.Empty;
     public string? ClientContactName { get; set; }
     public string? ClientEmail { get; set; }

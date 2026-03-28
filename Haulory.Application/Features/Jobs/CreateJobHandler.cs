@@ -49,6 +49,7 @@ public class CreateJobHandler
         var job = new Job(
             jobId: command.JobId,
             ownerUserId: command.OwnerUserId,
+            customerId: command.CustomerId,
 
             clientCompanyName: command.ClientCompanyName,
             clientContactName: command.ClientContactName,

@@ -20,11 +20,12 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     private readonly NewJobEditorService _editorService;
     private readonly JobPickerLoader _pickerLoader;
     private readonly ICrashLogger _crashLogger;
+    private readonly CustomersApiService _customersApiService;
 
     #endregion
 
     #region Selection State
-
+    private CustomerPickerItem? _selectedCustomer;
     private DriverPickerItem? _selectedDriver;
     private VehiclePickerItem? _selectedVehicle;
     private VehiclePickerItem? _selectedTrailer1;
@@ -40,6 +41,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     public ObservableCollection<DriverPickerItem> Drivers { get; } = new();
     public ObservableCollection<VehiclePickerItem> Vehicles { get; } = new();
     public ObservableCollection<VehiclePickerItem> Trailers { get; } = new();
+    public ObservableCollection<CustomerPickerItem> Customers { get; } = new();
 
     #endregion
 
@@ -49,6 +51,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
         JobsApiService jobsApiService,
         DriversApiService driversApiService,
         VehiclesApiService vehiclesApiService,
+        CustomersApiService customersApiService,
         ISessionService session,
         IFeatureAccessService featureAccessService,
         ICrashLogger crashLogger)
@@ -56,6 +59,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
     {
         _session = session;
         _crashLogger = crashLogger;
+        _customersApiService = customersApiService;
 
         _editorService = new NewJobEditorService(
             jobsApiService,
@@ -174,6 +178,15 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
             OnPropertyChanged();
             OnPropertyChanged(nameof(SelectedTrailerSummary));
             SyncSelections();
+        }
+    }
+    public CustomerPickerItem? SelectedCustomer
+    {
+        get => _selectedCustomer;
+        set
+        {
+            if (SetProperty(ref _selectedCustomer, value))
+                ApplySelectedCustomer();
         }
     }
 
@@ -447,6 +460,25 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
                 Drivers.Clear();
                 Vehicles.Clear();
                 Trailers.Clear();
+                Customers.Clear();
+
+                var customers = await _customersApiService.GetCustomersAsync(cancellationToken: default);
+                foreach (var customer in customers
+                    .OrderBy(c => c.CompanyName)
+                    .ThenBy(c => c.ContactName)
+                    .Select(c => new CustomerPickerItem
+                    {
+                        Id = c.Id,
+                        CompanyName = c.CompanyName,
+                        ContactName = c.ContactName,
+                        Email = c.Email,
+                        AddressLine1 = c.AddressLine1,
+                        City = c.City,
+                        Country = c.Country
+                    }))
+                {
+                    Customers.Add(customer);
+                }
 
                 if (!IsPickupOnly && !IsReviewOnly)
                 {
@@ -470,6 +502,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
                     {
                         await _editorService.LoadIntoStateAsync(_state, _state.EditingJobId.Value);
                         ApplyStateToSelections();
+                        ApplyStateToCustomerSelection();
                         RaiseAllStateBindings();
                     }
                     finally
@@ -601,6 +634,7 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
         OnPropertyChanged(nameof(Quantity));
         OnPropertyChanged(nameof(Total));
         OnPropertyChanged(nameof(SelectedTrailerSummary));
+        OnPropertyChanged(nameof(SelectedCustomer));
     }
 
     private void RefreshFeatureBindings()
@@ -636,5 +670,29 @@ public class NewJobViewModel : BaseViewModel, IQueryAttributable
             OnPropertyChanged(nameof(Total));
     }
 
+    #endregion
+
+    #region Helpers
+
+    private void ApplySelectedCustomer()
+    {
+        _state.SelectedCustomerId = SelectedCustomer?.Id;
+
+        if (SelectedCustomer == null)
+            return;
+
+        ClientCompanyName = SelectedCustomer.CompanyName;
+        ClientContactName = SelectedCustomer.ContactName;
+        ClientEmail = SelectedCustomer.Email;
+        ClientAddressLine1 = SelectedCustomer.AddressLine1;
+        ClientCity = SelectedCustomer.City;
+        ClientCountry = SelectedCustomer.Country;
+    }
+    private void ApplyStateToCustomerSelection()
+    {
+        SelectedCustomer = _state.SelectedCustomerId.HasValue
+            ? Customers.FirstOrDefault(x => x.Id == _state.SelectedCustomerId.Value)
+            : null;
+    }
     #endregion
 }

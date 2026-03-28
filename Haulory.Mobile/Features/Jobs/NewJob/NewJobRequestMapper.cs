@@ -14,6 +14,7 @@ public sealed class NewJobRequestMapper
     public CreateJobRequest MapCreate(NewJobFormState state)
         => new()
         {
+            CustomerId = state.SelectedCustomerId,
             ClientCompanyName = state.ClientCompanyName,
             ClientContactName = state.ClientContactName,
             ClientEmail = state.ClientEmail,
@@ -38,6 +39,7 @@ public sealed class NewJobRequestMapper
     public UpdateJobRequest MapUpdate(NewJobFormState state)
         => new()
         {
+            CustomerId = state.SelectedCustomerId,
             ClientCompanyName = state.ClientCompanyName,
             ClientContactName = state.ClientContactName,
             ClientEmail = state.ClientEmail,

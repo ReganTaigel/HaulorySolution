@@ -22,6 +22,7 @@ public class HauloryDbContext : DbContext
     public DbSet<VehicleDayRun> VehicleDayRuns => Set<VehicleDayRun>();
     public DbSet<ServerCrashLog> ServerCrashLogs => Set<ServerCrashLog>();
     public DbSet<DocumentSettings> DocumentSettings => Set<DocumentSettings>();
+    public DbSet<Customer> Customers => Set<Customer>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

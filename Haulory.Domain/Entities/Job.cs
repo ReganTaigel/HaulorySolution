@@ -17,7 +17,7 @@ public class Job
 
     public Guid OwnerUserId { get; private set; }
     public Guid? AssignedToUserId { get; private set; }
-
+    public Guid? CustomerId { get; private set; }
     public Guid? DriverId { get; private set; }
     public Guid? VehicleAssetId { get; private set; } // Power unit asset id
 
@@ -119,6 +119,7 @@ public class Job
     public Job(
         Guid jobId,
         Guid ownerUserId,
+        Guid? customerId,
 
         string clientCompanyName,
         string? clientContactName,
@@ -152,6 +153,7 @@ public class Job
 
         Id = jobId;
         OwnerUserId = ownerUserId;
+        CustomerId = customerId;
 
         ClientCompanyName = clientCompanyName?.Trim() ?? string.Empty;
         ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
@@ -167,12 +169,15 @@ public class Job
 
         ReferenceNumber = referenceNumber?.Trim() ?? string.Empty;
         LoadDescription = loadDescription?.Trim() ?? string.Empty;
-
+        InvoiceNumber = string.IsNullOrWhiteSpace(invoiceNumber)
+        ? string.Empty
+        : invoiceNumber.Trim();
         SetRateInternal(rateType, rateValue, quantity);
 
         SortOrder = sortOrder;
         DriverId = driverId;
         VehicleAssetId = vehicleAssetId;
+
     }
 
     #endregion
@@ -300,6 +305,7 @@ public class Job
     }
 
     public void UpdateDetails(
+        Guid? customerId,
         string clientCompanyName,
         string? clientContactName,
         string? clientEmail,
@@ -319,6 +325,7 @@ public class Job
         Guid? driverId,
         Guid? vehicleAssetId)
     {
+        CustomerId = customerId;
         ClientCompanyName = clientCompanyName.Trim();
         ClientContactName = string.IsNullOrWhiteSpace(clientContactName) ? null : clientContactName.Trim();
         ClientEmail = string.IsNullOrWhiteSpace(clientEmail) ? null : clientEmail.Trim();
@@ -340,6 +347,9 @@ public class Job
 
         DriverId = driverId;
         VehicleAssetId = vehicleAssetId;
+        InvoiceNumber = string.IsNullOrWhiteSpace(invoiceNumber)
+            ? string.Empty
+            : invoiceNumber.Trim();
     }
 
     #endregion
