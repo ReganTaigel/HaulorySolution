@@ -162,7 +162,7 @@ public sealed class NewVehicleRequestMapper
 
     private static bool IsBTrain(NewVehicleFormState state) =>
         IsHeavyTrailer(state) &&
-        state.HeavyConfiguration is VehicleConfiguration.BDblCurtainsider or VehicleConfiguration.BDblFlatDeck or VehicleConfiguration.BDblRefrigerated or VehicleConfiguration.BDblTanker;
+        state.HeavyConfiguration is VehicleConfiguration.BDblCurtainsider or VehicleConfiguration.BDblFlatDeck or VehicleConfiguration.BDblRefrigerated or VehicleConfiguration.BDblTanker or VehicleConfiguration.BDblBottomDumper or VehicleConfiguration.BDblSideTipper;
 
     private static ComplianceCertificateType RequiredCertificate(NewVehicleFormState state) =>
         state.VehicleType is VehicleType.RigidTruckMedium or VehicleType.RigidTruckHeavy or VehicleType.TrailerHeavy
@@ -176,10 +176,12 @@ public sealed class NewVehicleRequestMapper
 
         return state.PowerUnitBodyType switch
         {
-            Domain.Enums.PowerUnitBodyType.Curtainsider => "RigidCurtainsider",
-            Domain.Enums.PowerUnitBodyType.FlatDeck => "RigidFlatDeck",
-            Domain.Enums.PowerUnitBodyType.Refrigerated => "RigidRefrigerated",
-            Domain.Enums.PowerUnitBodyType.Tanker => "RigidTanker",
+            Domain.Enums.PowerUnitBodyType.Curtainsider => "Rigid Curtainsider",
+            Domain.Enums.PowerUnitBodyType.FlatDeck => "Rigid FlatDeck",
+            Domain.Enums.PowerUnitBodyType.Refrigerated => "Rigid Refrigerated",
+            Domain.Enums.PowerUnitBodyType.Tanker => "Rigid Tanker",
+            Domain.Enums.PowerUnitBodyType.Tipper => "Rigid Tipper",
+
             _ => null
         };
     }

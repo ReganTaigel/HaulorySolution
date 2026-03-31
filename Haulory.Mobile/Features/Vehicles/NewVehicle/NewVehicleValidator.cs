@@ -44,7 +44,7 @@ public sealed class NewVehicleValidator
 
     public bool IsBTrain(NewVehicleFormState state) =>
         IsHeavyTrailer(state) &&
-        state.HeavyConfiguration is VehicleConfiguration.BDblCurtainsider or VehicleConfiguration.BDblFlatDeck or VehicleConfiguration.BDblRefrigerated or VehicleConfiguration.BDblTanker;
+        state.HeavyConfiguration is VehicleConfiguration.BDblCurtainsider or VehicleConfiguration.BDblFlatDeck or VehicleConfiguration.BDblRefrigerated or VehicleConfiguration.BDblTanker or VehicleConfiguration.BDblBottomDumper or VehicleConfiguration.BDblSideTipper;
 
     public bool ShowLightTrailerConfig(NewVehicleFormState state) => IsLightTrailer(state);
     public bool ShowPowerUnitBodyType(NewVehicleFormState state) => state.VehicleType is VehicleType.RigidTruckMedium or VehicleType.RigidTruckHeavy;

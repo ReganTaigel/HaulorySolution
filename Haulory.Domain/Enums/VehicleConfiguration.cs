@@ -6,7 +6,7 @@
 // NOTE: Display strings should live in EnumDisplay or localization resources.
 public enum VehicleConfiguration
 {
-    // Light trailers (axle-based)
+    // Light trailers
     SingleAxle = 0,
     TandemAxle = 1,
 
@@ -15,28 +15,34 @@ public enum VehicleConfiguration
     RigidRefrigerated = 3,
     RigidTanker = 4,
     RigidFlatDeck = 5,
+    RigidTipper = 6,
 
     // Tractor / prime mover
-    TractorUnit = 6,
+    TractorUnit = 7,
 
     // Semi trailers
-    SemiCurtainsider = 7,
-    SemiFlatDeck = 8,
-    SemiSkeleton = 9,
-    SemiRefrigerated = 10,
-    SemiTanker = 11,
+    SemiCurtainsider = 8,
+    SemiFlatDeck = 9,
+    SemiSkeleton = 10,
+    SemiRefrigerated = 11,
+    SemiTanker = 12,
+    SemiTipper = 13,
 
     // Drawbar / A-frame / rigid trailers
-    DrawbarRefrigerated = 12,
-    DrawbarCurtainsider = 13,
-    DrawbarTanker = 14,
-    DrawbarFlatDeck = 15,
+    DrawbarRefrigerated = 14,
+    DrawbarCurtainsider = 15,
+    DrawbarTanker = 16,
+    DrawbarFlatDeck = 17,
+    DrawbarTipper = 18,
 
     // B-double / B-train trailers
-    BDblCurtainsider = 16,
-    BDblFlatDeck = 17,
-    BDblRefrigerated = 18,
-    BDblTanker = 19
+    BDblCurtainsider = 19,
+    BDblFlatDeck = 20,
+    BDblRefrigerated = 21,
+    BDblTanker = 22,
+    BDblBottomDumper = 23,
+    BDblSideTipper = 24,
+
 }
 
 #endregion
@@ -51,7 +57,8 @@ public enum PowerUnitBodyType
     Refrigerated = 1,
     Tanker = 2,
     FlatDeck = 3,
-    Tractor = 4
+    Tractor = 4,
+    Tipper = 5
 }
 
 #endregion

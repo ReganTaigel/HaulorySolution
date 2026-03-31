@@ -21,6 +21,15 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
 
     #endregion
 
+    #region UI Enum:
+    public enum HeavyTrailerGroup
+    {
+        Semi,
+        Drawbar,
+        BDouble
+    }
+    #endregion
+
     #region Constructor
 
     public NewVehicleViewModel(
@@ -42,7 +51,25 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     #endregion
 
     #region Collections
+    public ObservableCollection<VehicleOption<HeavyTrailerGroup>> HeavyTrailerGroups { get; } =
+    new()
+    {
+        new(HeavyTrailerGroup.Semi, "Semi-Trailer"),
+        new(HeavyTrailerGroup.Drawbar, "A-Frame / Drawbar Trailer"),
+        new(HeavyTrailerGroup.BDouble, "Fifth Wheel / B-Train")
+    };
 
+    private ObservableCollection<VehicleOption<VehicleConfiguration>> _filteredHeavyConfigurations = new();
+
+    public ObservableCollection<VehicleOption<VehicleConfiguration>> FilteredHeavyConfigurations
+    {
+        get => _filteredHeavyConfigurations;
+        set
+        {
+            _filteredHeavyConfigurations = value;
+            OnPropertyChanged();
+        }
+    }
     public ObservableCollection<VehicleOption<VehicleType>> VehicleTypes { get; } =
         new()
         {
@@ -58,8 +85,8 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     public ObservableCollection<VehicleOption<VehicleConfiguration>> LightTrailerConfigurations { get; } =
         new()
         {
-            new(VehicleConfiguration.SingleAxle, "Single axle trailer"),
-            new(VehicleConfiguration.TandemAxle, "Tandem axle trailer"),
+            new(VehicleConfiguration.SingleAxle, "Single Axle Trailer"),
+            new(VehicleConfiguration.TandemAxle, "Tandem Axle Trailer"),
         };
 
     public ObservableCollection<VehicleOption<VehicleConfiguration>> HeavyConfigurations { get; } =
@@ -70,14 +97,18 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             new(VehicleConfiguration.SemiRefrigerated, "Semi Trailer (Refrigerated)"),
             new(VehicleConfiguration.SemiTanker, "Semi Trailer (Tanker)"),
             new(VehicleConfiguration.SemiSkeleton, "Semi Trailer (Skeleton)"),
-            new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider Trailer (A-Frame)"),
-            new(VehicleConfiguration.DrawbarFlatDeck, "Flat Deck (A-Frame)"),
-            new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated Trailer (A-Frame)"),
-            new(VehicleConfiguration.DrawbarTanker, "Tanker Trailer (A-Frame)"),
-            new(VehicleConfiguration.BDblCurtainsider, "Curtainsider Trailer (Fifth Wheel)"),
-            new(VehicleConfiguration.BDblFlatDeck, "Flat Deck Trailer (Fifth Wheel)"),
-            new(VehicleConfiguration.BDblRefrigerated, "Refrigerated Trailers (Fifth Wheel)"),
-            new(VehicleConfiguration.BDblTanker, "Tanker Trailer (Fifth Wheel)"),
+
+            new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider Trailer "),
+            new(VehicleConfiguration.DrawbarFlatDeck, "Flat Deck"),
+            new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated Trailer"),
+            new(VehicleConfiguration.DrawbarTanker, "Tanker Trailer "),
+
+            new(VehicleConfiguration.BDblCurtainsider, "Curtainsider Trailer "),
+            new(VehicleConfiguration.BDblFlatDeck, "Flat Deck Trailer "),
+            new(VehicleConfiguration.BDblRefrigerated, "Refrigerated Trailers "),
+            new(VehicleConfiguration.BDblTanker, "Tanker Trailer "),
+            new(VehicleConfiguration.BDblBottomDumper, "Belly Dump Trailer "),
+            new(VehicleConfiguration.BDblSideTipper, "Side Tippers Trailer "),
        };
 
     public ObservableCollection<VehicleOption<PowerUnitBodyType>> PowerUnitBodyTypes { get; } =
@@ -87,6 +118,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             new(PowerUnitBodyType.FlatDeck, "Rigid Truck (Flat Deck)"),
             new(PowerUnitBodyType.Refrigerated, "Rigid Truck (Refrigerated)"),
             new(PowerUnitBodyType.Tanker, "Rigid Truck (Tanker)"),
+            new(PowerUnitBodyType.Tipper, "Rigid Truck (Tipper)"),
         };
 
     public ObservableCollection<VehicleOption<FuelType>> FuelTypes { get; } =
@@ -120,7 +152,58 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     #endregion
 
     #region Selection Properties
+    private HeavyTrailerGroup? _selectedHeavyTrailerGroup;
 
+    public VehicleOption<HeavyTrailerGroup>? SelectedHeavyTrailerGroup
+    {
+        get => HeavyTrailerGroups.FirstOrDefault(x => x.Value == _selectedHeavyTrailerGroup);
+        set
+        {
+            if (_selectedHeavyTrailerGroup == value?.Value)
+                return;
+
+            _selectedHeavyTrailerGroup = value?.Value;
+            _state.HeavyConfiguration = null;
+
+            FilteredHeavyConfigurations = _selectedHeavyTrailerGroup switch
+            {
+                HeavyTrailerGroup.Semi => new ObservableCollection<VehicleOption<VehicleConfiguration>>
+            {
+                new(VehicleConfiguration.SemiCurtainsider, "Curtainsider"),
+                new(VehicleConfiguration.SemiFlatDeck, "Flat deck"),
+                new(VehicleConfiguration.SemiRefrigerated, "Refrigerated"),
+                new(VehicleConfiguration.SemiTanker, "Tanker"),
+                new(VehicleConfiguration.SemiSkeleton, "Skeleton"),
+                new(VehicleConfiguration.SemiTipper, "Tipper"),
+            },
+
+                HeavyTrailerGroup.Drawbar => new ObservableCollection<VehicleOption<VehicleConfiguration>>
+            {
+                new(VehicleConfiguration.DrawbarCurtainsider, "Curtainsider"),
+                new(VehicleConfiguration.DrawbarFlatDeck, "Flat deck"),
+                new(VehicleConfiguration.DrawbarRefrigerated, "Refrigerated"),
+                new(VehicleConfiguration.DrawbarTanker, "Tanker"),
+                new(VehicleConfiguration.DrawbarTipper, "Tipper"),
+            },
+
+                HeavyTrailerGroup.BDouble => new ObservableCollection<VehicleOption<VehicleConfiguration>>
+            {
+                new(VehicleConfiguration.BDblCurtainsider, "Curtainsider"),
+                new(VehicleConfiguration.BDblFlatDeck, "Flat deck"),
+                new(VehicleConfiguration.BDblRefrigerated, "Refrigerated"),
+                new(VehicleConfiguration.BDblTanker, "Tanker"),
+                new(VehicleConfiguration.BDblBottomDumper, "Belly Dump"),
+                new(VehicleConfiguration.BDblSideTipper, "Side Tipper"),
+            },
+                _ => new ObservableCollection<VehicleOption<VehicleConfiguration>>()
+            };
+
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(SelectedHeavyConfig));
+
+            RefreshSaveState();
+        }
+    }
     public VehicleOption<VehicleType>? SelectedVehicleType
     {
         get => VehicleTypes.FirstOrDefault(x => x.Value == _state.VehicleType);
@@ -129,6 +212,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
             _state.VehicleType = value?.Value;
             _state.LightConfiguration = null;
             _state.HeavyConfiguration = null;
+            _selectedHeavyTrailerGroup = null;
             _state.PowerUnitBodyType = null;
             _state.FuelType = null;
             _state.Unit1Rego = _state.Unit2Rego = _state.Unit3Rego = string.Empty;
@@ -171,7 +255,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
 
     public VehicleOption<VehicleConfiguration>? SelectedHeavyConfig
     {
-        get => HeavyConfigurations.FirstOrDefault(x => x.Value == _state.HeavyConfiguration);
+        get => FilteredHeavyConfigurations.FirstOrDefault(x => x.Value == _state.HeavyConfiguration);
         set
         {
             _state.HeavyConfiguration = value?.Value;
@@ -349,7 +433,36 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     #endregion
 
     #region Private Methods
+    private HeavyTrailerGroup? GetHeavyTrailerGroup(VehicleConfiguration? config)
+    {
+        return config switch
+        {
+            VehicleConfiguration.SemiCurtainsider
+            or VehicleConfiguration.SemiFlatDeck
+            or VehicleConfiguration.SemiRefrigerated
+            or VehicleConfiguration.SemiTanker
+            or VehicleConfiguration.SemiSkeleton
+            or VehicleConfiguration.SemiTipper
+                => HeavyTrailerGroup.Semi,
 
+            VehicleConfiguration.DrawbarCurtainsider
+            or VehicleConfiguration.DrawbarFlatDeck
+            or VehicleConfiguration.DrawbarRefrigerated
+            or VehicleConfiguration.DrawbarTanker
+            or VehicleConfiguration.DrawbarTipper
+                => HeavyTrailerGroup.Drawbar,
+
+            VehicleConfiguration.BDblCurtainsider
+            or VehicleConfiguration.BDblFlatDeck
+            or VehicleConfiguration.BDblRefrigerated
+            or VehicleConfiguration.BDblTanker
+            or VehicleConfiguration.BDblBottomDumper
+            or VehicleConfiguration.BDblSideTipper
+                => HeavyTrailerGroup.BDouble,
+
+            _ => null
+        };
+    }
     private async Task UpdateVehicleAsync()
     {
         if (!_state.EditingVehicleId.HasValue)
@@ -476,6 +589,7 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
         _state.Unit3Make = loaded.Unit3Make;
         _state.Unit3Model = loaded.Unit3Model;
         _state.Unit3Year = loaded.Unit3Year;
+        _selectedHeavyTrailerGroup = GetHeavyTrailerGroup(loaded.HeavyConfiguration);
     }
 
     private void RefreshSaveState()
@@ -596,4 +710,4 @@ public class NewVehicleViewModel : BaseViewModel, IQueryAttributable
     }
 
     #endregion
-}
+} 
