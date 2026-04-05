@@ -36,32 +36,53 @@ public class JobRepository : IJobRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task UpdateAsync(Job job)
+    public async Task UpdateAsync(Job job, List<Guid> trailerIds)
     {
         if (job == null) throw new ArgumentNullException(nameof(job));
         if (job.Id == Guid.Empty) throw new ArgumentException("Job.Id required.", nameof(job));
 
-        var target = _db.Jobs.Local.FirstOrDefault(j => j.Id == job.Id)
-                  ?? await _db.Jobs.FirstOrDefaultAsync(j => j.Id == job.Id);
+        var target = await _db.Jobs
+            .Include(j => j.TrailerAssignments)
+            .FirstOrDefaultAsync(j => j.Id == job.Id && j.OwnerUserId == job.OwnerUserId);
 
         if (target == null)
             throw new KeyNotFoundException($"Job not found: {job.Id}");
 
-        if (target.OwnerUserId != job.OwnerUserId)
-            throw new InvalidOperationException("OwnerUserId mismatch.");
-
-        // Assignment / allocation
         target.AssignToSubUser(job.AssignedToUserId);
         target.AssignDriver(job.DriverId);
         target.AssignVehicle(job.VehicleAssetId);
-
-        // Ordering
         target.SetSortOrder(job.SortOrder);
 
-        // ✅ Delivery completion (run ONCE only)
-        // If already delivered, do not overwrite DeliveredAtUtc/status.
-        var incomingHasDelivery = !string.IsNullOrWhiteSpace(job.DeliverySignatureJson)
-                                  && !string.IsNullOrWhiteSpace(job.ReceiverName);
+        target.UpdateDetails(
+            job.CustomerId,
+            job.ClientCompanyName,
+            job.ClientContactName,
+            job.ClientEmail,
+            job.ClientAddressLine1,
+            job.ClientCity,
+            job.ClientCountry,
+            job.PickupCompany,
+            job.PickupAddress,
+            job.DeliveryCompany,
+            job.DeliveryAddress,
+            job.ReferenceNumber,
+            job.LoadDescription,
+            job.InvoiceNumber,
+            job.RateType,
+            job.RateValue,
+            job.Quantity,
+            job.DriverId,
+            job.VehicleAssetId
+        );
+
+        target.UpdatePickupDetails(job.WaitTimeMinutes, job.DamageNotes);
+
+        // trailer sync
+        target.SetTrailers(trailerIds);
+
+        var incomingHasDelivery =
+            !string.IsNullOrWhiteSpace(job.DeliverySignatureJson) &&
+            !string.IsNullOrWhiteSpace(job.ReceiverName);
 
         if (target.DeliveredAtUtc == null && incomingHasDelivery)
         {
@@ -77,9 +98,59 @@ public class JobRepository : IJobRepository
             );
         }
 
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            var entryDetails = ex.Entries
+                .Select(e => $"{e.Entity.GetType().Name} [{e.State}]")
+                .ToList();
+
+            throw new InvalidOperationException(
+                $"Job update failed for job {job.Id}. Concurrency entities: {string.Join(", ", entryDetails)}",
+                ex);
+        }
+    }
+    public async Task UpdateAsync(Job job)
+    {
+        var target = await _db.Jobs
+            .FirstOrDefaultAsync(j => j.Id == job.Id && j.OwnerUserId == job.OwnerUserId);
+
+        if (target == null)
+            throw new KeyNotFoundException();
+
+        target.AssignToSubUser(job.AssignedToUserId);
+        target.AssignDriver(job.DriverId);
+        target.AssignVehicle(job.VehicleAssetId);
+        target.SetSortOrder(job.SortOrder);
+
+        target.UpdateDetails(
+            job.CustomerId,
+            job.ClientCompanyName,
+            job.ClientContactName,
+            job.ClientEmail,
+            job.ClientAddressLine1,
+            job.ClientCity,
+            job.ClientCountry,
+            job.PickupCompany,
+            job.PickupAddress,
+            job.DeliveryCompany,
+            job.DeliveryAddress,
+            job.ReferenceNumber,
+            job.LoadDescription,
+            job.InvoiceNumber,
+            job.RateType,
+            job.RateValue,
+            job.Quantity,
+            job.DriverId,
+            job.VehicleAssetId);
+
+        target.UpdatePickupDetails(job.WaitTimeMinutes, job.DamageNotes);
+
         await _db.SaveChangesAsync();
     }
-
     public async Task DeleteAsync(Guid id)
     {
         var job = await _db.Jobs.FindAsync(id);

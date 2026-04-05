@@ -1,5 +1,10 @@
-﻿public record CreateDriverCommand(
+﻿// Application command used to create a new driver.
+// Carries all data required by the driver creation workflow.
+public record CreateDriverCommand(
+    // Owner/business account the driver belongs to.
     Guid OwnerUserId,
+
+    // Core identity details.
     string FirstName,
     string LastName,
     string Email,
@@ -33,7 +38,7 @@
     string EmergencyPhoneNumber,
     string? EmergencySecondaryPhoneNumber,
 
-    // ✅ NEW (for login driver accounts)
+    // Optional login account creation for drivers who need direct system access.
     bool CreateLoginAccount,
     string? Password
 );

@@ -5,11 +5,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Haulory.Mobile.Diagnostics;
 
+// Provides crash logging functionality for the mobile application.
+// Logs errors to a local SQLite database and standard logging system.
 public class CrashLogger : ICrashLogger
 {
+    // Factory for creating EF Core DbContext instances.
     private readonly IDbContextFactory<MobileCrashDbContext> _dbContextFactory;
+
+    // Standard application logger.
     private readonly ILogger<CrashLogger> _logger;
+
+    // Provides access to current session/user context.
     private readonly ISessionService _sessionService;
+
+    // Path to the local SQLite database used for crash logging.
     private readonly string _dbPath;
 
     public CrashLogger(
@@ -23,6 +32,7 @@ public class CrashLogger : ICrashLogger
         _dbPath = Path.Combine(FileSystem.AppDataDirectory, "haulory-crashlogs.db");
     }
 
+    // Logs a full exception asynchronously using EF Core.
     public async Task LogAsync(
         Exception exception,
         string source,
@@ -34,10 +44,13 @@ public class CrashLogger : ICrashLogger
     {
         try
         {
+            // Log to standard logger.
             _logger.LogError(exception, "Crash logged from {Source}", source);
 
+            // Create database context.
             await using var db = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
+            // Build crash log entry.
             var entry = BuildEntry(
                 message: exception.Message,
                 source: source,
@@ -49,20 +62,24 @@ public class CrashLogger : ICrashLogger
                 innerException: exception.InnerException?.ToString(),
                 exceptionType: exception.GetType().FullName);
 
+            // Save to database.
             db.CrashLogs.Add(entry);
             await db.SaveChangesAsync(cancellationToken);
 
+            // Debug output.
             System.Diagnostics.Debug.WriteLine(
                 $"[CrashLogger] Crash log saved locally: Id={entry.Id}, Source={entry.Source}, Message={entry.Message}");
         }
         catch (Exception loggingException)
         {
+            // Fallback logging if crash logging itself fails.
             _logger.LogCritical(loggingException, "Failed to write crash log.");
             System.Diagnostics.Debug.WriteLine(
                 $"[CrashLogger] Failed to save crash log locally: {loggingException}");
         }
     }
 
+    // Logs a simple message (non-exception) asynchronously.
     public async Task LogMessageAsync(
         string message,
         string source,
@@ -103,6 +120,7 @@ public class CrashLogger : ICrashLogger
         }
     }
 
+    // Logs critical crashes immediately using direct SQLite access (bypasses EF).
     public void TryLogCriticalImmediately(
         Exception exception,
         string source,
@@ -126,6 +144,7 @@ public class CrashLogger : ICrashLogger
                 innerException: exception.InnerException?.ToString(),
                 exceptionType: exception.GetType().FullName);
 
+            // Write directly to SQLite to avoid EF/DI failures.
             WriteDirectToSqlite(entry);
 
             System.Diagnostics.Debug.WriteLine(
@@ -139,6 +158,7 @@ public class CrashLogger : ICrashLogger
         }
     }
 
+    // Logs critical non-exception messages immediately.
     public void TryLogMessageCriticalImmediately(
         string message,
         string source,
@@ -175,6 +195,7 @@ public class CrashLogger : ICrashLogger
         }
     }
 
+    // Builds a CrashLog entity with enriched context information.
     private CrashLog BuildEntry(
         string message,
         string source,
@@ -195,12 +216,18 @@ public class CrashLogger : ICrashLogger
             StackTrace = stackTrace,
             InnerException = innerException,
             ExceptionType = exceptionType,
+
+            // Session context (user/tenant info).
             AccountId = _sessionService.CurrentAccountId?.ToString(),
             OwnerId = _sessionService.CurrentOwnerId?.ToString(),
+
+            // UI + device context.
             PageName = pageName,
             Platform = DeviceInfo.Platform.ToString(),
             AppVersion = AppInfo.VersionString,
             AppBuild = AppInfo.BuildString,
+
+            // Metadata and flags.
             IsHandled = isHandled,
             IsSynced = false,
             CreatedUtc = DateTime.UtcNow,
@@ -208,12 +235,14 @@ public class CrashLogger : ICrashLogger
         };
     }
 
+    // Writes crash log directly to SQLite using raw SQL (fallback path).
     private void WriteDirectToSqlite(CrashLog entry)
     {
         using var connection = new SqliteConnection($"Data Source={_dbPath}");
         connection.Open();
 
         using var command = connection.CreateCommand();
+
         command.CommandText =
             """
             INSERT INTO CrashLogs
@@ -258,6 +287,7 @@ public class CrashLogger : ICrashLogger
             );
             """;
 
+        // Parameterised query to prevent SQL injection and ensure type safety.
         command.Parameters.AddWithValue("$Id", entry.Id.ToString());
         command.Parameters.AddWithValue("$Source", entry.Source);
         command.Parameters.AddWithValue("$Severity", entry.Severity);
@@ -279,6 +309,7 @@ public class CrashLogger : ICrashLogger
         command.ExecuteNonQuery();
     }
 
+    // Truncates long messages to avoid excessive storage size.
     private static string Truncate(string value, int maxLength)
     {
         if (string.IsNullOrWhiteSpace(value))

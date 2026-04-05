@@ -3,8 +3,10 @@ using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Extensions;
 
+// Provides mapping extensions for converting Driver domain entities into DTOs.
 public static class DriverMappingExtensions
 {
+    // Maps a Driver entity to a DriverDto for API responses.
     public static DriverDto ToDto(this Driver driver)
     {
         return new DriverDto
@@ -13,6 +15,7 @@ public static class DriverMappingExtensions
             OwnerUserId = driver.OwnerUserId,
             UserId = driver.UserId,
 
+            // Identity and contact details.
             FirstName = driver.FirstName,
             LastName = driver.LastName,
             DisplayName = driver.DisplayName,
@@ -20,6 +23,7 @@ public static class DriverMappingExtensions
             PhoneNumber = driver.PhoneNumber,
             DateOfBirthUtc = driver.DateOfBirthUtc,
 
+            // Licence and compliance information.
             LicenceNumber = driver.LicenceNumber,
             LicenceVersion = driver.LicenceVersion,
             LicenceClassOrEndorsements = driver.LicenceClassOrEndorsements,
@@ -27,6 +31,7 @@ public static class DriverMappingExtensions
             LicenceExpiresOnUtc = driver.LicenceExpiresOnUtc,
             LicenceConditionsNotes = driver.LicenceConditionsNotes,
 
+            // Address details.
             Line1 = driver.Line1,
             Line2 = driver.Line2,
             Suburb = driver.Suburb,
@@ -34,10 +39,14 @@ public static class DriverMappingExtensions
             Region = driver.Region,
             Postcode = driver.Postcode,
             Country = driver.Country,
+
+            // Pre-formatted address summary (likely computed in domain).
             AddressSummary = driver.AddressSummary,
 
+            // Convert status enum to string for API consumption.
             Status = driver.Status.ToString(),
 
+            // Emergency contact details (nullable-safe mapping).
             EmergencyContact = new EmergencyContactDto
             {
                 FirstName = driver.EmergencyContact?.FirstName,
@@ -48,6 +57,7 @@ public static class DriverMappingExtensions
                 Email = driver.EmergencyContact?.Email
             },
 
+            // Additional derived/aggregate state.
             EmergencyStatus = driver.EmergencyStatus,
             IsMainProfile = driver.IsMainProfile
         };

@@ -8,6 +8,7 @@ public class JobListItemViewModel
 
     public string DriverName { get; }
     public string TruckDisplay { get; }
+    public string TrailerDisplay { get; }
     public bool ShowPricing { get; }
     public bool CanShowSignDelivery { get; }
 
@@ -15,12 +16,14 @@ public class JobListItemViewModel
         JobDto job,
         string driverName,
         string truckDisplay,
+        string trailerDisplay,
         bool showPricing,
         bool canShowSignDelivery)
     {
         Job = job;
         DriverName = driverName;
         TruckDisplay = truckDisplay;
+        TrailerDisplay = string.IsNullOrWhiteSpace(trailerDisplay) ? "—" : trailerDisplay;
         ShowPricing = showPricing;
         CanShowSignDelivery = canShowSignDelivery;
     }

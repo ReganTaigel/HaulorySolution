@@ -44,8 +44,9 @@ public interface IJobRepository
 
     #region Updates
 
-    Task UpdateAsync(Job job);
+    Task UpdateAsync(Job job); // existing
 
+    Task UpdateAsync(Job job, List<Guid> trailerIds); // new
     #endregion
 
     #region Invoice

@@ -277,12 +277,10 @@ public class JobsCollectionViewModel : BaseViewModel
                     .Select(j => j.VehicleAssetId!.Value)
                     .Distinct()
                     .ToList();
-
                 var trailerIds = jobs
-                    .SelectMany(j => j.TrailerAssetIds)
+                    .SelectMany(j => j.TrailerAssetIds ?? new List<Guid>())
                     .Distinct()
                     .ToList();
-
                 var driversById = new Dictionary<Guid, DriverDto>();
 
                 foreach (var driver in allDrivers.Where(d => driverIds.Contains(d.Id)))
@@ -295,13 +293,13 @@ public class JobsCollectionViewModel : BaseViewModel
                         driversById[id] = driver;
                 }
 
-                var assetsById = new Dictionary<Guid, VehicleDto>();
-                foreach (var id in vehicleIds.Concat(trailerIds).Distinct())
-                {
-                    var asset = await _vehiclesApiService.GetVehicleByIdAsync(id);
-                    if (asset != null)
-                        assetsById[id] = asset;
-                }
+                var allVehicles = (await _vehiclesApiService.GetVehiclesAsync()).ToList();
+                var allTrailers = (await _vehiclesApiService.GetTrailersAsync()).ToList();
+
+                var assetsById = allVehicles
+                    .Concat(allTrailers)
+                    .GroupBy(a => a.Id)
+                    .ToDictionary(g => g.Key, g => g.First());
 
                 var showPricing = IsMainUser;
                 var items = new List<JobListItemViewModel>();
@@ -325,6 +323,19 @@ public class JobsCollectionViewModel : BaseViewModel
                     {
                         truck = $"{vehicle.Make} {vehicle.Model} • {vehicle.Rego}".Trim();
                     }
+                    var trailer = "—";
+
+                    var trailerParts = job.TrailerAssetIds?
+                        .Where(id => assetsById.TryGetValue(id, out var asset) && asset != null)
+                        .Select(id =>
+                        {
+                            var a = assetsById[id];
+                            return $"{a.Make} {a.Model} • {a.Rego}".Trim();
+                        })
+                        .ToList() ?? new List<string>();
+
+                    if (trailerParts.Count > 0)
+                        trailer = string.Join(", ", trailerParts);
 
                     var canShowSignDelivery =
                         IsSubUser
@@ -335,6 +346,7 @@ public class JobsCollectionViewModel : BaseViewModel
                         job,
                         driverName,
                         truck,
+                        trailer,
                         showPricing,
                         canShowSignDelivery));
                 }

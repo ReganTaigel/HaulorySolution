@@ -164,7 +164,7 @@
                                     </Grid>
 
                                     <Grid
-                                        RowDefinitions="Auto,Auto"
+                                        RowDefinitions="Auto,Auto,Auto"
                                         ColumnDefinitions="Auto,*"
                                         ColumnSpacing="10"
                                         RowSpacing="8">
@@ -197,6 +197,22 @@
                                         <Label
                                             Text="{Binding TruckDisplay}"
                                             Grid.Row="1"
+                                            Grid.Column="1"
+                                            FontSize="14"
+                                            TextColor="{StaticResource BrandInk}"
+                                            LineBreakMode="TailTruncation" />
+
+                                        <Label
+                                            Text="Trailer"
+                                            Grid.Row="2"
+                                            Grid.Column="0"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource BrandTitle}" />
+
+                                        <Label
+                                            Text="{Binding TrailerDisplay}"
+                                            Grid.Row="2"
                                             Grid.Column="1"
                                             FontSize="14"
                                             TextColor="{StaticResource BrandInk}"
@@ -515,7 +531,7 @@
                                                         </Grid>
 
                                                         <Grid
-                                                            RowDefinitions="Auto,Auto"
+                                                            RowDefinitions="Auto,Auto,Auto"
                                                             ColumnDefinitions="Auto,*"
                                                             ColumnSpacing="10"
                                                             RowSpacing="8">
@@ -548,6 +564,21 @@
                                                             <Label
                                                                 Text="{Binding TruckDisplay}"
                                                                 Grid.Row="1"
+                                                                Grid.Column="1"
+                                                                FontSize="14"
+                                                                TextColor="{StaticResource BrandInk}"
+                                                                LineBreakMode="TailTruncation" />
+                                                            <Label
+                                                                Text="Trailer"
+                                                                Grid.Row="2"
+                                                                Grid.Column="0"
+                                                                FontSize="13"
+                                                                FontAttributes="Bold"
+                                                                TextColor="{StaticResource BrandTitle}" />
+
+                                                            <Label
+                                                                Text="{Binding TrailerDisplay}"
+                                                                Grid.Row="2"
                                                                 Grid.Column="1"
                                                                 FontSize="14"
                                                                 TextColor="{StaticResource BrandInk}"

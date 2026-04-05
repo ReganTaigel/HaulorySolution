@@ -3,8 +3,11 @@ using Haulory.Domain.Entities;
 
 namespace Haulory.Api.Jobs;
 
+// Centralises response mapping for job-related API endpoints.
+// Keeps controllers cleaner by moving DTO and response-shaping logic into one place.
 public sealed class JobResponseFactory
 {
+    // Maps a Job domain entity to a full JobDto.
     public JobDto ToDto(Job job)
         => new()
         {
@@ -26,17 +29,23 @@ public sealed class JobResponseFactory
             DeliveryCompany = job.DeliveryCompany,
             DeliveryAddress = job.DeliveryAddress,
             InvoiceNumber = job.InvoiceNumber,
+
+            // Convert enum values to strings for API responses.
             RateType = job.RateType.ToString(),
             RateValue = job.RateValue,
             Quantity = job.Quantity,
             Total = job.Total,
             Status = job.Status.ToString(),
+
             DriverId = job.DriverId,
             VehicleAssetId = job.VehicleAssetId,
+
+            // Return trailer asset IDs ordered by their assigned position.
             TrailerAssetIds = job.TrailerAssignments
                 .OrderBy(t => t.Position)
                 .Select(t => t.TrailerAssetId)
                 .ToList(),
+
             ReceiverName = job.ReceiverName,
             DeliveredAtUtc = job.DeliveredAtUtc,
             DeliverySignatureJson = job.DeliverySignatureJson,
@@ -45,6 +54,7 @@ public sealed class JobResponseFactory
             RequiresReview = job.RequiresReview
         };
 
+    // Returns a lightweight response after job creation.
     public object ToCreated(Job job)
         => new
         {
@@ -55,6 +65,7 @@ public sealed class JobResponseFactory
             status = job.Status.ToString()
         };
 
+    // Returns a lightweight response after job update.
     public object ToUpdated(Job job)
         => new
         {
@@ -65,6 +76,7 @@ public sealed class JobResponseFactory
             status = job.Status.ToString()
         };
 
+    // Returns a lightweight response after pickup details are updated.
     public object ToPickupUpdated(Job job)
         => new
         {
@@ -74,6 +86,7 @@ public sealed class JobResponseFactory
             damageNotes = job.DamageNotes
         };
 
+    // Returns a lightweight response after review and approval.
     public object ToReviewed(Job job)
         => new
         {
@@ -84,6 +97,8 @@ public sealed class JobResponseFactory
             damageNotes = job.DamageNotes
         };
 
+    // Returns a lightweight response after job completion.
+    // Message varies depending on whether the job now requires review.
     public object ToCompleted(Job job, Guid? receiptId)
         => new
         {

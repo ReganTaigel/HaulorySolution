@@ -111,11 +111,11 @@ public class NeedsReviewViewModel : BaseViewModel
                         return;
 
                     var jobs = await _jobsApiService.GetNeedsReviewJobsAsync();
-
                     foreach (var job in jobs.OrderByDescending(x => x.DeliveredAtUtc))
                     {
                         var driverName = "—";
                         var truckDisplay = "—";
+                        var trailerDisplay = "—";
                         var showPricing = true;
                         var canShowSignDelivery = false;
 
@@ -123,6 +123,7 @@ public class NeedsReviewViewModel : BaseViewModel
                             job,
                             driverName,
                             truckDisplay,
+                            trailerDisplay,
                             showPricing,
                             canShowSignDelivery));
                     }
