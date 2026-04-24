@@ -1,0 +1,328 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using HaulitCore.Application.Features.Reports;
+using HaulitCore.Application.Interfaces.Services;
+using HaulitCore.Contracts.Reports;
+using HaulitCore.Mobile.Diagnostics;
+using HaulitCore.Mobile.Features;
+using HaulitCore.Mobile.Services;
+using Microsoft.Maui.ApplicationModel;
+using Microsoft.Maui.ApplicationModel.DataTransfer;
+using Microsoft.Maui.Controls;
+
+namespace HaulitCore.Mobile.ViewModels;
+
+[QueryProperty(nameof(FocusJobId), "jobId")]
+public class ReportsViewModel : BaseViewModel
+{
+    #region Dependencies
+
+    private readonly ReportsApiService _reportsApiService;
+    private readonly ISessionService _session;
+    private readonly ICrashLogger _crashLogger;
+
+    #endregion
+
+    #region State
+
+    private bool _isLoading;
+    private DateTime _selectedDate = DateTime.Today.Date;
+    private Guid? _focusJobId;
+    private bool _includeGst = true;
+
+    #endregion
+
+    #region Collections
+
+    public ObservableCollection<DeliveryReceiptDto> Receipts { get; } = new();
+
+    #endregion
+
+    #region Computed Stats
+
+    public int DeliveredCount => Receipts.Count;
+    public decimal TotalRevenue => Receipts.Sum(r => r.Total);
+
+    #endregion
+
+    #region Feature Access
+
+    public bool IsReportsVisible => IsFeatureVisible(AppFeature.Reports);
+    public bool IsReportsEnabled => IsFeatureEnabled(AppFeature.Reports);
+
+    public bool IsExportInvoiceVisible => IsFeatureVisible(AppFeature.ExportInvoice);
+    public bool IsExportInvoiceEnabled => IsFeatureEnabled(AppFeature.ExportInvoice);
+
+    public bool IsExportPodVisible => IsFeatureVisible(AppFeature.ExportPod);
+    public bool IsExportPodEnabled => IsFeatureEnabled(AppFeature.ExportPod);
+
+    #endregion
+
+    #region Options
+
+    public bool IncludeGst
+    {
+        get => _includeGst;
+        set => SetProperty(ref _includeGst, value);
+    }
+
+    public decimal GstRate { get; set; } = 0.15m;
+
+    #endregion
+
+    #region Commands
+
+    public ICommand RefreshCommand { get; }
+    public ICommand ExportInvoiceCommand { get; }
+    public ICommand ExportPodCommand { get; }
+
+    #endregion
+
+    #region Constructor
+
+    public ReportsViewModel(
+        ReportsApiService reportsApiService,
+        ISessionService session,
+        IFeatureAccessService featureAccessService,
+        ICrashLogger crashLogger)
+        : base(featureAccessService)
+    {
+        _reportsApiService = reportsApiService;
+        _session = session;
+        _crashLogger = crashLogger;
+
+        RefreshCommand = new Command(async () => await LoadAsync());
+        ExportInvoiceCommand = new Command<Guid>(async receiptId => await ExportInvoiceAsync(receiptId));
+        ExportPodCommand = new Command<Guid>(async receiptId => await ExportPodAsync(receiptId));
+    }
+
+    #endregion
+
+    #region Query Param
+
+    public string FocusJobId
+    {
+        get => _focusJobId?.ToString() ?? string.Empty;
+        set
+        {
+            if (!Guid.TryParse(value, out var id))
+                return;
+
+            _focusJobId = id;
+            _ = JumpToReceiptDateAndReloadAsync(id);
+        }
+    }
+
+    #endregion
+
+    #region Date Filter
+
+    public DateTime SelectedDate
+    {
+        get => _selectedDate;
+        set
+        {
+            var normalized = value.Date;
+
+            if (_selectedDate.Date == normalized)
+                return;
+
+            _selectedDate = normalized;
+            OnPropertyChanged();
+
+            _ = LoadAsync();
+        }
+    }
+
+    #endregion
+
+    #region Load
+
+    public async Task LoadAsync()
+    {
+        if (_isLoading)
+            return;
+
+        _isLoading = true;
+
+        try
+        {
+            await SafeRunner.RunAsync(
+                async () =>
+                {
+                    Receipts.Clear();
+
+                    if (!IsFeatureEnabled(AppFeature.Reports))
+                    {
+                        RaiseSummaryAndFeatureBindings();
+                        return;
+                    }
+
+                    if (!_session.IsAuthenticated)
+                        await _session.RestoreAsync();
+
+                    var ownerUserId = _session.CurrentOwnerId ?? Guid.Empty;
+                    if (ownerUserId == Guid.Empty)
+                    {
+                        RaiseSummaryAndFeatureBindings();
+                        return;
+                    }
+
+                    var filtered = await _reportsApiService.GetReceiptsAsync(SelectedDate);
+
+                    foreach (var receipt in filtered.OrderByDescending(r => r.DeliveredAtUtc))
+                        Receipts.Add(receipt);
+
+                    RaiseSummaryAndFeatureBindings();
+                },
+                _crashLogger,
+                "ReportsViewModel.LoadAsync",
+                nameof(Views.ReportsPage),
+                onError: async _ =>
+                {
+                    RaiseSummaryAndFeatureBindings();
+                    await Shell.Current.DisplayAlertAsync("Error", "Unable to load reports right now.", "OK");
+                });
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task JumpToReceiptDateAndReloadAsync(Guid jobId)
+    {
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                if (!IsFeatureEnabled(AppFeature.Reports))
+                    return;
+
+                await LoadAsync();
+
+                if (_focusJobId == null)
+                    return;
+
+                var matchingReceipt = Receipts.FirstOrDefault(r => r.JobId == jobId);
+                if (matchingReceipt == null)
+                    return;
+
+                var localDate = ToLocalDate(matchingReceipt.DeliveredAtUtc);
+
+                if (_selectedDate.Date != localDate)
+                {
+                    _selectedDate = localDate;
+                    OnPropertyChanged(nameof(SelectedDate));
+                    await LoadAsync();
+                }
+            },
+            _crashLogger,
+            "ReportsViewModel.JumpToReceiptDateAndReloadAsync",
+            nameof(Views.ReportsPage));
+    }
+
+    #endregion
+
+    #region Export Invoice
+
+    private async Task ExportInvoiceAsync(Guid receiptId)
+    {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.ExportInvoice))
+            return;
+
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                var pdfBytes = await _reportsApiService.ExportInvoicePdfAsync(receiptId, IncludeGst, GstRate);
+
+                var filename = $"Invoice_{receiptId}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
+
+                System.IO.File.WriteAllBytes(path, pdfBytes);
+
+                await Share.RequestAsync(new ShareFileRequest
+                {
+                    Title = "Export invoice",
+                    File = new ShareFile(path)
+                });
+            },
+            _crashLogger,
+            "ReportsViewModel.ExportInvoiceAsync",
+            nameof(Views.ReportsPage),
+            metadataJson: $"{{\"ReceiptId\":\"{receiptId}\",\"IncludeGst\":{IncludeGst.ToString().ToLowerInvariant()},\"GstRate\":{GstRate}}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Export failed", ex.Message, "OK");
+            });
+    }
+
+    #endregion
+
+    #region Export POD
+
+    private async Task ExportPodAsync(Guid receiptId)
+    {
+        if (!await EnsureFeatureEnabledAsync(AppFeature.ExportPod))
+            return;
+
+        await SafeRunner.RunAsync(
+            async () =>
+            {
+                var pdfBytes = await _reportsApiService.ExportPodPdfAsync(receiptId);
+
+                var filename = $"POD_{receiptId}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                var path = System.IO.Path.Combine(FileSystem.CacheDirectory, filename);
+
+                System.IO.File.WriteAllBytes(path, pdfBytes);
+
+                await Share.RequestAsync(new ShareFileRequest
+                {
+                    Title = "Export POD",
+                    File = new ShareFile(path)
+                });
+            },
+            _crashLogger,
+            "ReportsViewModel.ExportPodAsync",
+            nameof(Views.ReportsPage),
+            metadataJson: $"{{\"ReceiptId\":\"{receiptId}\"}}",
+            onError: async ex =>
+            {
+                await Shell.Current.DisplayAlertAsync("Export failed", ex.Message, "OK");
+            });
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private void RaiseSummaryAndFeatureBindings()
+    {
+        OnPropertyChanged(nameof(DeliveredCount));
+        OnPropertyChanged(nameof(TotalRevenue));
+        RefreshFeatureBindings();
+    }
+
+    private void RefreshFeatureBindings()
+    {
+        OnPropertyChanged(nameof(IsReportsVisible));
+        OnPropertyChanged(nameof(IsReportsEnabled));
+        OnPropertyChanged(nameof(IsExportInvoiceVisible));
+        OnPropertyChanged(nameof(IsExportInvoiceEnabled));
+        OnPropertyChanged(nameof(IsExportPodVisible));
+        OnPropertyChanged(nameof(IsExportPodEnabled));
+    }
+
+    private static DateTime ToLocalDate(DateTime utc)
+    {
+        var safeUtc = utc.Kind == DateTimeKind.Utc
+            ? utc
+            : DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+
+        return safeUtc.ToLocalTime().Date;
+    }
+
+    #endregion
+}

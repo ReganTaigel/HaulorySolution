@@ -1,0 +1,12 @@
+<Solution>
+  <Project Path="Development.Api/HaulitCoreDevelopment.Api.csproj" Id="7933cc9c-cc1a-4234-85d5-12113bb99231" />
+  <Project Path="HaulitCore.Api/HaulitCore.Api.csproj" />
+  <Project Path="HaulitCore.Application/HaulitCore.Application.csproj" />
+  <Project Path="HaulitCore.Contracts/HaulitCore.Contracts.csproj" />
+  <Project Path="HaulitCore.Core/HaulitCore.Core.csproj" />
+  <Project Path="HaulitCore.Domain/HaulitCore.Domain.csproj" />
+  <Project Path="HaulitCore.Infrastructure/HaulitCore.Infrastructure.csproj" />
+  <Project Path="HaulitCore.Mobile/HaulitCore.Mobile.csproj">
+    <Deploy Solution="Release|*" />
+  </Project>
+</Solution>

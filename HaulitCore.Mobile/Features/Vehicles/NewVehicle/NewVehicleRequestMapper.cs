@@ -1,0 +1,272 @@
+using HaulitCore.Contracts.Vehicles;
+using HaulitCore.Domain.Enums;
+
+namespace HaulitCore.Mobile.Features.Vehicles.NewVehicle;
+
+public sealed class NewVehicleRequestMapper
+{
+    public CreateVehicleSetRequest MapCreate(NewVehicleFormState state)
+    {
+        var units = new List<CreateVehicleUnitRequest>();
+
+        if (IsPoweredVehicle(state))
+        {
+            units.Add(new CreateVehicleUnitRequest
+            {
+                UnitNumber = 1,
+                Kind = "PowerUnit",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit1Rego,
+                RegoExpiry = state.Unit1RegoExpiry,
+                Make = state.Unit1Make,
+                Model = state.Unit1Model,
+                Year = state.Unit1Year ?? 0,
+                FuelType = state.FuelType?.ToString(),
+                Configuration = GetPowerUnitConfigurationForApi(state),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit1CertExpiry,
+                HubodometerKm = state.PowerUnitHubodometerKm,
+                RucPurchasedDate = state.Unit1RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit1RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit1RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit1RucLicenceEndKm
+            });
+        }
+        else
+        {
+            units.Add(new CreateVehicleUnitRequest
+            {
+                UnitNumber = 2,
+                Kind = "Trailer",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit2Rego,
+                RegoExpiry = state.Unit2RegoExpiry,
+                Make = state.Unit2Make,
+                Model = state.Unit2Model,
+                Year = state.Unit2Year ?? 0,
+                Configuration = IsHeavyTrailer(state)
+                    ? state.HeavyConfiguration?.ToString()
+                    : state.LightConfiguration?.ToString(),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit2CertExpiry,
+                HubodometerKm = state.Trailer1HubodometerKm,
+                RucPurchasedDate = state.Unit2RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit2RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit2RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit2RucLicenceEndKm
+            });
+
+            if (IsBTrain(state))
+            {
+                units.Add(new CreateVehicleUnitRequest
+                {
+                    UnitNumber = 3,
+                    Kind = "Trailer",
+                    VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                    Rego = state.Unit3Rego,
+                    RegoExpiry = state.Unit3RegoExpiry,
+                    Make = state.Unit3Make,
+                    Model = state.Unit3Model,
+                    Year = state.Unit3Year ?? 0,
+                    Configuration = state.HeavyConfiguration?.ToString(),
+                    CertificateType = RequiredCertificate(state).ToString(),
+                    CertificateExpiry = state.Unit3CertExpiry,
+                    HubodometerKm = state.Trailer2HubodometerKm,
+                    RucPurchasedDate = state.Unit3RucPurchasedDate,
+                    RucDistancePurchasedKm = state.Unit3RucDistancePurchasedKm,
+                    RucLicenceStartKm = state.Unit3RucLicenceStartKm,
+                    RucLicenceEndKm = state.Unit3RucLicenceEndKm
+                });
+            }
+        }
+
+        return new CreateVehicleSetRequest { Units = units };
+    }
+
+    public UpdateVehicleUnitRequest MapUpdate(NewVehicleFormState state)
+    {
+        if (IsPoweredVehicle(state))
+        {
+            return new UpdateVehicleUnitRequest
+            {
+                UnitNumber = 1,
+                Kind = "PowerUnit",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit1Rego,
+                RegoExpiry = state.Unit1RegoExpiry,
+                Make = state.Unit1Make,
+                Model = state.Unit1Model,
+                Year = state.Unit1Year ?? 0,
+                FuelType = state.FuelType?.ToString(),
+                Configuration = GetPowerUnitConfigurationForApi(state),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit1CertExpiry,
+                HubodometerKm = state.PowerUnitHubodometerKm,
+                RucPurchasedDate = state.Unit1RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit1RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit1RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit1RucLicenceEndKm
+            };
+        }
+
+        if (!IsBTrain(state))
+        {
+            return new UpdateVehicleUnitRequest
+            {
+                UnitNumber = 2,
+                Kind = "Trailer",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit2Rego,
+                RegoExpiry = state.Unit2RegoExpiry,
+                Make = state.Unit2Make,
+                Model = state.Unit2Model,
+                Year = state.Unit2Year ?? 0,
+                Configuration = IsHeavyTrailer(state)
+                    ? state.HeavyConfiguration?.ToString()
+                    : state.LightConfiguration?.ToString(),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit2CertExpiry,
+                HubodometerKm = state.Trailer1HubodometerKm,
+                RucPurchasedDate = state.Unit2RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit2RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit2RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit2RucLicenceEndKm
+            };
+        }
+
+        return new UpdateVehicleUnitRequest
+        {
+            UnitNumber = 3,
+            Kind = "Trailer",
+            VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+            Rego = state.Unit3Rego,
+            RegoExpiry = state.Unit3RegoExpiry,
+            Make = state.Unit3Make,
+            Model = state.Unit3Model,
+            Year = state.Unit3Year ?? 0,
+            Configuration = state.HeavyConfiguration?.ToString(),
+            CertificateType = RequiredCertificate(state).ToString(),
+            CertificateExpiry = state.Unit3CertExpiry,
+            HubodometerKm = state.Trailer2HubodometerKm,
+            RucPurchasedDate = state.Unit3RucPurchasedDate,
+            RucDistancePurchasedKm = state.Unit3RucDistancePurchasedKm,
+            RucLicenceStartKm = state.Unit3RucLicenceStartKm,
+            RucLicenceEndKm = state.Unit3RucLicenceEndKm
+        };
+    }
+    public UpdateVehicleSetRequest MapUpdateSet(NewVehicleFormState state)
+    {
+        var units = new List<UpdateVehicleUnitRequest>();
+
+        if (IsPoweredVehicle(state))
+        {
+            units.Add(new UpdateVehicleUnitRequest
+            {
+                Id = state.Unit1Id, // preserve existing asset id
+                UnitNumber = 1,
+                Kind = "PowerUnit",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit1Rego,
+                RegoExpiry = state.Unit1RegoExpiry,
+                Make = state.Unit1Make,
+                Model = state.Unit1Model,
+                Year = state.Unit1Year ?? 0,
+                FuelType = state.FuelType?.ToString(),
+                Configuration = GetPowerUnitConfigurationForApi(state),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit1CertExpiry,
+                HubodometerKm = state.PowerUnitHubodometerKm,
+                RucPurchasedDate = state.Unit1RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit1RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit1RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit1RucLicenceEndKm
+            });
+        }
+        else
+        {
+            units.Add(new UpdateVehicleUnitRequest
+            {
+                Id = state.Unit2Id, 
+                UnitNumber = 2,
+                Kind = "Trailer",
+                VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                Rego = state.Unit2Rego,
+                RegoExpiry = state.Unit2RegoExpiry,
+                Make = state.Unit2Make,
+                Model = state.Unit2Model,
+                Year = state.Unit2Year ?? 0,
+                Configuration = IsHeavyTrailer(state)
+                    ? state.HeavyConfiguration?.ToString()
+                    : state.LightConfiguration?.ToString(),
+                CertificateType = RequiredCertificate(state).ToString(),
+                CertificateExpiry = state.Unit2CertExpiry,
+                HubodometerKm = state.Trailer1HubodometerKm,
+                RucPurchasedDate = state.Unit2RucPurchasedDate,
+                RucDistancePurchasedKm = state.Unit2RucDistancePurchasedKm,
+                RucLicenceStartKm = state.Unit2RucLicenceStartKm,
+                RucLicenceEndKm = state.Unit2RucLicenceEndKm
+            });
+
+            if (IsBTrain(state))
+            {
+                units.Add(new UpdateVehicleUnitRequest
+                {
+                    Id = state.Unit3Id, 
+                    UnitNumber = 3,
+                    Kind = "Trailer",
+                    VehicleType = state.VehicleType?.ToString() ?? string.Empty,
+                    Rego = state.Unit3Rego,
+                    RegoExpiry = state.Unit3RegoExpiry,
+                    Make = state.Unit3Make,
+                    Model = state.Unit3Model,
+                    Year = state.Unit3Year ?? 0,
+                    Configuration = state.HeavyConfiguration?.ToString(),
+                    CertificateType = RequiredCertificate(state).ToString(),
+                    CertificateExpiry = state.Unit3CertExpiry,
+                    HubodometerKm = state.Trailer2HubodometerKm,
+                    RucPurchasedDate = state.Unit3RucPurchasedDate,
+                    RucDistancePurchasedKm = state.Unit3RucDistancePurchasedKm,
+                    RucLicenceStartKm = state.Unit3RucLicenceStartKm,
+                    RucLicenceEndKm = state.Unit3RucLicenceEndKm
+                });
+            }
+        }
+
+        return new UpdateVehicleSetRequest
+        {
+            Units = units
+        };
+    }
+
+    private static bool IsPoweredVehicle(NewVehicleFormState state) =>
+        state.VehicleType is VehicleType.LightVehicle or VehicleType.LightCommercial or VehicleType.RigidTruckMedium or VehicleType.RigidTruckHeavy or VehicleType.TractorUnit;
+
+    private static bool IsHeavyTrailer(NewVehicleFormState state) => state.VehicleType == VehicleType.TrailerHeavy;
+
+    private static bool IsBTrain(NewVehicleFormState state) =>
+        IsHeavyTrailer(state) &&
+        state.HeavyConfiguration is VehicleConfiguration.BDblCurtainsider or VehicleConfiguration.BDblFlatDeck or VehicleConfiguration.BDblRefrigerated or VehicleConfiguration.BDblTanker or VehicleConfiguration.BDblBottomDumper or VehicleConfiguration.BDblSideTipper;
+
+    private static ComplianceCertificateType RequiredCertificate(NewVehicleFormState state) =>
+        state.VehicleType is VehicleType.RigidTruckMedium or VehicleType.RigidTruckHeavy or VehicleType.TrailerHeavy
+            ? ComplianceCertificateType.Cof
+            : ComplianceCertificateType.Wof;
+
+    private static string? GetPowerUnitConfigurationForApi(NewVehicleFormState state)
+    {
+        if (state.VehicleType == VehicleType.TractorUnit)
+            return null;
+
+        return state.PowerUnitBodyType switch
+        {
+            Domain.Enums.PowerUnitBodyType.Curtainsider => "Rigid Curtainsider",
+            Domain.Enums.PowerUnitBodyType.FlatDeck => "Rigid FlatDeck",
+            Domain.Enums.PowerUnitBodyType.Refrigerated => "Rigid Refrigerated",
+            Domain.Enums.PowerUnitBodyType.Tanker => "Rigid Tanker",
+            Domain.Enums.PowerUnitBodyType.Tipper => "Rigid Tipper",
+
+            _ => null
+        };
+    }
+
+}

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="HaulitCore.Mobile.Views.AddWorkSiteTemplatePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource BrandBackground}">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="False" />
+    </Shell.BackButtonBehavior>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="14" Padding="20">
+
+            <!-- Header -->
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Create work site template"
+                       FontSize="24"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource BrandTitle}" />
+                <Label Text="Add the site and its induction requirements in one go"
+                       FontSize="13"
+                       TextColor="{StaticResource BrandInk}" />
+            </VerticalStackLayout>
+
+            <!-- Work site card -->
+            <Border StrokeThickness="1"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{StaticResource BrandSurface}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="14">
+
+                    <!-- Name -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Site name"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
+
+                        <Border StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,10">
+                            <Entry Placeholder="Port Tauranga - Sulphur Point"
+                                   Text="{Binding Name}"
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Optional: keep address collapsed (fast entry) -->
+                    <Label Text="Address (optional)"
+                           FontSize="12"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource BrandTitle}"
+                           Margin="0,4,0,0" />
+
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{StaticResource BrandTileFill}"
+                            Padding="12,10">
+                        <Entry Placeholder="Address line 1"
+                               Text="{Binding AddressLine1}"
+                               HeightRequest="44"
+                               TextColor="{StaticResource BrandInk}"
+                               PlaceholderColor="{StaticResource Gray600}" />
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Border Grid.Column="0"
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,10">
+                            <Entry Placeholder="Suburb"
+                                   Text="{Binding Suburb}"
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+
+                        <Border Grid.Column="1"
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource BrandTileFill}"
+                                Padding="12,10">
+                            <Entry Placeholder="City"
+                                   Text="{Binding City}"
+                                   HeightRequest="44"
+                                   TextColor="{StaticResource BrandInk}"
+                                   PlaceholderColor="{StaticResource Gray600}" />
+                        </Border>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Requirements card -->
+            <Border StrokeThickness="1"
+                    Stroke="{StaticResource Gray300}"
+                    StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{StaticResource BrandSurface}"
+                    Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Text="Induction requirements"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource BrandTitle}" />
+
+                        <Button Grid.Column="1"
+                                Text="+ Add"
+                                Command="{Binding AddRequirementDraftCommand}"
+                                HeightRequest="38"
+                                CornerRadius="12"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="{StaticResource White}" />
+                    </Grid>
+
+                    <Label Text="Add one or more requirements. Title is required."
+                           FontSize="12"
+                           TextColor="{StaticResource BrandInk}"
+                           Opacity="0.9" />
+
+                    <CollectionView ItemsSource="{Binding RequirementDrafts}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border StrokeThickness="1"
+                                        Stroke="{StaticResource Gray200}"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="{StaticResource BrandTileFill}"
+                                        Padding="12"
+                                        Margin="0,0,0,10">
+
+                                    <VerticalStackLayout Spacing="10">
+
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <Entry Placeholder="Title (e.g., Safety induction)"
+                                                   Text="{Binding Title}"
+                                                   HeightRequest="44"
+                                                   BackgroundColor="Transparent"
+                                                   TextColor="{StaticResource BrandInk}"
+                                                   PlaceholderColor="{StaticResource Gray600}" />
+
+                                            <Button Grid.Column="1"
+                                                    Text="Remove"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RemoveRequirementDraftCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    HeightRequest="44"
+                                                    CornerRadius="12"
+                                                    BackgroundColor="{StaticResource Gray200}"
+                                                    TextColor="{StaticResource BrandInk}" />
+                                        </Grid>
+                                        <Entry Placeholder="Company (optional): e.g., Fonterra"
+                                               Text="{Binding CompanyName}"
+                                               HeightRequest="44"
+                                               BackgroundColor="Transparent"
+                                               TextColor="{StaticResource BrandInk}"
+                                               PlaceholderColor="{StaticResource Gray600}" />
+                                        
+                                        <Entry Placeholder="PPE (optional): Hi vis, hard hat..."
+                                               Text="{Binding PpeRequired}"
+                                               HeightRequest="44"
+                                               BackgroundColor="Transparent"
+                                               TextColor="{StaticResource BrandInk}"
+                                               PlaceholderColor="{StaticResource Gray600}" />
+
+                                        <Entry Placeholder="Valid for days (optional)"
+                                               Keyboard="Numeric"
+                                               Text="{Binding ValidForDaysText}"
+                                               HeightRequest="44"
+                                               BackgroundColor="Transparent"
+                                               TextColor="{StaticResource BrandInk}"
+                                               PlaceholderColor="{StaticResource Gray600}" />
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Actions -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+
+                <Button Grid.Column="0"
+                        Text="Cancel"
+                        Command="{Binding CancelCommand}"
+                        HeightRequest="46"
+                        CornerRadius="14"
+                        BackgroundColor="{StaticResource Gray200}"
+                        TextColor="{StaticResource BrandInk}" />
+
+                <Button Grid.Column="1"
+                        Text="Save"
+                        Command="{Binding SaveAllCommand}"
+                        IsEnabled="{Binding CanSave}"
+                        HeightRequest="46"
+                        CornerRadius="14"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="{StaticResource White}" />
+            </Grid>
+
+            <BoxView HeightRequest="6" Opacity="0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

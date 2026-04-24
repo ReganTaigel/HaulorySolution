@@ -1,0 +1,37 @@
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="HaulitCore.Mobile.Views.HubodometerEntryPage"
+    Title="Hubodometer Entry">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="Asset" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Assets}"
+                    ItemDisplayBinding="{Binding DisplayName}"
+                    SelectedItem="{Binding SelectedAsset}" />
+
+            <Label Text="Current Hubodometer" FontAttributes="Bold" />
+            <Label Text="{Binding CurrentHubodometerDisplay}" />
+
+            <Label Text="Reading Type" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding ReadingTypes}"
+                    SelectedItem="{Binding SelectedReadingType}" />
+
+            <Label Text="Reading (km)" FontAttributes="Bold" />
+            <Entry Text="{Binding ReadingKm}"
+                   Keyboard="Numeric"
+                   Placeholder="Enter Hubodometer reading" />
+
+            <Label Text="Notes" FontAttributes="Bold" />
+            <Editor Text="{Binding Notes}"
+                    AutoSize="TextChanges"
+                    Placeholder="Optional notes" />
+
+            <Button Text="Save Reading"
+                    Command="{Binding SaveCommand}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

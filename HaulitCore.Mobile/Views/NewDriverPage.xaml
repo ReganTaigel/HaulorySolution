@@ -1,0 +1,604 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="HaulitCore.Mobile.Views.NewDriverPage"
+    BackgroundColor="{StaticResource BrandBackground}"
+    IsVisible="{Binding ShowAddDriver}"
+    SafeAreaEdges="Container">
+
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior IsVisible="True" />
+    </Shell.BackButtonBehavior>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- DRIVER DETAILS -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="driver.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Driver details"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+                            
+                            <Label Text="First Name"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
+                            <Border Style="{StaticResource InputBorderStyle}">
+
+                                <Entry
+                                    Placeholder="First name"
+                                    Text="{Binding FirstName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                                
+                            </Border>
+                            
+                            <Label Text="Last Name"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                
+                                <Entry
+                                    Placeholder="Last name"
+                                    Text="{Binding LastName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                                
+                            </Border>
+                            
+                            <Label
+                                    Text="Phone number"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                            
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                        Placeholder="Optional"
+                                        Keyboard="Telephone"
+                                        Text="{Binding PhoneNumber}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+                            
+                            <Label Text="Email"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}"/>
+                            
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                
+                                <Entry
+                                    Placeholder="Email"
+                                    Keyboard="Email"
+                                    Text="{Binding Email}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                                
+                            </Border>
+                            
+                            <VerticalStackLayout Spacing="6">
+                                
+                                <Label
+                                    Text="Date of birth"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    
+                                    <DatePicker
+                                        Date="{Binding DateOfBirthLocal}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                    
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- CREATE LOGIN -->
+                            <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="12"
+                                    Margin="0,4,0,0"
+                                    IsVisible="{Binding ShowCreateLoginSection}">
+
+                                <VerticalStackLayout Spacing="10">
+
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        
+                                        <VerticalStackLayout Spacing="3">
+                                            
+                                            <Label
+                                                Text="Create login for this driver"
+                                                FontSize="13"
+                                                FontAttributes="Bold"
+                                                TextColor="{StaticResource BrandTitle}" />
+
+                                            <Label
+                                                Text="Allows this driver to sign in on their phone"
+                                                FontSize="13"
+                                                LineHeight="1.15"
+                                                TextColor="{StaticResource Gray600}" />
+                                            
+                                        </VerticalStackLayout>
+
+                                        <Switch
+                                            Grid.Column="1"
+                                            IsToggled="{Binding CreateLoginAccount}"
+                                            VerticalOptions="Center" />
+                                        
+                                    </Grid>
+
+                                    <VerticalStackLayout Spacing="6">
+                                        
+                                        <VerticalStackLayout.Triggers>
+                                            <DataTrigger
+                                                TargetType="VerticalStackLayout"
+                                                Binding="{Binding CreateLoginAccount}"
+                                                Value="False">
+                                                <Setter Property="IsVisible" Value="False" />
+                                            </DataTrigger>
+                                        </VerticalStackLayout.Triggers>
+
+                                        <Label
+                                            Text="Temporary password"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            TextColor="{StaticResource BrandTitle}" />
+
+                                        <Border Style="{StaticResource InputBorderStyle}">
+                                            <Entry
+                                                Placeholder="Password"
+                                                Text="{Binding Password}"
+                                                IsPassword="True"
+                                                FontSize="14"
+                                                HeightRequest="44"
+                                                TextColor="{StaticResource BrandInk}"
+                                                PlaceholderColor="{StaticResource Gray500}" />
+                                        </Border>
+
+                                        <Label
+                                            Text="You can reset this later in Manage Users."
+                                            FontSize="13"
+                                            TextColor="{StaticResource Gray600}" />
+                                    </VerticalStackLayout>
+
+                                </VerticalStackLayout>
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- CONTACT AND LICENCE -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="license.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Contact and licence"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="12">
+
+                            <VerticalStackLayout Spacing="6">
+
+                                <Label
+                                    Text="Licence Number"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    
+                                    <Entry
+                                        Placeholder="Licence number (optional)"
+                                        Text="{Binding LicenceNumber}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Licence version"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="e.g., V3 / Card version"
+                                        Text="{Binding LicenceVersion}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Class / endorsements"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border Style="{StaticResource InputBorderStyle}">
+                                    <Entry
+                                        Placeholder="e.g., Class 5, D, F"
+                                        Text="{Binding LicenceClassOrEndorsements}"
+                                        FontSize="14"
+                                        HeightRequest="44"
+                                        TextColor="{StaticResource BrandInk}"
+                                        PlaceholderColor="{StaticResource Gray500}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Issued date"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding LicenceIssuedLocal}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+                            
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Licence expiry"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,6">
+                                    <DatePicker
+                                        Date="{Binding LicenceExpiryLocal}"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+
+                            <VerticalStackLayout Spacing="6">
+                                <Label
+                                    Text="Conditions / notes"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource BrandTitle}" />
+                                <Border
+                                    StrokeThickness="1"
+                                    Stroke="{StaticResource Gray200}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource BrandSurface}"
+                                    Padding="10,8">
+                                    <Editor
+                                        Placeholder="e.g., Must wear corrective lenses, restricted hours..."
+                                        Text="{Binding LicenceConditionsNotes}"
+                                        FontSize="14"
+                                        AutoSize="TextChanges"
+                                        HeightRequest="110"
+                                        TextColor="{StaticResource BrandInk}" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ADDRESS -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="location.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Address"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Optional"
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Address line 1"
+                                    Text="{Binding Line1}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Suburb"
+                                    Text="{Binding Suburb}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="City"
+                                    Text="{Binding City}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Region"
+                                    Text="{Binding Region}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Postcode"
+                                    Text="{Binding Postcode}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Country"
+                                    Text="{Binding Country}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- EMERGENCY CONTACT -->
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Stroke="{StaticResource Gray300}"
+                StrokeShape="RoundRectangle 18"
+                Padding="16">
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="8">
+                        <Image
+                            Source="shield.svg"
+                            HeightRequest="16"
+                            WidthRequest="16"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="Emergency contact"
+                            FontSize="17"
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource BrandTitle}" />
+                    </Grid>
+
+                    <Label
+                        Text="Required for compliance and safety"
+                        FontSize="13"
+                        TextColor="{StaticResource Gray600}" />
+
+                    <Border
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource BrandTileFill}"
+                        Padding="12">
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="First name"
+                                    Text="{Binding EmergencyFirstName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Last name"
+                                    Text="{Binding EmergencyLastName}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Relationship"
+                                    Text="{Binding EmergencyRelationship}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Email"
+                                    Keyboard="Email"
+                                    Text="{Binding EmergencyEmail}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Phone number"
+                                    Keyboard="Telephone"
+                                    Text="{Binding EmergencyPhoneNumber}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                            <Border Style="{StaticResource InputBorderStyle}">
+                                <Entry
+                                    Placeholder="Secondary phone number (optional)"
+                                    Keyboard="Telephone"
+                                    Text="{Binding EmergencySecondaryPhoneNumber}"
+                                    FontSize="14"
+                                    HeightRequest="44"
+                                    TextColor="{StaticResource BrandInk}"
+                                    PlaceholderColor="{StaticResource Gray500}" />
+                            </Border>
+
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- SAVE -->
+            <Border
+                    BackgroundColor="{StaticResource White}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 20"
+                    IsVisible="{Binding ShowAddDriver}"
+                    Padding="12"
+                    Margin="0,4,0,8">
+
+                <Button
+                    Text="{Binding SaveButtonText}"
+                    Command="{Binding SaveDriverCommand}"
+                    IsEnabled="{Binding CanSave}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HeightRequest="50" />
+            </Border>
+            <BoxView HeightRequest="6" Opacity="0" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
